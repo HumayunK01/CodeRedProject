@@ -1,0 +1,43 @@
+{
+  "name": "biosentinel-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BioSentinel - ML-Driven Malaria Diagnosis & Outbreak Forecasting",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "build:dev": "npm run build:dev --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "preview": "npm run preview --workspace=apps/web",
+    "install:web": "npm install --workspace=apps/web",
+    "install:inference": "npm install --workspace=apps/inference",
+    "clean": "npm run clean --workspaces",
+    "type-check": "npm run type-check --workspace=apps/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/biosentinel.git"
+  },
+  "keywords": [
+    "malaria",
+    "diagnosis",
+    "machine-learning",
+    "epidemiology",
+    "healthcare",
+    "react",
+    "fastapi",
+    "monorepo"
+  ],
+  "author": "BioSentinel Team",
+  "license": "MIT"
+}

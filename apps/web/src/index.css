@@ -1,0 +1,296 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* BioSentinel Medical-Tech Design System
+   Cool neutrals with emerald/teal accents for scientific precision
+   All colors MUST be HSL for consistency
+*/
+
+@layer base {
+  :root {
+    /* Background System - Cool grays with subtle blue undertones */
+    --background: 210 17% 98%;
+    --foreground: 210 11% 15%;
+
+    /* Card System - Soft whites with medical clarity */
+    --card: 210 17% 99%;
+    --card-foreground: 210 11% 15%;
+
+    /* Popover System */
+    --popover: 210 17% 99%;
+    --popover-foreground: 210 11% 15%;
+
+    /* Primary System - Deep emerald/teal with higher contrast */
+    --primary: 168 85% 35%;
+    --primary-foreground: 168 85% 98%;
+    --primary-light: 168 75% 45%;
+    --primary-dark: 168 95% 25%;
+
+    /* Secondary System - Soft emerald */
+    --secondary: 158 35% 92%;
+    --secondary-foreground: 158 76% 25%;
+
+    /* Muted System - Professional grays */
+    --muted: 210 12% 95%;
+    --muted-foreground: 210 8% 45%;
+
+    /* Accent System - Scientific emerald with higher contrast */
+    --accent: 156 85% 40%;
+    --accent-foreground: 156 85% 98%;
+    --accent-light: 156 70% 50%;
+
+    /* Status Colors - Medical grade */
+    --success: 145 63% 42%;
+    --success-foreground: 145 63% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 84% 98%;
+
+    /* Border & Input System */
+    --border: 210 12% 88%;
+    --input: 210 12% 92%;
+    --ring: 168 76% 36%;
+
+    /* Glassmorphism & Effects */
+    --glass-bg: 210 17% 98% / 0.8;
+    --glass-border: 210 12% 88% / 0.3;
+    --shadow-soft: 210 25% 15% / 0.08;
+    --shadow-medium: 210 25% 15% / 0.15;
+    --shadow-strong: 210 25% 15% / 0.25;
+
+    /* Gradients - Medical tech aesthetics */
+    --gradient-primary: linear-gradient(135deg, hsl(168 76% 36%), hsl(156 73% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(158 35% 92%), hsl(210 17% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(156 73% 45%), hsl(168 76% 36%));
+    --gradient-glass: linear-gradient(135deg, hsl(210 17% 98% / 0.9), hsl(210 17% 96% / 0.6));
+
+    /* Radius System - Soft, medical precision */
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode - Medical grade dark theme */
+    --background: 210 20% 8%;
+    --foreground: 210 17% 92%;
+
+    --card: 210 20% 10%;
+    --card-foreground: 210 17% 92%;
+
+    --popover: 210 20% 10%;
+    --popover-foreground: 210 17% 92%;
+
+    --primary: 168 75% 50%;
+    --primary-foreground: 210 20% 8%;
+    --primary-light: 168 65% 60%;
+    --primary-dark: 168 85% 40%;
+
+    --secondary: 210 15% 16%;
+    --secondary-foreground: 168 65% 70%;
+
+    --muted: 210 15% 14%;
+    --muted-foreground: 210 8% 55%;
+
+    --accent: 156 70% 55%;
+    --accent-foreground: 210 20% 8%;
+    --accent-light: 156 60% 65%;
+
+    --success: 145 50% 45%;
+    --success-foreground: 210 20% 8%;
+    --warning: 38 80% 55%;
+    --warning-foreground: 210 20% 8%;
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 210 20% 8%;
+
+    --border: 210 15% 18%;
+    --input: 210 15% 16%;
+    --ring: 168 65% 45%;
+
+    --glass-bg: 210 20% 8% / 0.9;
+    --glass-border: 210 15% 25% / 0.3;
+    --shadow-soft: 210 50% 5% / 0.5;
+    --shadow-medium: 210 50% 5% / 0.7;
+    --shadow-strong: 210 50% 5% / 0.9;
+
+    --gradient-primary: linear-gradient(135deg, hsl(168 65% 45%), hsl(156 60% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(210 15% 16%), hsl(210 20% 10%));
+    --gradient-accent: linear-gradient(135deg, hsl(156 60% 50%), hsl(168 65% 45%));
+    --gradient-glass: linear-gradient(135deg, hsl(210 20% 10% / 0.95), hsl(210 15% 14% / 0.8));
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Urbanist', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  /* Medical-grade scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
+  }
+}
+
+@layer components {
+  /* Glassmorphism components */
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-strong {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  /* Medical shadows */
+  .shadow-medical {
+    box-shadow: 0 4px 6px -1px hsl(var(--shadow-soft)),
+                0 2px 4px -1px hsl(var(--shadow-soft));
+  }
+
+  .shadow-medical-lg {
+    box-shadow: 0 10px 15px -3px hsl(var(--shadow-medium)),
+                0 4px 6px -2px hsl(var(--shadow-soft));
+  }
+
+  .shadow-medical-xl {
+    box-shadow: 0 20px 25px -5px hsl(var(--shadow-strong)),
+                0 10px 10px -5px hsl(var(--shadow-medium));
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .bg-gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .bg-gradient-glass {
+    background: var(--gradient-glass);
+  }
+
+  /* Medical button variants */
+  .btn-medical {
+    @apply relative overflow-hidden bg-gradient-primary text-primary-foreground;
+    @apply shadow-medical hover:shadow-medical-lg;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-medical::before {
+    content: '';
+    @apply absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-300;
+  }
+
+  .btn-medical:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Scientific data visualization */
+  .data-card {
+    @apply bg-card/50 backdrop-blur-sm border border-border/50;
+    @apply shadow-medical hover:shadow-medical-lg;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:border-primary/30 hover:bg-card/70;
+  }
+
+  /* Medical form inputs */
+  .input-medical {
+    @apply bg-card/80 border-border/60 backdrop-blur-sm;
+    @apply focus:border-primary/60 focus:bg-card/90;
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Status indicators */
+  .status-success {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .status-warning {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-error {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  /* Urbanist Font Utilities */
+  .font-display {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .font-heading {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  .font-body {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .font-mono {
+    font-family: 'Urbanist', monospace;
+    font-weight: 400;
+    letter-spacing: 0.025em;
+  }
+}
