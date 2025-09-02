@@ -7,6 +7,13 @@
 [![Status](https://img.shields.io/badge/status-development-yellow.svg)](#)
 [![Monorepo](https://img.shields.io/badge/monorepo-ready-brightgreen.svg)](#)
 
+## 🖼️ Preview
+
+<div align="center">
+  <img src="apps/web/public/preview.png" alt="BioSentinel Dashboard Preview" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <p><em>BioSentinel Dashboard - AI-powered malaria diagnosis and outbreak forecasting interface</em></p>
+</div>
+
 ## 📋 Project Overview
 
 BioSentinel is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide:
@@ -411,19 +418,19 @@ CMD ["npm", "run", "preview"]
 
 ### Core Team
 
-**🧠 Humayun** - *ML Engineering & System Integration*
+**🧠 Khan Humayun Majid** - *ML Engineering & System Integration*
 - Machine learning model development
 - Backend API architecture
 - Model deployment and optimization
 - Data pipeline engineering
 
-**🎨 Zoha** - *Frontend Development & UI/UX Design*
+**🎨 [Your Name]** - *Frontend Development & UI/UX Design*
 - React application development
 - User interface design
 - User experience optimization
 - Component library maintenance
 
-**📊 Adnan** - *Data Science & Research*
+**📊 [Your Name]** - *Data Science & Research*
 - Dataset curation and preprocessing
 - Statistical analysis and validation
 - Research methodology
