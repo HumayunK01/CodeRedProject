@@ -462,7 +462,7 @@ CMD ["npm", "run", "preview"]
 - User experience optimization
 - Component library maintenance
 
-**📊 [Your Name]** - *Data Science & Research*
+**📊 Ansari Adnan** - *Data Science & Research*
 - Dataset curation and preprocessing
 - Statistical analysis and validation
 - Research methodology
