@@ -614,8 +614,8 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/HumayunK01/CodeRedProject/issues)
 - **💡 Feature Requests**: [GitHub Discussions](https://github.com/HumayunK01/CodeRedProject/discussions)  
-- **📧 Email Support**: support@biosentinel.dev
-- **💬 Community**: [Discord Server](https://discord.gg/biosentinel)
+- **📧 Email Support**: humayunk.pvt@gmail.com
+- **💼 LinkedIn**: [devhumayun](https://www.linkedin.com/in/devhumayun/)
 
 </details>
 
@@ -623,8 +623,8 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 <summary><b>Status & Updates</b></summary>
 
 - **🔄 System Status**: [status.biosentinel.dev](https://status.biosentinel.dev)
-- **📢 Announcements**: [Twitter @BioSentinel](https://twitter.com/biosentinel)
 - **📰 Blog**: [blog.biosentinel.dev](https://blog.biosentinel.dev)
+- **💼 LinkedIn**: [devhumayun](https://www.linkedin.com/in/devhumayun/)
 
 </details>
 

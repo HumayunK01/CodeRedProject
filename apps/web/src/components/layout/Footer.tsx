@@ -6,10 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Microscope, 
   Mail, 
-  Phone, 
   MapPin, 
   Github, 
-  Twitter, 
   Linkedin, 
   Heart,
   Shield,
@@ -53,15 +51,13 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: "GitHub", href: "https://github.com/your-repo/biosentinel", icon: Github },
-    { name: "Twitter", href: "https://twitter.com/biosentinel", icon: Twitter },
-    { name: "LinkedIn", href: "https://linkedin.com/company/biosentinel", icon: Linkedin }
+    { name: "GitHub", href: "https://github.com/HumayunK01", icon: Github },
+    { name: "LinkedIn", href: "https://www.linkedin.com/in/devhumayun/", icon: Linkedin }
   ];
 
   const contactInfo = [
-    { icon: Mail, text: "support@biosentinel.dev", href: "mailto:support@biosentinel.dev" },
-    { icon: Phone, text: "+1 (555) 123-4567", href: "tel:+15551234567" },
-    { icon: MapPin, text: "San Francisco, CA", href: "#" }
+    { icon: Mail, text: "humayunk.pvt@gmail.com", href: "mailto:humayunk.pvt@gmail.com" },
+    { icon: MapPin, text: "Mumbai, India", href: "#" }
   ];
 
   const features = [
