@@ -2,7 +2,7 @@
 
 **AI-powered malaria detection and epidemiological intelligence platform**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/your-repo/biosentinel)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/HumayunK01/CodeRedProject)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-development-yellow.svg)](#)
 [![Monorepo](https://img.shields.io/badge/monorepo-ready-brightgreen.svg)](#)
@@ -30,7 +30,9 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 
 ## 🛠️ Tech Stack
 
-### Frontend (Current Implementation)
+<details>
+<summary><b>Frontend (Current Implementation)</b></summary>
+
 - **Framework**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Animations**: Framer Motion for smooth transitions
@@ -41,7 +43,11 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - **Theme**: Dark/Light mode with Next Themes
 - **PWA**: Progressive Web App capabilities
 
-### Backend (Planned)
+</details>
+
+<details>
+<summary><b>Backend (Planned)</b></summary>
+
 - **Framework**: FastAPI + Python 3.11+
 - **ML Models**: PyTorch/TensorFlow for CNN & LSTM models
 - **Database**: PostgreSQL + Redis for caching
@@ -49,17 +55,24 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - **Storage**: S3-compatible object storage
 - **Deployment**: Docker + Kubernetes
 
-### Data Sources (Planned)
+</details>
+
+<details>
+<summary><b>Data Sources (Planned)</b></summary>
+
 - **Medical Images**: NIH Malaria Dataset (27,000+ cell images)
 - **Climate Data**: Weather API integration
 - **Epidemiological**: WHO surveillance data
 - **Geographic**: OpenStreetMap + administrative boundaries
 
+</details>
+
 ---
 
 ## 🚀 Current Implementation Status
 
-### ✅ Completed Features
+<details>
+<summary><b>✅ Completed Features</b></summary>
 
 #### 🎨 Frontend Application
 - [x] **Modern UI/UX**: Medical-tech theme with dark mode default
@@ -92,7 +105,10 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - [x] **Heat Maps**: Geographic outbreak intensity visualization
 - [x] **Real-time Updates**: Live data refresh and animations
 
-### 🔄 In Development
+</details>
+
+<details>
+<summary><b>🔄 In Development</b></summary>
 
 #### 🤖 Machine Learning Pipeline
 - [ ] **Image Classification**: CNN model for blood smear analysis
@@ -112,11 +128,15 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - [ ] **Performance Monitoring**: System health and alerts
 - [ ] **Usage Analytics**: User behavior and engagement tracking
 
+</details>
+
 ---
 
 ## 📁 Project Structure
 
-### Current Structure (Monorepo Ready)
+<details>
+<summary><b>Current Structure (Monorepo Ready)</b></summary>
+
 ```
 CodeRed/                          # Root monorepo directory
 ├── apps/
@@ -154,7 +174,11 @@ CodeRed/                          # Root monorepo directory
 └── README.md                   # This file
 ```
 
-### Migration Path to Monorepo
+</details>
+
+<details>
+<summary><b>Migration Path to Monorepo</b></summary>
+
 To convert the current structure to a proper monorepo:
 
 1. **Create apps directory structure**:
@@ -194,9 +218,14 @@ To convert the current structure to a proper monorepo:
 3. **Update package.json scripts** for monorepo management
 4. **Add workspace configuration** for dependency management
 
+</details>
+
 ---
 
 ## 🏃‍♂️ Getting Started
+
+<details>
+<summary><b>Prerequisites & Installation</b></summary>
 
 ### Prerequisites
 - **Node.js**: 18.x or higher ([install with nvm](https://github.com/nvm-sh/nvm))
@@ -206,7 +235,7 @@ To convert the current structure to a proper monorepo:
 
 ```bash
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/HumayunK01/CodeRedProject.git
 cd CodeRed
 
 # Install dependencies (current structure)
@@ -218,26 +247,10 @@ npm run dev
 
 The application will be available at `http://localhost:8080`
 
-### For Monorepo Structure (Future)
+</details>
 
-```bash
-# Clone the repository
-git clone <YOUR_GIT_URL>
-cd CodeRed
-
-# Install dependencies for all apps
-npm install
-
-# Start frontend development server
-cd apps/web
-npm run dev
-
-# Start backend development server (when available)
-cd apps/inference
-python -m uvicorn src.main:app --reload --port 8000
-```
-
-### Environment Configuration
+<details>
+<summary><b>Environment Configuration</b></summary>
 
 Create `.env.local` in the root directory (current) or `apps/web/` (monorepo):
 
@@ -261,7 +274,10 @@ VITE_ENABLE_SENTRY=false
 VITE_DEV_PROXY_TARGET=http://localhost:8000
 ```
 
-### Building for Production
+</details>
+
+<details>
+<summary><b>Building for Production</b></summary>
 
 ```bash
 # Build optimized production bundle
@@ -277,11 +293,14 @@ npm run lint
 npx tsc --noEmit
 ```
 
+</details>
+
 ---
 
 ## 🔌 Backend Integration Guide
 
-### API Endpoints (Expected)
+<details>
+<summary><b>API Endpoints (Expected)</b></summary>
 
 The frontend is designed to integrate with these backend endpoints:
 
@@ -330,6 +349,11 @@ GET /api/health
 Response: { status: "ok" | "warn" | "down", message?: string }
 ```
 
+</details>
+
+<details>
+<summary><b>Integration Steps & Workflow</b></summary>
+
 ### Integration Steps
 
 1. **Set Backend URL**: Update `VITE_INFER_BASE_URL` in environment variables
@@ -361,11 +385,14 @@ cd apps\inference
 python -m uvicorn src.main:app --reload --port 8000
 ```
 
+</details>
+
 ---
 
 ## 🚀 Deployment Guide
 
-### Frontend Deployment (Vercel - Recommended)
+<details>
+<summary><b>Frontend Deployment (Vercel - Recommended)</b></summary>
 
 ```bash
 # Install Vercel CLI
@@ -384,7 +411,10 @@ vercel
 # - Other production environment variables
 ```
 
-### Alternative Deployment Options
+</details>
+
+<details>
+<summary><b>Alternative Deployment Options</b></summary>
 
 #### Netlify
 ```bash
@@ -412,6 +442,8 @@ CMD ["npm", "run", "preview"]
 - **Google Cloud Run**: Serverless containers
 - **AWS ECS**: Enterprise-grade deployment
 
+</details>
+
 ---
 
 ## 👥 Team & Contributors
@@ -436,19 +468,10 @@ CMD ["npm", "run", "preview"]
 - Research methodology
 - Performance evaluation
 
-### Contributions Welcome
-
-We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on:
-- Code style and standards
-- Pull request process
-- Issue reporting
-- Development workflow
-
----
-
 ## 📋 Development Roadmap
 
-### 🗓️ Milestone Timeline
+<details>
+<summary><b>🗓️ Milestone Timeline</b></summary>
 
 #### Phase 1: Foundation (✅ Complete)
 - [x] Frontend architecture and UI implementation
@@ -477,64 +500,97 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 - [ ] Advanced analytics and reporting
 - **Target**: Q4 2024 and beyond
 
+</details>
+
 ---
 
 ## 📊 Performance & Metrics
 
-### Current Frontend Performance
+<details>
+<summary><b>Current Frontend Performance</b></summary>
+
 - **Lighthouse Score**: 95+ (Performance, Accessibility, Best Practices)
 - **Bundle Size**: < 500KB gzipped
 - **Load Time**: < 2s on 3G networks
 - **Interactive Time**: < 3s
 
-### Planned ML Performance Targets
+</details>
+
+<details>
+<summary><b>Planned ML Performance Targets</b></summary>
+
 - **Image Analysis**: 94%+ accuracy, < 2s inference time
 - **Symptom Assessment**: 90%+ sensitivity, 85%+ specificity  
 - **Outbreak Prediction**: 80%+ accuracy over 4-week horizon
 - **System Uptime**: 99.5%+ availability
 
+</details>
+
 ---
 
 ## 🔒 Security & Compliance
 
-### Current Implementation
+<details>
+<summary><b>Current Implementation</b></summary>
+
 - **Data Privacy**: No personal data stored in frontend
 - **Secure Communication**: HTTPS enforced
 - **Input Validation**: Client-side validation with Zod
 - **XSS Protection**: React built-in protections
 
-### Planned Security Features
+</details>
+
+<details>
+<summary><b>Planned Security Features</b></summary>
+
 - **HIPAA Compliance**: Protected health information handling
 - **Data Encryption**: End-to-end encryption for sensitive data
 - **Access Control**: Role-based authentication system
 - **Audit Logging**: Comprehensive activity tracking
 - **Vulnerability Scanning**: Automated security testing
 
+</details>
+
 ---
 
 ## 📖 Documentation
 
-### For Developers
+<details>
+<summary><b>For Developers</b></summary>
+
 - [**API Documentation**](docs/api.md) - Backend API specifications
 - [**Component Guide**](docs/components.md) - UI component library
 - [**Contributing Guide**](CONTRIBUTING.md) - Development workflow
 - [**Testing Guide**](docs/testing.md) - Test strategies and examples
 
-### For Users
+</details>
+
+<details>
+<summary><b>For Users</b></summary>
+
 - [**User Manual**](docs/user-guide.md) - Application usage instructions
 - [**Medical Guidelines**](docs/medical.md) - Clinical interpretation guidelines  
 - [**FAQ**](docs/faq.md) - Frequently asked questions
 - [**Video Tutorials**](docs/tutorials.md) - Step-by-step walkthroughs
 
-### For Administrators
+</details>
+
+<details>
+<summary><b>For Administrators</b></summary>
+
 - [**Deployment Guide**](docs/deployment.md) - Production deployment
 - [**Configuration Guide**](docs/configuration.md) - System configuration
 - [**Monitoring Guide**](docs/monitoring.md) - Performance monitoring
 - [**Troubleshooting**](docs/troubleshooting.md) - Common issues and solutions
 
+</details>
+
 ---
 
 ## 📄 License & Legal
+
+<details>
+<summary><b>License & Medical Disclaimer</b></summary>
 
 ### License
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
@@ -547,24 +603,37 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 - **User Data**: No personal health information is stored without explicit consent
 - **Privacy Policy**: See [Privacy Policy](PRIVACY.md) for detailed information
 
+</details>
+
 ---
 
 ## 🆘 Support & Contact
 
-### Getting Help
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/your-repo/biosentinel/issues)
-- **💡 Feature Requests**: [GitHub Discussions](https://github.com/your-repo/biosentinel/discussions)  
+<details>
+<summary><b>Getting Help</b></summary>
+
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/HumayunK01/CodeRedProject/issues)
+- **💡 Feature Requests**: [GitHub Discussions](https://github.com/HumayunK01/CodeRedProject/discussions)  
 - **📧 Email Support**: support@biosentinel.dev
 - **💬 Community**: [Discord Server](https://discord.gg/biosentinel)
 
-### Status & Updates
+</details>
+
+<details>
+<summary><b>Status & Updates</b></summary>
+
 - **🔄 System Status**: [status.biosentinel.dev](https://status.biosentinel.dev)
 - **📢 Announcements**: [Twitter @BioSentinel](https://twitter.com/biosentinel)
 - **📰 Blog**: [blog.biosentinel.dev](https://blog.biosentinel.dev)
 
+</details>
+
 ---
 
 ## 📈 Changelog
+
+<details>
+<summary><b>Version History</b></summary>
 
 ### Version 1.0.0 (Current)
 - ✨ Initial frontend implementation
@@ -581,6 +650,8 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 - 🛠️ Development tooling configuration
 - 📚 Initial documentation
 
+</details>
+
 ---
 
 **Built with ❤️ by the BioSentinel Team**
@@ -591,11 +662,16 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 ## 🔗 Quick Links
 
+<details>
+<summary><b>Important Links</b></summary>
+
 - [🏠 Live Demo](https://biosentinel.dev) 
 - [📖 Documentation](https://docs.biosentinel.dev)
-- [🐙 GitHub Repository](https://github.com/your-repo/biosentinel)
-- [📊 Project Dashboard](https://github.com/your-repo/biosentinel/projects)
-- [🎯 Roadmap](https://github.com/your-repo/biosentinel/milestones)
+- [🐙 GitHub Repository](https://github.com/HumayunK01/CodeRedProject)
+- [📊 Project Dashboard](https://github.com/HumayunK01/CodeRedProject/projects)
+- [🎯 Roadmap](https://github.com/HumayunK01/CodeRedProject/milestones)
+
+</details>
 
 ---
 
