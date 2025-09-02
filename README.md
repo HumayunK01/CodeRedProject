@@ -456,7 +456,7 @@ CMD ["npm", "run", "preview"]
 - Model deployment and optimization
 - Data pipeline engineering
 
-**🎨 [Your Name]** - *Frontend Development & UI/UX Design*
+**🎨 Ansari Zoha** - *Frontend Development & UI/UX Design*
 - React application development
 - User interface design
 - User experience optimization
