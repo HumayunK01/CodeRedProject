@@ -1,5 +1,14 @@
 // OutbreakLens Type Definitions
 
+// Export Prisma types for convenience
+export type {
+  User,
+  Diagnosis,
+  Forecast,
+  Report,
+  SystemLog,
+} from "../../../../database/generated";
+
 export interface DiagnosisResult {
   label: string;
   confidence: number;

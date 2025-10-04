@@ -15,9 +15,18 @@
     "install:web": "npm install --workspace=apps/web",
     "install:inference": "npm install --workspace=apps/inference",
     "clean": "npm run clean --workspaces",
-    "type-check": "npm run type-check --workspace=apps/web"
+    "type-check": "npm run type-check --workspace=apps/web",
+    "db:generate": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma generate; Remove-Item '.env' -Force\"",
+    "db:push": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma db push; Remove-Item '.env' -Force\"",
+    "db:migrate": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma migrate dev; Remove-Item '.env' -Force\"",
+    "db:migrate:deploy": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma migrate deploy; Remove-Item '.env' -Force\"",
+    "db:studio": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma studio; Remove-Item '.env' -Force\"",
+    "db:seed": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma db seed; Remove-Item '.env' -Force\"",
+    "postinstall": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma generate; Remove-Item '.env' -Force\""
   },
   "devDependencies": {
+    "@prisma/client": "^6.16.3",
+    "prisma": "^6.16.3",
     "typescript": "^5.8.3"
   },
   "engines": {

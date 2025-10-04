@@ -29,3 +29,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Prisma generated client
+/generated/
+apps/database/generated/

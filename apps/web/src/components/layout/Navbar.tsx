@@ -148,13 +148,6 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                     isActive ? "scale-110" : "group-hover:scale-110"
                   }`} />
                   <span>{item.name}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
                 </Link>
               </motion.div>
             );
