@@ -51,7 +51,7 @@ npm install
 Create `.env.local` in `apps/web/`:
 ```env
 # Application
-VITE_APP_NAME=BioSentinel
+VITE_APP_NAME=OutbreakLens
 VITE_APP_VERSION=1.0.0
 
 # Backend Integration (when available)

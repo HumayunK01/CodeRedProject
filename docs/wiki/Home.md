@@ -1,8 +1,8 @@
-# 🏠 Home - BioSentinel Project Overview
+# 🏠 Home - OutbreakLens Project Overview
 
-## 🧬 Welcome to BioSentinel
+## 🧬 Welcome to OutbreakLens
 
-BioSentinel is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.
+OutbreakLens is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.
 
 ### 🎯 Our Mission
 Transform healthcare delivery through precision AI diagnostics and proactive epidemiological surveillance, enabling faster response times and better health outcomes in malaria-endemic regions.
@@ -27,7 +27,7 @@ npm run dev
 The application will be available at `http://localhost:8080`
 
 ### For Users
-- **Live Demo**: [BioSentinel Demo](https://biosentinel.dev)
+- **Live Demo**: [OutbreakLens Demo](https://outbreaklens.dev)
 - **Documentation**: [User Guide](User-Guide)
 - **Features**: Explore diagnosis, forecasting, and analytics
 
@@ -164,7 +164,7 @@ The application will be available at `http://localhost:8080`
 - **Join Discussions**: [GitHub Discussions](https://github.com/HumayunK01/CodeRedProject/discussions)
 
 ### For Users
-- **Try the Demo**: [Live Demo](https://biosentinel.dev)
+- **Try the Demo**: [Live Demo](https://outbreaklens.dev)
 - **Provide Feedback**: [User Feedback](https://github.com/HumayunK01/CodeRedProject/discussions)
 - **Request Features**: [Feature Requests](https://github.com/HumayunK01/CodeRedProject/issues)
 
@@ -186,4 +186,4 @@ The application will be available at `http://localhost:8080`
 
 ---
 
-**Welcome to BioSentinel - Where AI meets healthcare for a malaria-free world! 🌍💚**
+**Welcome to OutbreakLens - Where AI meets healthcare for a malaria-free world! 🌍💚**

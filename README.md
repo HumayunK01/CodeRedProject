@@ -1,6 +1,6 @@
-# 🧬 BioSentinel - ML-Driven Malaria Diagnosis & Outbreak Forecasting
+# 🧬 OutbreakLens - Diagnose Today, Predict Tomorrow
 
-**AI-powered malaria detection and epidemiological intelligence platform**
+**AI-powered malaria diagnosis and outbreak forecasting platform**
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/HumayunK01/CodeRedProject)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -10,13 +10,13 @@
 ## 🖼️ Preview
 
 <div align="center">
-  <img src="apps/web/public/preview.png" alt="BioSentinel Dashboard Preview" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-  <p><em>BioSentinel Dashboard - AI-powered malaria diagnosis and outbreak forecasting interface</em></p>
+  <img src="apps/web/public/preview.png" alt="OutbreakLens Dashboard Preview" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <p><em>OutbreakLens Dashboard - Diagnose today, predict tomorrow</em></p>
 </div>
 
 ## 📋 Project Overview
 
-BioSentinel is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide:
+OutbreakLens is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide:
 
 - **🔬 Malaria Diagnosis**: AI-powered analysis of blood smear images and symptom assessment
 - **📈 Outbreak Forecasting**: Predictive modeling for regional malaria outbreak patterns
@@ -256,7 +256,7 @@ Create `.env.local` in the root directory (current) or `apps/web/` (monorepo):
 
 ```env
 # Application
-VITE_APP_NAME=BioSentinel
+VITE_APP_NAME=OutbreakLens
 VITE_APP_VERSION=1.0.0
 
 # Backend Integration (when available)
@@ -596,7 +596,7 @@ CMD ["npm", "run", "preview"]
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
 ### Medical Disclaimer
-⚠️ **Important**: BioSentinel is designed as a decision support tool and is **NOT a substitute for professional medical diagnosis**. All results should be interpreted by qualified healthcare providers. Always consult with medical professionals for diagnosis, treatment plans, and medical decisions.
+⚠️ **Important**: OutbreakLens is designed as a decision support tool and is **NOT a substitute for professional medical diagnosis**. All results should be interpreted by qualified healthcare providers. Always consult with medical professionals for diagnosis, treatment plans, and medical decisions.
 
 ### Data Usage
 - **Training Data**: Uses publicly available datasets (NIH Malaria Dataset)
@@ -622,8 +622,8 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 <details>
 <summary><b>Status & Updates</b></summary>
 
-- **🔄 System Status**: [status.biosentinel.dev](https://status.biosentinel.dev)
-- **📰 Blog**: [blog.biosentinel.dev](https://blog.biosentinel.dev)
+- **🔄 System Status**: [status.outbreaklens.dev](https://status.outbreaklens.dev)
+- **📰 Blog**: [blog.outbreaklens.dev](https://blog.outbreaklens.dev)
 - **💼 LinkedIn**: [devhumayun](https://www.linkedin.com/in/devhumayun/)
 
 </details>
@@ -654,9 +654,9 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 ---
 
-**Built with ❤️ by the BioSentinel Team**
+**Built with ❤️ by the OutbreakLens Team**
 
-*Transforming healthcare through AI-driven diagnostics and epidemiological intelligence*
+*Diagnose today, predict tomorrow - Transforming healthcare through AI*
 
 ---
 
@@ -665,8 +665,8 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 <details>
 <summary><b>Important Links</b></summary>
 
-- [🏠 Live Demo](https://biosentinel.dev) 
-- [📖 Documentation](https://docs.biosentinel.dev)
+- [🏠 Live Demo](https://outbreaklens.dev) 
+- [📖 Documentation](https://docs.outbreaklens.dev)
 - [🐙 GitHub Repository](https://github.com/HumayunK01/CodeRedProject)
 - [📊 Project Dashboard](https://github.com/HumayunK01/CodeRedProject/projects)
 - [🎯 Roadmap](https://github.com/HumayunK01/CodeRedProject/milestones)
@@ -675,4 +675,4 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 ---
 
-> *"In the fight against malaria, every second counts. BioSentinel provides the intelligence needed for rapid, accurate responses."*
+> *"Diagnose today, predict tomorrow. OutbreakLens provides the intelligence needed for rapid, accurate healthcare responses."*

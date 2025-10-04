@@ -1,8 +1,8 @@
-// BioSentinel Local Storage Utilities
+// OutbreakLens Local Storage Utilities
 
 import { StoredResult } from './types';
 
-const STORAGE_KEY = 'biosentinel-results';
+const STORAGE_KEY = 'outbreaklens-results';
 const MAX_STORED_RESULTS = 50;
 
 export class StorageManager {

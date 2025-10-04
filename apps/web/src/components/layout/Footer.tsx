@@ -86,8 +86,8 @@ const Footer = () => {
                   <Microscope className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-foreground">BioSentinel</h3>
-                  <p className="text-sm text-muted-foreground">AI-Driven Healthcare</p>
+                  <h3 className="text-xl font-bold text-foreground">OutbreakLens</h3>
+                  <p className="text-sm text-muted-foreground">Diagnose today, predict tomorrow</p>
                 </div>
               </div>
               
@@ -286,7 +286,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="flex items-center space-x-2 text-sm text-muted-foreground"
             >
-              <span>© 2024 BioSentinel. All rights reserved.</span>
+              <span>© 2024 OutbreakLens. All rights reserved.</span>
               <span className="hidden md:inline">•</span>
               <span className="hidden md:inline">Built with</span>
               <Heart className="h-4 w-4 text-red-500" />

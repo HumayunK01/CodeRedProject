@@ -1,4 +1,4 @@
-# 🚀 BioSentinel Monorepo Setup Summary
+# 🚀 OutbreakLens Monorepo Setup Summary
 
 ## ✅ Completed Tasks
 
@@ -128,7 +128,7 @@ move index.html apps\web\
 ### 2. Add Root Package.json
 ```json
 {
-  "name": "biosentinel-monorepo",
+  "name": "outbreaklens-monorepo",
   "private": true,
   "workspaces": [
     "apps/*"

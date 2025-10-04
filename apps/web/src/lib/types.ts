@@ -1,4 +1,4 @@
-// BioSentinel Type Definitions
+// OutbreakLens Type Definitions
 
 export interface DiagnosisResult {
   label: string;

@@ -49,7 +49,7 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
           </div>
           <CardTitle>Stay Updated</CardTitle>
           <CardDescription>
-            Get the latest updates on AI healthcare innovation and BioSentinel features.
+            Get the latest updates on AI healthcare innovation and OutbreakLens features.
           </CardDescription>
         </CardHeader>
         <CardContent>

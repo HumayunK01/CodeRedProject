@@ -134,7 +134,7 @@ const Status = () => {
           <div>
             <h1 className="text-3xl font-bold">System Status</h1>
             <p className="text-muted-foreground">
-              Real-time monitoring of BioSentinel services and infrastructure
+              Real-time monitoring of OutbreakLens services and infrastructure
             </p>
           </div>
           

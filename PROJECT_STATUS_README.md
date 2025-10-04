@@ -1,8 +1,8 @@
-# 🧬 BioSentinel - Project Status & Development Roadmap
+# 🧬 OutbreakLens - Project Status & Development Roadmap
 
 ## 📋 Project Overview
 
-**BioSentinel** is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.
+**OutbreakLens** is a comprehensive healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.
 
 ### 🎯 Mission
 Transform healthcare delivery through precision AI diagnostics and proactive epidemiological surveillance, enabling faster response times and better health outcomes in malaria-endemic regions.
@@ -51,7 +51,7 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - [x] **Environment Setup**: Development and production environment variables
 
 ### 6. **Project Rebranding** ✅
-- [x] **Name Change**: Successfully rebranded from "EpiWise" to "BioSentinel"
+- [x] **Name Change**: Successfully rebranded from "EpiWise" to "OutbreakLens"
 - [x] **Documentation Update**: All references updated across the codebase
 - [x] **Package Configuration**: Updated package.json and metadata
 - [x] **Font Integration**: Urbanist font family implemented for modern typography
@@ -68,7 +68,7 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 
 ### Frontend Stack
 ```
-BioSentinel/
+OutbreakLens/
 ├── apps/
 │   ├── web/                    # React Frontend
 │   │   ├── src/
@@ -342,7 +342,7 @@ Response: { status: "ok" | "warn" | "down", message?: string }
 - **Adnan**: Data Science & Research
 
 ### Project Resources
-- **Repository**: `biosentinel-monorepo`
+- **Repository**: `outbreaklens-monorepo`
 - **Frontend**: `apps/web/` (React + TypeScript + Vite)
 - **Backend**: `apps/inference/` (Ready for FastAPI development)
 - **Documentation**: Comprehensive guides in root directory

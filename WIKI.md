@@ -4,9 +4,9 @@ Wikis provide a place in your repository to lay out the roadmap of your project,
 
 ---
 
-## 🧬 BioSentinel - AI-Driven Malaria Diagnosis & Outbreak Forecasting
+## 🧬 OutbreakLens - AI-Driven Malaria Diagnosis & Outbreak Forecasting
 
-**Welcome to the comprehensive documentation hub for BioSentinel, a revolutionary healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.**
+**Welcome to the comprehensive documentation hub for OutbreakLens, a revolutionary healthcare platform that combines machine learning with epidemiological expertise to provide AI-powered malaria detection and outbreak forecasting capabilities.**
 
 ---
 
@@ -103,7 +103,7 @@ Wikis provide a place in your repository to lay out the roadmap of your project,
 4. **Read the [Development Guide](Development-Guide)** for detailed setup
 
 ### For Users
-1. **Visit the live demo**: [BioSentinel Demo](https://biosentinel.dev)
+1. **Visit the live demo**: [OutbreakLens Demo](https://outbreaklens.dev)
 2. **Explore features**: Diagnosis, Forecasting, Analytics
 3. **Read the [User Guide](User-Guide)** for detailed instructions
 
@@ -182,8 +182,8 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 
 ## 🔗 Important Links
 
-- **🏠 Live Demo**: [BioSentinel Demo](https://biosentinel.dev)
-- **📖 Documentation**: [Project Docs](https://docs.biosentinel.dev)
+- **🏠 Live Demo**: [OutbreakLens Demo](https://outbreaklens.dev)
+- **📖 Documentation**: [Project Docs](https://docs.outbreaklens.dev)
 - **🐙 Repository**: [GitHub](https://github.com/HumayunK01/CodeRedProject)
 - **📊 Project Board**: [GitHub Projects](https://github.com/HumayunK01/CodeRedProject/projects)
 - **🎯 Roadmap**: [Milestones](https://github.com/HumayunK01/CodeRedProject/milestones)
@@ -206,14 +206,14 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
 ### Medical Disclaimer
-⚠️ **Important**: BioSentinel is designed as a decision support tool and is **NOT a substitute for professional medical diagnosis**. All results should be interpreted by qualified healthcare providers. Always consult with medical professionals for diagnosis, treatment plans, and medical decisions.
+⚠️ **Important**: OutbreakLens is designed as a decision support tool and is **NOT a substitute for professional medical diagnosis**. All results should be interpreted by qualified healthcare providers. Always consult with medical professionals for diagnosis, treatment plans, and medical decisions.
 
 ---
 
-**Built with ❤️ by the BioSentinel Team**
+**Built with ❤️ by the OutbreakLens Team**
 
 *Transforming healthcare through AI-driven diagnostics and epidemiological intelligence*
 
 ---
 
-> *"In the fight against malaria, every second counts. BioSentinel provides the intelligence needed for rapid, accurate responses."*
+> *"In the fight against malaria, every second counts. OutbreakLens provides the intelligence needed for rapid, accurate responses."*

@@ -115,7 +115,7 @@ export const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
       {/* Footer */}
       <div className="p-4 border-t border-border/50">
         <div className="text-xs text-muted-foreground">
-          <p>BioSentinel v1.0.0</p>
+          <p>OutbreakLens v1.0.0</p>
           <p>Medical Decision Support</p>
         </div>
       </div>

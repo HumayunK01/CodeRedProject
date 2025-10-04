@@ -2,7 +2,7 @@
 
 ## 🎉 Migration Status: **SUCCESSFUL**
 
-The BioSentinel frontend has been successfully migrated to a monorepo structure. All components are working correctly.
+The OutbreakLens frontend has been successfully migrated to a monorepo structure. All components are working correctly.
 
 ## 📁 Current Structure
 

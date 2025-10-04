@@ -71,14 +71,14 @@ const Home = () => {
               
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
-                  BioSentinel
+                  OutbreakLens
                 </span>
               </h1>
               
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-                AI-driven malaria diagnosis and outbreak forecasting for 
-                <span className="text-primary font-semibold"> proactive healthcare </span>
-                and epidemiological intelligence.
+                <span className="text-primary font-semibold">Diagnose today, predict tomorrow.</span>
+                <br />
+                AI-powered malaria diagnosis and outbreak forecasting for proactive healthcare.
               </p>
             </div>
 

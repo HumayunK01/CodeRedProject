@@ -72,7 +72,7 @@ const About = () => {
       >
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            About <span className="bg-gradient-primary bg-clip-text text-transparent">BioSentinel</span>
+            About <span className="bg-gradient-primary bg-clip-text text-transparent">OutbreakLens</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Revolutionizing malaria diagnosis and outbreak forecasting through 
@@ -227,7 +227,7 @@ const About = () => {
               <div>
                 <h3 className="font-semibold mb-2">Medical Decision Support</h3>
                 <p className="text-muted-foreground">
-                  BioSentinel is designed as a decision support tool to assist healthcare 
+                  OutbreakLens is designed as a decision support tool to assist healthcare 
                   professionals. It is not intended to replace clinical judgment, 
                   professional medical advice, diagnosis, or treatment.
                 </p>
@@ -282,7 +282,7 @@ const About = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="btn-medical">
             <Link to="/diagnosis">
-              Try BioSentinel
+              Try OutbreakLens
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

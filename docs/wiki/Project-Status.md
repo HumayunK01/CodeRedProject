@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-This page tracks the current status of BioSentinel development, including completed features, in-progress work, and upcoming milestones.
+This page tracks the current status of OutbreakLens development, including completed features, in-progress work, and upcoming milestones.
 
 ---
 

@@ -1,4 +1,4 @@
-// BioSentinel API Client with Mock Fallbacks
+// OutbreakLens API Client with Mock Fallbacks
 
 import { DiagnosisResult, SymptomsInput, ForecastResult, ForecastInput, HealthStatus, ApiError } from './types';
 

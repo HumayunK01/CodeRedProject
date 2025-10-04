@@ -1,8 +1,8 @@
-# 👥 Team & Roles - BioSentinel Development Team
+# 👥 Team & Roles - OutbreakLens Development Team
 
 ## 🎯 Team Overview
 
-The BioSentinel development team consists of three core members, each bringing unique expertise to create a comprehensive AI-driven healthcare platform for malaria diagnosis and outbreak forecasting.
+The OutbreakLens development team consists of three core members, each bringing unique expertise to create a comprehensive AI-driven healthcare platform for malaria diagnosis and outbreak forecasting.
 
 ---
 

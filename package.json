@@ -1,8 +1,8 @@
 {
-  "name": "biosentinel-monorepo",
+  "name": "outbreaklens-monorepo",
   "private": true,
   "version": "1.0.0",
-  "description": "BioSentinel - ML-Driven Malaria Diagnosis & Outbreak Forecasting",
+  "description": "OutbreakLens - Diagnose Today, Predict Tomorrow | AI-Powered Malaria Diagnosis & Outbreak Forecasting",
   "workspaces": [
     "apps/*"
   ],
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/biosentinel.git"
+    "url": "https://github.com/your-repo/outbreaklens.git"
   },
   "keywords": [
     "malaria",
@@ -38,6 +38,6 @@
     "fastapi",
     "monorepo"
   ],
-  "author": "BioSentinel Team",
+  "author": "OutbreakLens Team",
   "license": "MIT"
 }

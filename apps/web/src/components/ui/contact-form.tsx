@@ -198,7 +198,7 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
             <div>
               <CardTitle>Get in Touch</CardTitle>
               <CardDescription>
-                Have questions about BioSentinel? We'd love to hear from you.
+                Have questions about OutbreakLens? We'd love to hear from you.
               </CardDescription>
             </div>
           </div>

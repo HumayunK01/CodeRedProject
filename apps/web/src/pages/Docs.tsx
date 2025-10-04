@@ -141,7 +141,7 @@ const Docs = () => {
         <div>
           <h1 className="text-4xl font-bold mb-4">Documentation</h1>
           <p className="text-xl text-muted-foreground">
-            Complete developer guide for BioSentinel integration and deployment
+            Complete developer guide for OutbreakLens integration and deployment
           </p>
         </div>
 
@@ -172,7 +172,7 @@ const Docs = () => {
               <CardTitle>Quick Start</CardTitle>
             </div>
             <CardDescription>
-              Get BioSentinel running locally in minutes
+              Get OutbreakLens running locally in minutes
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -182,8 +182,8 @@ const Docs = () => {
                 id="env-setup"
                 language="bash"
                 code={`# Clone the repository
-git clone https://github.com/your-org/biosentinel-frontend.git
-cd biosentinel-frontend
+git clone https://github.com/your-org/outbreaklens-frontend.git
+cd outbreaklens-frontend
 
 # Install dependencies
 npm install
@@ -199,7 +199,7 @@ cp .env.example .env.local`}
                 id="env-config"
                 language="env"
                 code={`# .env.local
-NEXT_PUBLIC_APP_NAME=BioSentinel
+NEXT_PUBLIC_APP_NAME=OutbreakLens
 INFER_BASE_URL=http://localhost:8000
 INFER_TIMEOUT_MS=15000`}
               />
@@ -368,7 +368,7 @@ npm run preview`}
               <CardTitle>Deployment Guide</CardTitle>
             </div>
             <CardDescription>
-              Deploy BioSentinel to production environments
+              Deploy OutbreakLens to production environments
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -403,7 +403,7 @@ CMD ["nginx", "-g", "daemon off;"]`}
                 language="env"
                 code={`# Production Environment
 NODE_ENV=production
-NEXT_PUBLIC_APP_NAME=BioSentinel
+NEXT_PUBLIC_APP_NAME=OutbreakLens
 INFER_BASE_URL=https://api.your-domain.com
 INFER_TIMEOUT_MS=15000
 

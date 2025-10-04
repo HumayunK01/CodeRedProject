@@ -1,4 +1,4 @@
-// BioSentinel Validation Schemas
+// OutbreakLens Validation Schemas
 
 import { z } from 'zod';
 

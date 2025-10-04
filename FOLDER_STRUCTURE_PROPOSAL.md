@@ -1,4 +1,4 @@
-# 📁 Proposed Folder Structure for BioSentinel
+# 📁 Proposed Folder Structure for OutbreakLens
 
 ## Current Structure Analysis
 
