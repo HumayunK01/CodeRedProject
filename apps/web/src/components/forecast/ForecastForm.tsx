@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -12,7 +13,9 @@ import { apiClient } from "@/lib/api";
 import { ForecastResult } from "@/lib/types";
 import { forecastSchema, ForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
-import { 
+import { LocationDetector } from "@/components/ui/location-detector";
+import { LocationData } from "@/lib/location";
+import {
   TrendingUp,
   MapPin,
   Calendar,
@@ -35,6 +38,7 @@ const regions = [
 export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detectedLocation, setDetectedLocation] = useState<LocationData | null>(null);
 
   const form = useForm<ForecastFormData>({
     resolver: zodResolver(forecastSchema),
@@ -46,7 +50,28 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
 
   const watchedWeeks = form.watch("horizon_weeks");
 
+  // Handle location detection
+  const handleLocationDetected = (location: LocationData) => {
+    setDetectedLocation(location);
+
+    // Auto-fill region if location has region data
+    if (location.region) {
+      form.setValue('region', location.region);
+      toast({
+        title: "Location Detected",
+        description: `Region set to: ${location.region}`,
+      });
+    } else if (location.city) {
+      // If no region but city is available, suggest it
+      toast({
+        title: "Location Detected",
+        description: `Detected: ${location.city}${location.country ? `, ${location.country}` : ''}`,
+      });
+    }
+  };
+
   const onSubmit = async (data: ForecastFormData) => {
+    console.log('Forecast form submitted with data:', data);
     setIsSubmitting(true);
     onLoadingChange(true);
 
@@ -61,17 +86,18 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
         input: data,
         result
       };
-      
+
       StorageManager.saveResult(storedResult);
-      
+
       onResult(result);
-      
+
       toast({
         title: "Forecast Generated",
         description: `${data.horizon_weeks}-week prediction for ${data.region} completed`,
       });
-      
+
     } catch (error) {
+      console.error('Forecast submission error:', error);
       toast({
         title: "Forecast Failed",
         description: error instanceof Error ? error.message : "Failed to generate forecast",
@@ -86,6 +112,13 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Location Detection */}
+        <LocationDetector
+          onLocationSelect={handleLocationDetected}
+          selectedLocation={detectedLocation}
+          className="mb-6"
+        />
+
         {/* Region Selection */}
         <FormField
           control={form.control}
@@ -95,8 +128,13 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
               <FormLabel className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
                 <span>Target Region</span>
+                {detectedLocation && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Auto-detected
+                  </Badge>
+                )}
               </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="input-medical">
                     <SelectValue placeholder="Select region for forecast" />
@@ -111,6 +149,11 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                 </SelectContent>
               </Select>
               <FormMessage />
+              {detectedLocation && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Detected: {detectedLocation.formatted}
+                </p>
+              )}
             </FormItem>
           )}
         />

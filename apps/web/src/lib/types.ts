@@ -23,10 +23,16 @@ export interface SymptomsInput {
   fever: boolean;
   chills: boolean;
   headache: boolean;
-  anemia: boolean;
+  fatigue: boolean;
+  muscle_aches: boolean;
   nausea: boolean;
+  diarrhea: boolean;
+  abdominal_pain: boolean;
+  cough: boolean;
+  skin_rash: boolean;
   age: number;
   region: string;
+  followUpAnswers?: Record<string, any>;
 }
 
 export interface ForecastInput {

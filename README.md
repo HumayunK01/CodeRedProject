@@ -2,10 +2,10 @@
 
 **AI-powered malaria diagnosis and outbreak forecasting platform**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/HumayunK01/CodeRedProject)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/HumayunK01/CodeRedProject)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-development-yellow.svg)](#)
-[![Monorepo](https://img.shields.io/badge/monorepo-ready-brightgreen.svg)](#)
+[![Status](https://img.shields.io/badge/status-active-yellow.svg)](#)
+[![Monorepo](https://img.shields.io/badge/monorepo-implemented-brightgreen.svg)](#)
 
 ## 🖼️ Preview
 
@@ -20,6 +20,8 @@ OutbreakLens is a comprehensive healthcare platform that combines machine learni
 
 - **🔬 Malaria Diagnosis**: AI-powered analysis of blood smear images and symptom assessment
 - **📈 Outbreak Forecasting**: Predictive modeling for regional malaria outbreak patterns
+- **🤖 AI Assistant**: Intelligent chatbot for real-time malaria guidance and support
+- **📍 Location Intelligence**: GPS-based risk assessment and location-specific insights
 - **📊 Real-time Analytics**: Interactive dashboards and comprehensive reporting tools
 - **🗺️ Geospatial Intelligence**: Heat maps and hotspot detection for outbreak monitoring
 
@@ -46,14 +48,14 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 </details>
 
 <details>
-<summary><b>Backend (Planned)</b></summary>
+<summary><b>Backend (Implemented)</b></summary>
 
-- **Framework**: FastAPI + Python 3.11+
-- **ML Models**: PyTorch/TensorFlow for CNN & LSTM models
-- **Database**: PostgreSQL + Redis for caching
-- **Authentication**: JWT-based auth system
-- **Storage**: S3-compatible object storage
-- **Deployment**: Docker + Kubernetes
+- **Framework**: Flask + Python 3.9+
+- **ML Services**: Mock ML functions for development
+- **Database**: Prisma ORM + Neon PostgreSQL
+- **API Architecture**: RESTful endpoints with proper error handling
+- **Development**: Hot reload and comprehensive logging
+- **Deployment**: Railway, Render, or container-based deployment
 
 </details>
 
@@ -93,6 +95,8 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 #### 🔧 Advanced Features
 - [x] **Demo Mode**: Fully functional with mock data
 - [x] **API Architecture**: Route handlers ready for backend integration
+- [x] **AI Chatbot**: OpenRouter-powered assistant with malaria expertise
+- [x] **Location Services**: GPS-based risk assessment and geolocation features
 - [x] **Animations**: Page transitions, loading states, success celebrations
 - [x] **PWA Support**: Installable app with offline capabilities
 - [x] **Accessibility**: WCAG AA compliant design
@@ -111,18 +115,22 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 <summary><b>🔄 In Development</b></summary>
 
 #### 🤖 Machine Learning Pipeline
+- [x] **API Architecture**: Flask-based REST services ✅
+- [x] **Mock ML Functions**: Image analysis, symptom assessment, forecasting ✅
 - [ ] **Image Classification**: CNN model for blood smear analysis
 - [ ] **Symptoms Analysis**: Risk assessment algorithms
 - [ ] **Outbreak Prediction**: Time-series forecasting models
 - [ ] **Model Training**: Automated retraining pipelines
 
 #### 🗄️ Backend Infrastructure
-- [ ] **API Endpoints**: FastAPI REST services
-- [ ] **Database Schema**: PostgreSQL data models
+- [x] **Flask API**: REST services with proper error handling ✅
+- [x] **Database Integration**: Prisma ORM with Neon PostgreSQL ✅
+- [x] **Development Proxy**: Vite proxy to backend services ✅
 - [ ] **Authentication**: User management and security
 - [ ] **File Processing**: Image upload and analysis pipeline
 
 #### 📈 Advanced Analytics
+- [x] **API Health Monitoring**: System status and connectivity ✅
 - [ ] **Model Metrics**: Accuracy, precision, recall tracking
 - [ ] **A/B Testing**: Model comparison and validation
 - [ ] **Performance Monitoring**: System health and alerts
@@ -135,88 +143,75 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 ## 📁 Project Structure
 
 <details>
-<summary><b>Current Structure (Monorepo Ready)</b></summary>
+<summary><b>Current Structure (Monorepo Implementation)</b></summary>
 
 ```
-CodeRed/                          # Root monorepo directory
+outbreaklens-monorepo/           # Root monorepo directory
 ├── apps/
-│   └── web/                     # Frontend application (current)
+│   ├── web/                    # Frontend application (React + Vite)
+│   │   ├── src/
+│   │   │   ├── components/     # Reusable UI components
+│   │   │   │   ├── ui/        # shadcn/ui base components
+│   │   │   │   │   ├── chatbot.tsx        # AI chatbot component
+│   │   │   │   │   ├── chatbot-intro-modal.tsx # Chatbot onboarding modal
+│   │   │   │   │   └── location-detector.tsx # Geolocation services component
+│   │   │   │   ├── layout/    # Navigation and layout
+│   │   │   │   ├── diagnosis/ # Diagnosis-specific components
+│   │   │   │   └── forecast/  # Forecasting components
+│   │   │   ├── pages/         # Route-based page components
+│   │   │   ├── lib/           # Utilities and configurations
+│   │   │   │   ├── api.ts     # API client with backend integration
+│   │   │   │   ├── chatbot.ts # Chatbot service and utilities
+│   │   │   │   ├── db.ts     # Database client (Prisma)
+│   │   │   │   ├── location.ts # Geolocation service utilities
+│   │   │   │   ├── types.ts  # TypeScript type definitions
+│   │   │   │   ├── storage.ts # Local storage utilities
+│   │   │   │   └── validations.ts # Zod validation schemas
+│   │   │   └── hooks/         # Custom React hooks
+│   │   │   │   └── use-location.tsx # Geolocation React hook
+│   │   ├── public/            # Public assets and PWA files
+│   │   ├── package.json       # Frontend dependencies
+│   │   ├── vite.config.ts     # Vite config with API proxy
+│   │   ├── tailwind.config.ts # Tailwind with dark mode default
+│   │   └── tsconfig.json      # TypeScript configuration
+│   └── inference/             # Backend ML services (Flask API)
 │       ├── src/
-│       │   ├── components/      # Reusable UI components
-│       │   │   ├── ui/         # shadcn/ui base components
-│       │   │   ├── layout/     # Navigation and layout
-│       │   │   ├── diagnosis/  # Diagnosis-specific components
-│       │   │   └── forecast/   # Forecasting components
-│       │   ├── pages/          # Route-based page components
-│       │   ├── lib/            # Utilities and configurations
-│       │   │   ├── api.ts      # API client and mock data
-│       │   │   ├── types.ts    # TypeScript type definitions
-│       │   │   ├── storage.ts  # Local storage utilities
-│       │   │   └── validations.ts # Zod validation schemas
-│       │   └── hooks/          # Custom React hooks
-│       ├── public/             # Public assets and PWA files
-│       ├── package.json        # Frontend dependencies
-│       ├── vite.config.ts      # Vite config with API proxy
-│       ├── tailwind.config.ts  # Tailwind with dark mode default
-│       └── tsconfig.json       # TypeScript configuration
-│   └── inference/              # Backend ML services (planned)
-│       ├── src/
-│       │   ├── models/         # ML model implementations
-│       │   ├── api/            # FastAPI route handlers
-│       │   ├── services/       # Business logic services
-│       │   └── utils/          # Helper functions
-│       ├── data/               # Training datasets
-│       ├── notebooks/          # Jupyter notebooks for R&D
+│       │   └── main.py        # Flask application with ML endpoints
 │       ├── requirements.txt    # Python dependencies
-│       └── Dockerfile          # Container configuration
-├── docs/                       # Shared documentation
-├── .github/                    # GitHub workflows and templates
-└── README.md                   # This file
+│       └── test_flask.py      # API testing utilities
+├── database/                  # Database and Prisma setup
+│   ├── prisma/
+│   │   └── schema.prisma      # Database schema definition
+│   ├── generated/             # Prisma generated client
+│   └── CONNECTION_INFO.md     # Database connection details
+├── docs/                      # Shared documentation
+├── .github/                   # GitHub workflows and templates (planned)
+└── README.md                  # This file
 ```
 
 </details>
 
 <details>
-<summary><b>Migration Path to Monorepo</b></summary>
+<summary><b>Monorepo Architecture Benefits</b></summary>
 
-To convert the current structure to a proper monorepo:
+The current monorepo structure provides several advantages:
 
-1. **Create apps directory structure**:
-   ```powershell
-   # PowerShell
-   New-Item -ItemType Directory -Path "apps\web" -Force
-   New-Item -ItemType Directory -Path "apps\inference" -Force
-   ```
-   ```cmd
-   # Command Prompt
-   mkdir apps\web
-   mkdir apps\inference
-   ```
+1. **Unified Development**: Single repository for frontend, backend, and database components
+2. **Dependency Management**: Shared dependencies and consistent versioning across services
+3. **Simplified CI/CD**: Single pipeline for testing, building, and deploying all services
+4. **Code Sharing**: Easy sharing of types, utilities, and configurations between services
+5. **Atomic Commits**: Changes across multiple services can be committed together
+6. **Simplified Local Development**: All services run from a single repository
 
-2. **Move current frontend to apps/web**:
-   ```powershell
-   # PowerShell
-   Move-Item -Path "src" -Destination "apps\web\"
-   Move-Item -Path "public" -Destination "apps\web\"
-   Move-Item -Path "package.json" -Destination "apps\web\"
-   Move-Item -Path "vite.config.ts" -Destination "apps\web\"
-   Move-Item -Path "tailwind.config.ts" -Destination "apps\web\"
-   Move-Item -Path "tsconfig*.json" -Destination "apps\web\"
-   Move-Item -Path "index.html" -Destination "apps\web\"
-   ```
-   ```cmd
-   # Command Prompt
-   move src apps\web\
-   move public apps\web\
-   move package.json apps\web\
-   move vite.config.ts apps\web\
-   move tailwind.config.ts apps\web\
-   move tsconfig*.json apps\web\
-   move index.html apps\web\
-   ```
+### Database Integration
+- **Prisma ORM**: Database schema management and type-safe queries
+- **Neon PostgreSQL**: Cloud-native database with connection pooling
+- **Auto-generated Types**: TypeScript types generated from database schema
 
-3. **Update package.json scripts** for monorepo management
-4. **Add workspace configuration** for dependency management
+### API Architecture
+- **RESTful Design**: Clean separation between frontend and backend concerns
+- **Development Proxy**: Vite automatically proxies `/api/*` calls to backend
+- **Mock Fallbacks**: Frontend continues working even without backend
 
 </details>
 
@@ -229,19 +224,25 @@ To convert the current structure to a proper monorepo:
 
 ### Prerequisites
 - **Node.js**: 18.x or higher ([install with nvm](https://github.com/nvm-sh/nvm))
-- **Package Manager**: pnpm (recommended) or npm
+- **Python**: 3.8+ (for inference service)
+- **PostgreSQL**: Neon database (connection details in `apps/database/CONNECTION_INFO.md`)
+- **Package Manager**: npm (workspace-enabled)
 
 ### Installation & Development
 
 ```bash
 # Clone the repository
 git clone https://github.com/HumayunK01/CodeRedProject.git
-cd CodeRed
+cd outbreaklens-monorepo
 
-# Install dependencies (current structure)
+# Install all dependencies (monorepo structure)
 npm install
 
-# Start development server
+# Optional: Install specific workspace dependencies
+npm run install:web      # Install frontend dependencies
+npm run install:inference # Install backend dependencies
+
+# Start development server (frontend with API proxy)
 npm run dev
 ```
 
@@ -252,19 +253,22 @@ The application will be available at `http://localhost:8080`
 <details>
 <summary><b>Environment Configuration</b></summary>
 
-Create `.env.local` in the root directory (current) or `apps/web/` (monorepo):
+Create `.env.local` in the `apps/web/` directory:
 
 ```env
 # Application
 VITE_APP_NAME=OutbreakLens
 VITE_APP_VERSION=1.0.0
 
-# Backend Integration (when available)
+# Backend Integration (Flask API)
 VITE_INFER_BASE_URL=http://localhost:8000
 VITE_INFER_TIMEOUT_MS=15000
 
 # API Proxy Configuration
 VITE_API_BASE_URL=/api
+
+# AI Chatbot (OpenRouter)
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Features
 VITE_ENABLE_ANALYTICS=false
@@ -272,7 +276,12 @@ VITE_ENABLE_SENTRY=false
 
 # Development
 VITE_DEV_PROXY_TARGET=http://localhost:8000
+
+# Database (Neon PostgreSQL)
+DATABASE_URL=your_neon_connection_string_here
 ```
+
+**Note**: The database connection string should match the one in `apps/database/CONNECTION_INFO.md`. For the AI chatbot, see `CHATBOT_SETUP.md` for OpenRouter API key configuration.
 
 </details>
 
@@ -300,36 +309,39 @@ npx tsc --noEmit
 ## 🔌 Backend Integration Guide
 
 <details>
-<summary><b>API Endpoints (Expected)</b></summary>
+<summary><b>API Endpoints (Implemented)</b></summary>
 
-The frontend is designed to integrate with these backend endpoints:
+The frontend is integrated with the Flask-based backend providing these endpoints:
 
 #### Diagnosis Services
 ```typescript
 POST /api/predict/image
 Content-Type: multipart/form-data
 Body: { file: File }
-Response: { 
-  label: string, 
-  confidence: number, 
-  explanations?: { gradcam?: string } 
+Response: {
+  label: string,
+  confidence: number,
+  probability?: number,
+  threshold?: number,
+  explanations?: { gradcam?: string }
 }
 
-POST /api/predict/symptoms  
+POST /api/predict/symptoms
 Content-Type: application/json
-Body: { 
-  fever: boolean, 
-  chills: boolean, 
-  headache: boolean, 
-  anemia: boolean, 
-  nausea: boolean, 
-  age: number, 
-  region: string 
+Body: {
+  fever: boolean,
+  chills: boolean,
+  headache: boolean,
+  anemia: boolean,
+  nausea: boolean,
+  age: number,
+  region: string
 }
-Response: { 
-  probability: number, 
-  threshold: number, 
-  label: string 
+Response: {
+  label: string,
+  confidence: number,
+  probability: number,
+  threshold: number
 }
 ```
 
@@ -338,15 +350,23 @@ Response: {
 POST /api/forecast/region
 Content-Type: application/json
 Body: { region: string, horizon_weeks: number }
-Response: { 
-  region: string, 
-  predictions: Array<{ week: string, cases: number }>, 
-  hotspot_score?: number, 
-  hotspots?: Array<{ lat: number, lng: number, intensity: number }> 
+Response: {
+  region: string,
+  predictions: Array<{ week: string, cases: number }>,
+  hotspot_score: number,
+  hotspots: Array<{ lat: number, lng: number, intensity: number }>
 }
 
 GET /api/health
-Response: { status: "ok" | "warn" | "down", message?: string }
+Response: { status: "ok" | "warn" | "down", message?: string, timestamp: string }
+
+GET /
+Response: {
+  name: string,
+  version: string,
+  description: string,
+  status: string
+}
 ```
 
 </details>
@@ -356,10 +376,10 @@ Response: { status: "ok" | "warn" | "down", message?: string }
 
 ### Integration Steps
 
-1. **Set Backend URL**: Update `VITE_INFER_BASE_URL` in environment variables
-2. **Deploy Backend**: Ensure all expected endpoints are available at `http://localhost:8000`
-3. **Test Integration**: Use the `/status` page to verify connectivity
-4. **Monitor**: Check system health and performance metrics
+1. **Backend Setup**: The Flask API is already implemented in `apps/inference/src/main.py`
+2. **Environment Variables**: Ensure `VITE_INFER_BASE_URL=http://localhost:8000` in `apps/web/.env.local`
+3. **Start Backend**: Run the Flask development server
+4. **Test Integration**: Use the `/status` page to verify connectivity
 5. **API Proxy**: The Vite dev server automatically proxies `/api/*` calls to the backend
 
 ### Development Workflow
@@ -368,9 +388,10 @@ Response: { status: "ok" | "warn" | "down", message?: string }
 # Terminal 1: Start frontend (with API proxy)
 npm run dev
 
-# Terminal 2: Start backend (when available)
-cd apps\inference
-python -m uvicorn src.main:app --reload --port 8000
+# Terminal 2: Start backend (Flask API)
+cd apps/inference
+pip install -r requirements.txt
+python src/main.py
 
 # All /api/* calls from frontend will be proxied to backend
 ```
@@ -380,10 +401,13 @@ python -m uvicorn src.main:app --reload --port 8000
 # Terminal 1: Start frontend (with API proxy)
 npm run dev
 
-# Terminal 2: Start backend (when available)
-cd apps\inference
-python -m uvicorn src.main:app --reload --port 8000
+# Terminal 2: Start backend (Flask API)
+cd apps/inference
+pip install -r requirements.txt
+python src/main.py
 ```
+
+**Note**: The Flask API runs on `http://localhost:8000` and provides mock ML responses for development.
 
 </details>
 
@@ -398,16 +422,14 @@ python -m uvicorn src.main:app --reload --port 8000
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy to Vercel (current structure)
-vercel
-
-# Deploy to Vercel (monorepo structure)
+# Deploy frontend to Vercel (monorepo structure)
 cd apps/web
 vercel
 
 # Set environment variables in Vercel dashboard
-# - VITE_INFER_BASE_URL: Your backend URL
+# - VITE_INFER_BASE_URL: Your deployed backend URL
 # - VITE_API_BASE_URL: Your production API URL
+# - DATABASE_URL: Your production database connection string
 # - Other production environment variables
 ```
 
@@ -418,29 +440,65 @@ vercel
 
 #### Netlify
 ```bash
-# Build and deploy
+# Build and deploy frontend
+cd apps/web
 npm run build
-# Upload dist/ folder to Netlify
+# Upload apps/web/dist/ folder to Netlify
 ```
 
-#### Docker
+#### Docker (Frontend Only)
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY apps/web/package*.json ./
 RUN npm ci --only=production
-COPY . .
+COPY apps/web ./
 RUN npm run build
 EXPOSE 3000
 CMD ["npm", "run", "preview"]
 ```
 
-### Backend Deployment (Planned)
+### Backend Deployment (Flask API)
 
-- **Railway**: Simple Python deployment
-- **Render**: Container-based deployment  
-- **Google Cloud Run**: Serverless containers
-- **AWS ECS**: Enterprise-grade deployment
+#### Railway (Recommended for Flask)
+```bash
+# Deploy Flask app to Railway
+cd apps/inference
+pip install -r requirements.txt
+
+# Railway will detect Python app and deploy automatically
+# Set environment variables in Railway dashboard
+```
+
+#### Render
+```bash
+# Connect your GitHub repo to Render
+# Auto-deploys on push to main branch
+# Set build command: pip install -r apps/inference/requirements.txt
+# Set start command: python apps/inference/src/main.py
+```
+
+#### Docker (Full Stack)
+```dockerfile
+# Multi-stage build for full application
+FROM node:18-alpine as frontend-builder
+WORKDIR /app
+COPY apps/web/package*.json ./
+RUN npm ci
+COPY apps/web ./
+RUN npm run build
+
+FROM python:3.9-slim as backend
+WORKDIR /app
+COPY apps/inference/requirements.txt ./
+RUN pip install -r requirements.txt
+COPY apps/inference ./inference
+
+COPY --from=frontend-builder /app/dist ./static
+
+EXPOSE 8000
+CMD ["python", "inference/src/main.py"]
+```
 
 </details>
 
@@ -479,12 +537,14 @@ CMD ["npm", "run", "preview"]
 - [x] Demo mode with mock data
 - [x] Documentation and deployment setup
 
-#### Phase 2: ML Integration (🔄 In Progress)
-- [ ] Backend API development (FastAPI)
-- [ ] ML model training and validation
+#### Phase 2: ML Integration (✅ Complete)
+- [x] Backend API development (Flask) ✅
+- [x] Mock ML services for development ✅
+- [x] Database integration with Prisma ✅
+- [x] API client integration ✅
+- [ ] Real ML model training and validation
 - [ ] Image processing pipeline
-- [ ] Database schema and data management
-- **Target**: End of Q2 2024
+- **Status**: Foundation complete, ready for ML models
 
 #### Phase 3: Production Release (📅 Planned)
 - [ ] Model deployment and monitoring
@@ -560,6 +620,7 @@ CMD ["npm", "run", "preview"]
 
 - [**API Documentation**](docs/api.md) - Backend API specifications
 - [**Component Guide**](docs/components.md) - UI component library
+- [**Chatbot Setup Guide**](CHATBOT_SETUP.md) - AI chatbot configuration and usage
 - [**Contributing Guide**](CONTRIBUTING.md) - Development workflow
 - [**Testing Guide**](docs/testing.md) - Test strategies and examples
 
@@ -635,7 +696,18 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 <details>
 <summary><b>Version History</b></summary>
 
-### Version 1.0.0 (Current)
+### Version 1.1.0 (Current)
+- 🏗️ **Monorepo Architecture**: Restructured project into proper monorepo with apps/ directory
+- 🚀 **Flask Backend API**: Implemented Flask-based ML inference service
+- 🗄️ **Database Integration**: Added Prisma ORM with Neon PostgreSQL
+- 🤖 **AI Chatbot**: OpenRouter-powered intelligent assistant for malaria guidance
+- 📍 **Location Intelligence**: GPS-based risk assessment and geolocation services
+- 💬 **Chatbot Onboarding**: Interactive intro modal for first-time users
+- 🔗 **API Integration**: Connected frontend to backend with development proxy
+- 📦 **Workspace Management**: Updated package.json scripts for monorepo workflows
+- 🧪 **Mock ML Services**: Added realistic mock responses for development
+
+### Version 1.0.0 (Previous)
 - ✨ Initial frontend implementation
 - 🎨 Complete UI/UX design system
 - 🔧 Demo mode with mock API responses
