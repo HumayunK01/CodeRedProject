@@ -9,81 +9,81 @@
 
 @layer base {
   :root {
-    /* Background System - Light grays with subtle purple undertones */
-    --background: 280 15% 98%;
-    --foreground: 260 20% 10%;
+    /* Background System - Deep black with purple glow */
+    --background: 260 20% 6%;
+    --foreground: 280 15% 95%;
 
-    /* Card System - Clean whites with light purple tints */
-    --card: 280 20% 99%;
-    --card-foreground: 260 20% 10%;
+    /* Card System - Dark purples with subtle gradients */
+    --card: 260 25% 8%;
+    --card-foreground: 280 15% 95%;
 
     /* Popover System */
-    --popover: 280 20% 99%;
-    --popover-foreground: 260 20% 10%;
+    --popover: 260 25% 8%;
+    --popover-foreground: 280 15% 95%;
 
-    /* Primary System - Electric purple for web3 feel */
-    --primary: 270 90% 45%;
-    --primary-foreground: 260 20% 10%;
-    --primary-light: 270 85% 55%;
-    --primary-dark: 270 95% 35%;
+    /* Primary System - Electric purple for web3 cyberpunk feel */
+    --primary: 270 95% 60%;
+    --primary-foreground: 260 20% 6%;
+    --primary-light: 270 90% 70%;
+    --primary-dark: 270 100% 50%;
 
-    /* Secondary System - Light purple grays */
-    --secondary: 280 10% 92%;
-    --secondary-foreground: 260 20% 15%;
+    /* Secondary System - Deep purple grays */
+    --secondary: 260 15% 12%;
+    --secondary-foreground: 280 15% 85%;
 
-    /* Muted System - Soft purple-tinted grays */
-    --muted: 280 8% 95%;
-    --muted-foreground: 260 8% 45%;
+    /* Muted System - Dark purple-tinted blacks */
+    --muted: 260 10% 15%;
+    --muted-foreground: 280 8% 65%;
 
-    /* Accent System - Bright purple */
-    --accent: 280 90% 50%;
-    --accent-foreground: 280 15% 98%;
-    --accent-light: 280 85% 60%;
+    /* Accent System - Bright neon purple */
+    --accent: 280 100% 65%;
+    --accent-foreground: 260 20% 6%;
+    --accent-light: 280 95% 75%;
 
-    /* Status Colors - Web3 grade with purple tints */
-    --success: 280 75% 45%;
-    --success-foreground: 280 15% 98%;
-    --warning: 45 90% 50%;
-    --warning-foreground: 260 20% 10%;
-    --destructive: 0 80% 50%;
-    --destructive-foreground: 280 15% 98%;
+    /* Status Colors - Web3 cyberpunk grade */
+    --success: 280 85% 55%;
+    --success-foreground: 260 20% 6%;
+    --warning: 35 95% 60%;
+    --warning-foreground: 260 20% 6%;
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 280 15% 95%;
 
     /* Border & Input System */
-    --border: 280 12% 88%;
-    --input: 280 12% 92%;
-    --ring: 270 80% 45%;
+    --border: 260 15% 18%;
+    --input: 260 15% 12%;
+    --ring: 270 95% 60%;
 
-    /* Glassmorphism & Effects */
-    --glass-bg: 280 20% 98% / 0.8;
-    --glass-border: 270 25% 40% / 0.2;
-    --shadow-soft: 270 30% 15% / 0.08;
-    --shadow-medium: 270 30% 15% / 0.12;
-    --shadow-strong: 270 30% 15% / 0.18;
+    /* Glassmorphism & Effects - Cyberpunk style */
+    --glass-bg: 260 25% 8% / 0.9;
+    --glass-border: 270 50% 30% / 0.3;
+    --shadow-soft: 270 40% 20% / 0.15;
+    --shadow-medium: 270 40% 20% / 0.20;
+    --shadow-strong: 270 40% 20% / 0.25;
 
-    /* Gradients - Web3 aesthetics with light theme */
-    --gradient-primary: linear-gradient(135deg, hsl(270 90% 45%), hsl(280 90% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(280 10% 92%), hsl(280 20% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 90% 50%), hsl(270 90% 45%));
-    --gradient-glass: linear-gradient(135deg, hsl(280 20% 98% / 0.9), hsl(280 15% 96% / 0.7));
+    /* Gradients - Web3 cyberpunk aesthetics */
+    --gradient-primary: linear-gradient(135deg, hsl(270 95% 60%), hsl(280 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(260 15% 12%), hsl(260 25% 8%));
+    --gradient-accent: linear-gradient(135deg, hsl(280 100% 65%), hsl(270 95% 60%));
+    --gradient-glass: linear-gradient(135deg, hsl(260 25% 8% / 0.95), hsl(260 15% 12% / 0.8));
 
     /* Radius System - Web3 precision */
     --radius: 0.75rem;
 
-    --sidebar-background: 280 15% 97%;
+    --sidebar-background: 260 20% 7%;
 
-    --sidebar-foreground: 260 20% 15%;
+    --sidebar-foreground: 280 15% 90%;
 
-    --sidebar-primary: 270 85% 45%;
+    --sidebar-primary: 270 95% 60%;
 
-    --sidebar-primary-foreground: 280 15% 98%;
+    --sidebar-primary-foreground: 260 20% 6%;
 
-    --sidebar-accent: 280 10% 93%;
+    --sidebar-accent: 260 15% 10%;
 
-    --sidebar-accent-foreground: 260 20% 15%;
+    --sidebar-accent-foreground: 280 15% 85%;
 
-    --sidebar-border: 280 12% 89%;
+    --sidebar-border: 260 15% 15%;
 
-    --sidebar-ring: 270 80% 45%;
+    --sidebar-ring: 270 95% 60%;
   }
 
   .dark {
