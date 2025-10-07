@@ -2,145 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* OutbreakLens Medical-Tech Design System
-   Cool neutrals with emerald/teal accents for scientific precision
+/* OutbreakLens Web3 Design System
+   Dark purples and blacks with electric violet accents for crypto/web3 aesthetics
    All colors MUST be HSL for consistency
 */
 
 @layer base {
   :root {
-    /* Background System - Cool grays with subtle blue undertones */
-    --background: 210 17% 98%;
-    --foreground: 210 11% 15%;
+    /* Background System - Light grays with subtle purple undertones */
+    --background: 280 15% 98%;
+    --foreground: 260 20% 10%;
 
-    /* Card System - Soft whites with medical clarity */
-    --card: 210 17% 99%;
-    --card-foreground: 210 11% 15%;
+    /* Card System - Clean whites with light purple tints */
+    --card: 280 20% 99%;
+    --card-foreground: 260 20% 10%;
 
     /* Popover System */
-    --popover: 210 17% 99%;
-    --popover-foreground: 210 11% 15%;
+    --popover: 280 20% 99%;
+    --popover-foreground: 260 20% 10%;
 
-    /* Primary System - Deep emerald/teal with higher contrast */
-    --primary: 168 85% 35%;
-    --primary-foreground: 168 85% 98%;
-    --primary-light: 168 75% 45%;
-    --primary-dark: 168 95% 25%;
+    /* Primary System - Electric purple for web3 feel */
+    --primary: 270 90% 45%;
+    --primary-foreground: 260 20% 10%;
+    --primary-light: 270 85% 55%;
+    --primary-dark: 270 95% 35%;
 
-    /* Secondary System - Soft emerald */
-    --secondary: 158 35% 92%;
-    --secondary-foreground: 158 76% 25%;
+    /* Secondary System - Light purple grays */
+    --secondary: 280 10% 92%;
+    --secondary-foreground: 260 20% 15%;
 
-    /* Muted System - Professional grays */
-    --muted: 210 12% 95%;
-    --muted-foreground: 210 8% 45%;
+    /* Muted System - Soft purple-tinted grays */
+    --muted: 280 8% 95%;
+    --muted-foreground: 260 8% 45%;
 
-    /* Accent System - Scientific emerald with higher contrast */
-    --accent: 156 85% 40%;
-    --accent-foreground: 156 85% 98%;
-    --accent-light: 156 70% 50%;
+    /* Accent System - Bright purple */
+    --accent: 280 90% 50%;
+    --accent-foreground: 280 15% 98%;
+    --accent-light: 280 85% 60%;
 
-    /* Status Colors - Medical grade */
-    --success: 145 63% 42%;
-    --success-foreground: 145 63% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 8%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 84% 98%;
+    /* Status Colors - Web3 grade with purple tints */
+    --success: 280 75% 45%;
+    --success-foreground: 280 15% 98%;
+    --warning: 45 90% 50%;
+    --warning-foreground: 260 20% 10%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 280 15% 98%;
 
     /* Border & Input System */
-    --border: 210 12% 88%;
-    --input: 210 12% 92%;
-    --ring: 168 76% 36%;
+    --border: 280 12% 88%;
+    --input: 280 12% 92%;
+    --ring: 270 80% 45%;
 
     /* Glassmorphism & Effects */
-    --glass-bg: 210 17% 98% / 0.8;
-    --glass-border: 210 12% 88% / 0.3;
-    --shadow-soft: 210 25% 15% / 0.08;
-    --shadow-medium: 210 25% 15% / 0.15;
-    --shadow-strong: 210 25% 15% / 0.25;
+    --glass-bg: 280 20% 98% / 0.8;
+    --glass-border: 270 25% 40% / 0.2;
+    --shadow-soft: 270 30% 15% / 0.08;
+    --shadow-medium: 270 30% 15% / 0.12;
+    --shadow-strong: 270 30% 15% / 0.18;
 
-    /* Gradients - Medical tech aesthetics */
-    --gradient-primary: linear-gradient(135deg, hsl(168 76% 36%), hsl(156 73% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(158 35% 92%), hsl(210 17% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(156 73% 45%), hsl(168 76% 36%));
-    --gradient-glass: linear-gradient(135deg, hsl(210 17% 98% / 0.9), hsl(210 17% 96% / 0.6));
+    /* Gradients - Web3 aesthetics with light theme */
+    --gradient-primary: linear-gradient(135deg, hsl(270 90% 45%), hsl(280 90% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(280 10% 92%), hsl(280 20% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(280 90% 50%), hsl(270 90% 45%));
+    --gradient-glass: linear-gradient(135deg, hsl(280 20% 98% / 0.9), hsl(280 15% 96% / 0.7));
 
-    /* Radius System - Soft, medical precision */
+    /* Radius System - Web3 precision */
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 280 15% 97%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-foreground: 260 20% 15%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 270 85% 45%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary-foreground: 280 15% 98%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent: 280 10% 93%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent-foreground: 260 20% 15%;
 
-    --sidebar-border: 220 13% 91%;
+    --sidebar-border: 280 12% 89%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 270 80% 45%;
   }
 
   .dark {
-    /* Dark mode - Medical grade dark theme */
-    --background: 210 20% 8%;
-    --foreground: 210 17% 92%;
+    /* Dark mode - Web3 dark theme with bright purple accents */
+    --background: 260 30% 4%;
+    --foreground: 280 20% 95%;
 
-    --card: 210 20% 10%;
-    --card-foreground: 210 17% 92%;
+    --card: 260 25% 7%;
+    --card-foreground: 280 20% 95%;
 
-    --popover: 210 20% 10%;
-    --popover-foreground: 210 17% 92%;
+    --popover: 260 25% 7%;
+    --popover-foreground: 280 20% 95%;
 
-    --primary: 168 75% 50%;
-    --primary-foreground: 210 20% 8%;
-    --primary-light: 168 65% 60%;
-    --primary-dark: 168 85% 40%;
+    --primary: 270 95% 65%;
+    --primary-foreground: 280 20% 95%;
+    --primary-light: 270 90% 75%;
+    --primary-dark: 270 100% 55%;
 
-    --secondary: 210 15% 16%;
-    --secondary-foreground: 168 65% 70%;
+    --secondary: 260 15% 14%;
+    --secondary-foreground: 280 25% 90%;
 
-    --muted: 210 15% 14%;
-    --muted-foreground: 210 8% 55%;
+    --muted: 260 12% 12%;
+    --muted-foreground: 260 10% 70%;
 
-    --accent: 156 70% 55%;
-    --accent-foreground: 210 20% 8%;
-    --accent-light: 156 60% 65%;
+    --accent: 280 100% 70%;
+    --accent-foreground: 260 30% 4%;
+    --accent-light: 280 95% 80%;
 
-    --success: 145 50% 45%;
-    --success-foreground: 210 20% 8%;
-    --warning: 38 80% 55%;
-    --warning-foreground: 210 20% 8%;
-    --destructive: 0 75% 65%;
-    --destructive-foreground: 210 20% 8%;
+    --success: 280 85% 65%;
+    --success-foreground: 260 30% 4%;
+    --warning: 45 100% 70%;
+    --warning-foreground: 260 30% 4%;
+    --destructive: 0 90% 70%;
+    --destructive-foreground: 260 30% 4%;
 
-    --border: 210 15% 18%;
-    --input: 210 15% 16%;
-    --ring: 168 65% 45%;
+    --border: 260 20% 18%;
+    --input: 260 15% 14%;
+    --ring: 270 90% 65%;
 
-    --glass-bg: 210 20% 8% / 0.9;
-    --glass-border: 210 15% 25% / 0.3;
-    --shadow-soft: 210 50% 5% / 0.5;
-    --shadow-medium: 210 50% 5% / 0.7;
-    --shadow-strong: 210 50% 5% / 0.9;
+    --glass-bg: 260 30% 4% / 0.95;
+    --glass-border: 270 40% 40% / 0.3;
+    --shadow-soft: 270 50% 15% / 0.7;
+    --shadow-medium: 270 50% 15% / 0.9;
+    --shadow-strong: 270 50% 15% / 1.1;
 
-    --gradient-primary: linear-gradient(135deg, hsl(168 65% 45%), hsl(156 60% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(210 15% 16%), hsl(210 20% 10%));
-    --gradient-accent: linear-gradient(135deg, hsl(156 60% 50%), hsl(168 65% 45%));
-    --gradient-glass: linear-gradient(135deg, hsl(210 20% 10% / 0.95), hsl(210 15% 14% / 0.8));
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --gradient-primary: linear-gradient(135deg, hsl(270 95% 65%), hsl(280 100% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(260 15% 14%), hsl(260 25% 7%));
+    --gradient-accent: linear-gradient(135deg, hsl(280 100% 70%), hsl(270 95% 65%));
+    --gradient-glass: linear-gradient(135deg, hsl(260 30% 7% / 0.98), hsl(260 25% 12% / 0.9));
+    --sidebar-background: 260 25% 5%;
+    --sidebar-foreground: 280 20% 90%;
+    --sidebar-primary: 270 90% 60%;
+    --sidebar-primary-foreground: 260 30% 4%;
+    --sidebar-accent: 260 15% 12%;
+    --sidebar-accent-foreground: 280 25% 85%;
+    --sidebar-border: 260 20% 15%;
+    --sidebar-ring: 270 90% 60%;
   }
 }
 

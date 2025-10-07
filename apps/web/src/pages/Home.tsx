@@ -22,8 +22,8 @@ import {
 const Home = () => {
   const features = [
     {
-      title: "AI-Powered Diagnosis",
-      description: "Advanced machine learning algorithms analyze blood smear images and symptom patterns for accurate malaria detection.",
+      title: "ML-Driven Diagnosis",
+      description: "Advanced machine learning algorithms analyze symptom patterns and clinical data for accurate malaria detection and assessment.",
       icon: Microscope,
       color: "text-primary",
       link: "/diagnosis"
@@ -90,9 +90,9 @@ const Home = () => {
   const steps = [
     {
       step: "01",
-      title: "Upload Sample",
-      description: "Upload blood smear images or enter patient symptoms",
-      icon: Microscope
+      title: "Enter Symptoms",
+      description: "Input patient symptoms and clinical data for comprehensive analysis",
+      icon: Activity
     },
     {
       step: "02",
