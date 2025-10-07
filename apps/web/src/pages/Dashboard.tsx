@@ -233,7 +233,7 @@ const Dashboard = () => {
               viewport={{ once: true }}
               className="text-center mb-8"
             >
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 pt-6">
                 Real-Time Analytics
               </h2>
               <p className="text-muted-foreground">
