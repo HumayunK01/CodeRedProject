@@ -9,18 +9,26 @@ import numpy as np
 from datetime import datetime, timedelta
 import os
 import json
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+import tempfile
 
 app = Flask(__name__)
 CORS(app)
 
 # Model variables
+malaria_model = None
 malaria_forecast_model = None
 tabular_model = None
 symptoms_feature_info = None
 
 def load_models():
-    global malaria_forecast_model, tabular_model, symptoms_feature_info
+    global malaria_model, malaria_forecast_model, tabular_model, symptoms_feature_info
     try:
+        # Load CNN model for image classification
+        malaria_model = load_model("models/malaria_test_small.h5")
+        print("CNN model loaded successfully!")
+        
         # Load ARIMA model for forecasting
         malaria_forecast_model = joblib.load("models/malaria_forecast_arima.pkl")
         print("Forecast model loaded successfully!")
@@ -53,6 +61,7 @@ def health_check():
             "message": "OutbreakLens ML Inference API is operational",
             "timestamp": datetime.now().isoformat(),
             "models_loaded": {
+                "cnn_model": malaria_model is not None,
                 "arima_model": malaria_forecast_model is not None,
                 "tabular_model": tabular_model is not None,
                 "symptoms_feature_info": symptoms_feature_info is not None
@@ -326,6 +335,51 @@ def forecast_region():
             "predictions": predictions,
             "hotspot_score": round(hotspot_score, 2),
             "hotspots": hotspots
+        }
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/predict/image", methods=["POST"])
+def predict_image():
+    """Predict malaria from blood smear image using CNN model"""
+    try:
+        if malaria_model is None:
+            return jsonify({"error": "CNN model not loaded"}), 500
+        
+        # Get the uploaded file
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+        
+        # Save file to temporary location
+        temp_dir = tempfile.mkdtemp()
+        temp_path = os.path.join(temp_dir, file.filename)
+        file.save(temp_path)
+        
+        # Load and preprocess image
+        img = image.load_img(temp_path, target_size=(128, 128))
+        img_array = image.img_to_array(img)
+        img_array = img_array / 255.0  # normalize exactly as in training
+        img_array = np.expand_dims(img_array, axis=0)
+        
+        # Predict using the loaded model
+        prediction = malaria_model.predict(img_array)
+        score = float(prediction[0][0])
+        result = "Parasitized" if score > 0.5 else "Uninfected"
+        
+        # Clean up temporary file
+        os.remove(temp_path)
+        os.rmdir(temp_dir)
+        
+        return {
+            "label": result,
+            "confidence": round(score, 3),
+            "probability": round(score, 3),
+            "threshold": 0.5
         }
         
     except Exception as e:

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { SymptomsForm } from "@/components/diagnosis/SymptomsForm";
+import { DualModeDiagnosis } from "@/components/diagnosis/DualModeDiagnosis";
 import { DiagnosisResults } from "@/components/diagnosis/DiagnosisResults";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import { StorageManager } from "@/lib/storage";
@@ -21,6 +21,7 @@ const Diagnosis = () => {
   const [results, setResults] = useState<DiagnosisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [storedPatientData, setStoredPatientData] = useState<SymptomsInput & { id?: string; timestamp?: string } | null>(null);
+  const [storedImageData, setStoredImageData] = useState<{ image: string; id?: string; timestamp?: string } | null>(null);
 
   // Load the most recent patient data from storage
   useEffect(() => {
@@ -30,11 +31,25 @@ const Diagnosis = () => {
         const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
         if (diagnosisResults.length > 0) {
           const mostRecent = diagnosisResults[0];
-          setStoredPatientData({
-            ...(mostRecent.input as SymptomsInput),
-            id: mostRecent.id,
-            timestamp: mostRecent.timestamp
-          });
+          
+          // Check if this is symptom data or image data
+          if ('image' in mostRecent.input) {
+            // Image data
+            setStoredImageData({
+              image: (mostRecent.input as { image: string }).image,
+              id: mostRecent.id,
+              timestamp: mostRecent.timestamp
+            });
+            setStoredPatientData(null);
+          } else {
+            // Symptom data
+            setStoredPatientData({
+              ...(mostRecent.input as SymptomsInput),
+              id: mostRecent.id,
+              timestamp: mostRecent.timestamp
+            });
+            setStoredImageData(null);
+          }
         }
       } catch (error) {
         console.warn('Failed to load patient data:', error);
@@ -54,11 +69,25 @@ const Diagnosis = () => {
       const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
       if (diagnosisResults.length > 0) {
         const mostRecent = diagnosisResults[0];
-        setStoredPatientData({
-          ...(mostRecent.input as SymptomsInput),
-          id: mostRecent.id,
-          timestamp: mostRecent.timestamp
-        });
+        
+        // Check if this is symptom data or image data
+        if ('image' in mostRecent.input) {
+          // Image data
+          setStoredImageData({
+            image: (mostRecent.input as { image: string }).image,
+            id: mostRecent.id,
+            timestamp: mostRecent.timestamp
+          });
+          setStoredPatientData(null);
+        } else {
+          // Symptom data
+          setStoredPatientData({
+            ...(mostRecent.input as SymptomsInput),
+            id: mostRecent.id,
+            timestamp: mostRecent.timestamp
+          });
+          setStoredImageData(null);
+        }
       }
     }, 500);
   };
@@ -106,7 +135,7 @@ const Diagnosis = () => {
               Malaria Risk Assessment
             </h1>
             <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-              Advanced ML-powered symptom analysis for accurate malaria risk evaluation
+              Advanced ML-powered symptom analysis and image detection for accurate malaria risk evaluation
             </p>
             
             {/* Trust Indicators */}
@@ -182,7 +211,7 @@ const Diagnosis = () => {
                           Patient Assessment
                         </h2>
                         <p className="text-muted-foreground text-sm">
-                          Comprehensive symptom analysis and risk evaluation
+                          Comprehensive symptom analysis and image detection
                         </p>
                       </div>
                     </motion.div>
@@ -193,20 +222,20 @@ const Diagnosis = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.5 }}
                     >
-                      Provide accurate patient information and symptoms for the most reliable risk assessment.
-                      Our AI system analyzes clinical patterns, patient history, and epidemiological data to deliver
+                      Choose between symptom-based assessment or blood smear image analysis for malaria detection.
+                      Our AI system uses advanced CNN models for image analysis and symptom pattern recognition to deliver
                       <span className="text-primary font-semibold"> precise risk evaluations</span> with confidence scores
                       and medical recommendations.
                     </motion.p>
                   </div>
 
-                  {/* Symptoms Form */}
+                  {/* Dual Mode Diagnosis Component */}
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35, duration: 0.5 }}
                   >
-                    <SymptomsForm
+                    <DualModeDiagnosis
                       onResult={handleResult}
                       onLoadingChange={handleLoading}
                     />
@@ -233,6 +262,7 @@ const Diagnosis = () => {
                     results={results}
                     isLoading={isLoading}
                     patientData={storedPatientData || undefined}
+                    imageData={storedImageData || undefined}
                   />
                 </motion.div>
               </div>

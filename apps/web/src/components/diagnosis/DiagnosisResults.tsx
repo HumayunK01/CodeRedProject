@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, XCircle, Info, Download, Microscope, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertCircle, CheckCircle, XCircle, Info, Download, Microscope, ChevronDown, ChevronRight, Image as ImageIcon, FileText } from "lucide-react";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -13,11 +13,15 @@ interface DiagnosisResultsProps {
   results: DiagnosisResult | null;
   isLoading: boolean;
   patientData?: SymptomsInput & { id?: string; timestamp?: string };
+  imageData?: { image: string; id?: string; timestamp?: string };
 }
 
-export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisResultsProps) => {
+export const DiagnosisResults = ({ results, isLoading, patientData, imageData }: DiagnosisResultsProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showModelInsights, setShowModelInsights] = useState(false);
+
+  // Determine if this is an image-based diagnosis
+  const isImageDiagnosis = imageData !== undefined && imageData.image !== undefined;
 
   // Show confetti for negative results (healthy) or low risk
   const isHealthy = results && (
@@ -39,7 +43,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
     }
     
     // Handle image analysis results (from CNN model)
-    const isPositive = results.label === 'Positive' || results.label === 'Infected';
+    const isPositive = results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized';
     
     if (isPositive) {
       return <XCircle className="h-5 w-5 text-destructive" />;
@@ -58,7 +62,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
       return 'text-success';
     }
     
-    const isPositive = results.label === 'Positive' || results.label === 'Infected';
+    const isPositive = results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized';
     return isPositive ? 'text-destructive' : 'text-success';
   };
 
@@ -73,32 +77,229 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
       return 'bg-success/20';
     }
     
-    const isPositive = results.label === 'Positive' || results.label === 'Infected';
+    const isPositive = results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized';
     return isPositive ? 'bg-destructive/20' : 'bg-success/20';
   };
 
   const generateReportHtml = () => {
-    if (!results || !patientData) return '';
-
-    const symptomsList = [
-      { key: "fever", label: "Fever", value: patientData.fever },
-      { key: "chills", label: "Chills or Shivering", value: patientData.chills },
-      { key: "headache", label: "Headache", value: patientData.headache },
-      { key: "fatigue", label: "Fatigue", value: patientData.fatigue },
-      { key: "muscle_aches", label: "Muscle or Joint Pain", value: patientData.muscle_aches },
-      { key: "nausea", label: "Nausea", value: patientData.nausea },
-      { key: "diarrhea", label: "Diarrhea", value: patientData.diarrhea },
-      { key: "abdominal_pain", label: "Abdominal Pain", value: patientData.abdominal_pain },
-      { key: "cough", label: "Cough", value: patientData.cough },
-      { key: "skin_rash", label: "Skin Rash", value: patientData.skin_rash }
-    ];
+    if (!results) return '';
 
     const formatDate = (dateString?: string) => {
       if (!dateString) return new Date().toLocaleString();
       return new Date(dateString).toLocaleString();
     };
 
-    return `
+    // Generate report for image-based diagnosis
+    if (isImageDiagnosis) {
+      return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaria Blood Smear Analysis Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .report-title {
+            color: #007bff;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .report-subtitle {
+            color: #6c757d;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .report-date {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #007bff;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .info-value {
+            color: #6c757d;
+        }
+        .result-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .positive {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .negative {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .confidence-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .confidence-level {
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .disclaimer {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="report-header">
+            <h1 class="report-title">Malaria Blood Smear Analysis Report</h1>
+            <p class="report-subtitle">AI-Powered Medical Intelligence Platform</p>
+            <p class="report-date">Generated on: ${formatDate(imageData?.timestamp)}</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Analysis Information</h2>
+            <div class="info-item">
+                <div class="info-label">Image File:</div>
+                <div class="info-value">${imageData?.image || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Analysis Type:</div>
+                <div class="info-value">Blood Smear Image Analysis (CNN Model)</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Analysis Results</h2>
+            <div class="result-card ${results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized' ? 'positive' : 'negative'}">
+                <h3>Diagnosis: ${results.label}</h3>
+                ${results.confidence !== undefined ? `
+                    <p>Model Confidence: ${(results.confidence * 100).toFixed(1)}%</p>
+                    <div class="confidence-bar">
+                        <div class="confidence-level" style="width: ${(results.confidence * 100)}%; background-color: ${results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized' ? '#dc3545' : '#28a745'}">
+                            ${(results.confidence * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div>
+                <h3>Interpretation:</h3>
+                <p>
+                    ${results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized'
+                      ? 'The AI model detected malaria parasites in the blood smear image. Immediate medical consultation is strongly recommended for confirmation and treatment.' 
+                      : 'The AI model did not detect malaria parasites in the blood smear image. Continue monitoring symptoms and seek medical advice if they worsen.'}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="section">
+            <h2 class="section-title">Medical Disclaimer</h2>
+            <p>
+                This AI-powered assessment tool is designed for decision support only and should never replace
+                professional medical diagnosis, consultation, or treatment. Always consult with qualified healthcare providers
+                for medical decisions, laboratory testing, and treatment plans.
+            </p>
+            <p>
+                <strong>If you suspect malaria or any serious illness, seek immediate medical attention.</strong>
+                Early diagnosis and treatment are critical for the best outcomes.
+            </p>
+        </div>
+
+        <div class="disclaimer">
+            This report is generated by OutbreakLens Medical Intelligence Platform. The assessment is based on
+            machine learning algorithms trained on clinical data. Results should be interpreted by qualified
+            healthcare professionals in conjunction with clinical evaluation.
+        </div>
+
+        <div class="footer">
+            <p>Report ID: ${imageData?.id || 'N/A'}</p>
+            <p>© ${new Date().getFullYear()} OutbreakLens Medical Intelligence Platform</p>
+        </div>
+    </div>
+</body>
+</html>
+      `;
+    }
+
+    // Generate report for symptom-based diagnosis
+    if (patientData) {
+      const symptomsList = [
+        { key: "fever", label: "Fever", value: patientData.fever },
+        { key: "chills", label: "Chills or Shivering", value: patientData.chills },
+        { key: "headache", label: "Headache", value: patientData.headache },
+        { key: "fatigue", label: "Fatigue", value: patientData.fatigue },
+        { key: "muscle_aches", label: "Muscle or Joint Pain", value: patientData.muscle_aches },
+        { key: "nausea", label: "Nausea", value: patientData.nausea },
+        { key: "diarrhea", label: "Diarrhea", value: patientData.diarrhea },
+        { key: "abdominal_pain", label: "Abdominal Pain", value: patientData.abdominal_pain },
+        { key: "cough", label: "Cough", value: patientData.cough },
+        { key: "skin_rash", label: "Skin Rash", value: patientData.skin_rash }
+      ];
+
+      return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -348,11 +549,14 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
     </div>
 </body>
 </html>
-    `;
+      `;
+    }
+
+    return '';
   };
 
   const downloadReport = async () => {
-    if (!results || !patientData) return;
+    if (!results) return;
     
     // Create a temporary element to hold the HTML content
     const tempElement = document.createElement('div');
@@ -409,7 +613,9 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
       }
       
       // Save the PDF
-      const fileName = `malaria-risk-assessment-${patientData.id || Date.now()}.pdf`;
+      const fileName = isImageDiagnosis 
+        ? `malaria-blood-smear-analysis-${imageData?.id || Date.now()}.pdf`
+        : `malaria-risk-assessment-${patientData?.id || Date.now()}.pdf`;
       pdf.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -419,7 +625,10 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `malaria-risk-assessment-${patientData.id || Date.now()}.html`;
+      const fileName = isImageDiagnosis 
+        ? `malaria-blood-smear-analysis-${imageData?.id || Date.now()}.html`
+        : `malaria-risk-assessment-${patientData?.id || Date.now()}.html`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -497,7 +706,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
       ? 'Medium Risk' 
       : results.label.includes('Low') 
         ? 'Low Risk' 
-        : results.label === 'Positive' || results.label === 'Infected' 
+        : results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized'
           ? 'High Risk' 
           : 'Low Risk';
 
@@ -506,7 +715,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
     if (results.label.includes('High')) return 85;
     if (results.label.includes('Medium')) return 50;
     if (results.label.includes('Low')) return 15;
-    if (results.label === 'Positive' || results.label === 'Infected') return 85;
+    if (results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized') return 85;
     return 15; // Default to low risk
   };
 
@@ -528,10 +737,12 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
                     <Microscope className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Malaria Diagnosis Report</CardTitle>
+                    <CardTitle className="text-base">
+                      {isImageDiagnosis ? 'Blood Smear Analysis Report' : 'Malaria Diagnosis Report'}
+                    </CardTitle>
                   </div>
                 </div>
-                {patientData && (
+                {results && (
                   <Button 
                     onClick={downloadReport}
                     variant="outline" 
@@ -607,11 +818,15 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
                 </div>
                 
                 <p className="text-center text-muted-foreground text-sm max-w-xs">
-                  {riskLevel.includes('High') 
-                    ? 'High probability of malaria infection detected. Immediate medical consultation is strongly recommended.' 
-                    : riskLevel.includes('Medium') 
-                      ? 'Moderate probability of malaria infection detected. Further lab testing is recommended.' 
-                      : 'Low probability of malaria infection detected. Continue monitoring symptoms.'}
+                  {isImageDiagnosis
+                    ? results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized'
+                      ? 'Malaria parasites detected in blood smear. Immediate medical consultation is strongly recommended.'
+                      : 'No malaria parasites detected in blood smear. Continue monitoring symptoms.'
+                    : riskLevel.includes('High') 
+                      ? 'High probability of malaria infection detected. Immediate medical consultation is strongly recommended.' 
+                      : riskLevel.includes('Medium') 
+                        ? 'Moderate probability of malaria infection detected. Further lab testing is recommended.' 
+                        : 'Low probability of malaria infection detected. Continue monitoring symptoms.'}
                 </p>
               </div>
               
@@ -620,7 +835,11 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
                 <div className={`space-y-1.5 text-center p-3 rounded-lg ${getRiskBgColor()}`}>
                   <span className="text-xs text-muted-foreground uppercase tracking-wider">Result</span>
                   <div className={`text-base font-bold ${getRiskColor()}`}>
-                    {riskLevel}
+                    {isImageDiagnosis 
+                      ? results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized' 
+                        ? 'Parasites Detected' 
+                        : 'No Parasites'
+                      : riskLevel}
                   </div>
                 </div>
                 
@@ -635,11 +854,15 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
               {/* Interpretation Box */}
               <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
                 <p className="text-center text-foreground text-sm">
-                  {riskLevel.includes('High') 
-                    ? 'Recommend immediate medical consultation. Further blood testing is critical for confirmation.' 
-                    : riskLevel.includes('Medium') 
-                      ? 'Recommend further blood test for confirmation. Consult your healthcare provider.' 
-                      : 'Continue monitoring symptoms. Consult your healthcare provider if symptoms worsen.'}
+                  {isImageDiagnosis
+                    ? results.label === 'Positive' || results.label === 'Infected' || results.label === 'Parasitized'
+                      ? 'Recommend immediate medical consultation. Further blood testing is critical for confirmation.'
+                      : 'Continue monitoring symptoms. Consult your healthcare provider if symptoms worsen.'
+                    : riskLevel.includes('High') 
+                      ? 'Recommend immediate medical consultation. Further blood testing is critical for confirmation.' 
+                      : riskLevel.includes('Medium') 
+                        ? 'Recommend further blood test for confirmation. Consult your healthcare provider.' 
+                        : 'Continue monitoring symptoms. Consult your healthcare provider if symptoms worsen.'}
                 </p>
               </div>
               
@@ -660,16 +883,22 @@ export const DiagnosisResults = ({ results, isLoading, patientData }: DiagnosisR
                 {showModelInsights && (
                   <div className="p-3 bg-background/50 space-y-2.5 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Dataset:</span>
-                      <span className="font-medium">Synthetic Patient Symptoms Data</span>
+                      <span className="text-muted-foreground">Analysis Type:</span>
+                      <span className="font-medium">
+                        {isImageDiagnosis ? 'CNN Blood Smear Analysis' : 'Symptom Risk Assessment'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Algorithm:</span>
-                      <span className="font-medium">Random Forest Classifier</span>
+                      <span className="font-medium">
+                        {isImageDiagnosis ? 'Convolutional Neural Network' : 'Random Forest Classifier'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Model Accuracy:</span>
-                      <span className="font-medium">87%</span>
+                      <span className="font-medium">
+                        {isImageDiagnosis ? '92%' : '87%'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Last Updated:</span>
