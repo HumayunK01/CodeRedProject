@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { apiClient, DEMO_MODE } from "@/lib/api";
+import { apiClient } from "@/lib/api";
 import { HealthStatus } from "@/lib/types";
 import { 
   Activity, 
@@ -149,22 +149,6 @@ const Status = () => {
           </Button>
         </div>
 
-        {DEMO_MODE && (
-          <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="flex items-start space-x-3">
-              <div className="p-1 rounded-full bg-primary/20">
-                <div className="h-2 w-2 rounded-full bg-primary" />
-              </div>
-              <div className="flex-1 text-sm">
-                <p className="font-medium text-primary mb-1">Demo Mode Active</p>
-                <p className="text-muted-foreground">
-                  Running in demonstration mode with mock backend responses. 
-                  Set VITE_INFER_BASE_URL to connect to a real backend service.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
       </motion.div>
 
       {/* Overall Status */}
@@ -355,21 +339,21 @@ const Status = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center space-y-2">
                 <div className="text-2xl font-bold text-success">
-                  {DEMO_MODE ? '<2s' : 'N/A'}
+                  N/A
                 </div>
                 <p className="text-sm text-muted-foreground">Average Response Time</p>
               </div>
               
               <div className="text-center space-y-2">
                 <div className="text-2xl font-bold text-primary">
-                  {DEMO_MODE ? '99.2%' : 'N/A'}
+                  N/A
                 </div>
                 <p className="text-sm text-muted-foreground">Uptime (30 days)</p>
               </div>
               
               <div className="text-center space-y-2">
                 <div className="text-2xl font-bold text-accent">
-                  {DEMO_MODE ? '150+' : 'N/A'}
+                  N/A
                 </div>
                 <p className="text-sm text-muted-foreground">Requests Processed</p>
               </div>

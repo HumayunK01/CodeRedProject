@@ -7,7 +7,7 @@ export type {
   Forecast,
   Report,
   SystemLog,
-} from "../../../../database/generated";
+} from "../../../database/generated";
 
 export interface DiagnosisResult {
   label: string;
@@ -32,7 +32,6 @@ export interface SymptomsInput {
   skin_rash: boolean;
   age: number;
   region: string;
-  followUpAnswers?: Record<string, any>;
 }
 
 export interface ForecastInput {
@@ -68,9 +67,26 @@ export interface StoredResult {
   result: DiagnosisResult | ForecastResult;
 }
 
+export interface DashboardStats {
+  today_diagnoses: number;
+  active_forecasts: number;
+  risk_regions: number;
+  system_health: number;
+  model_accuracy: string;
+  response_time: string;
+  data_security: string;
+  global_reach: string;
+  recent_activity: {
+    type: string;
+    title: string;
+    time: string;
+    result: string;
+    status: string;
+  }[];
+}
+
 export interface ApiError {
-  error: {
+  error?: {
     message: string;
-    code?: string;
   };
 }

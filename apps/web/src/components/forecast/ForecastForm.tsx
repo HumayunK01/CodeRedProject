@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -13,8 +12,7 @@ import { apiClient } from "@/lib/api";
 import { ForecastResult } from "@/lib/types";
 import { forecastSchema, ForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
-import { LocationDetector } from "@/components/ui/location-detector";
-import { LocationData } from "@/lib/location";
+import { INDIA_REGIONS } from "@/lib/constants";
 import {
   TrendingUp,
   MapPin,
@@ -28,17 +26,11 @@ interface ForecastFormProps {
   onLoadingChange: (loading: boolean) => void;
 }
 
-const regions = [
-  "Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad",
-  "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Surat",
-  "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane",
-  "Kochi", "Coimbatore", "Thiruvananthapuram", "Mysore", "Mangalore"
-];
+// Regions are imported from shared constants
 
 export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [detectedLocation, setDetectedLocation] = useState<LocationData | null>(null);
 
   const form = useForm<ForecastFormData>({
     resolver: zodResolver(forecastSchema),
@@ -49,26 +41,6 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
   });
 
   const watchedWeeks = form.watch("horizon_weeks");
-
-  // Handle location detection
-  const handleLocationDetected = (location: LocationData) => {
-    setDetectedLocation(location);
-
-    // Auto-fill region if location has region data
-    if (location.region) {
-      form.setValue('region', location.region);
-      toast({
-        title: "Location Detected",
-        description: `Region set to: ${location.region}`,
-      });
-    } else if (location.city) {
-      // If no region but city is available, suggest it
-      toast({
-        title: "Location Detected",
-        description: `Detected: ${location.city}${location.country ? `, ${location.country}` : ''}`,
-      });
-    }
-  };
 
   const onSubmit = async (data: ForecastFormData) => {
     console.log('Forecast form submitted with data:', data);
@@ -100,7 +72,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
       console.error('Forecast submission error:', error);
       toast({
         title: "Forecast Failed",
-        description: error instanceof Error ? error.message : "Failed to generate forecast",
+        description: error instanceof Error ? error.message : "Failed to generate forecast. Please check your connection and try again.",
         variant: "destructive",
       });
     } finally {
@@ -112,13 +84,6 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Location Detection */}
-        <LocationDetector
-          onLocationSelect={handleLocationDetected}
-          selectedLocation={detectedLocation}
-          className="mb-6"
-        />
-
         {/* Region Selection */}
         <FormField
           control={form.control}
@@ -128,11 +93,6 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
               <FormLabel className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
                 <span>Target Region</span>
-                {detectedLocation && (
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    Auto-detected
-                  </Badge>
-                )}
               </FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
@@ -141,7 +101,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {regions.map((region) => (
+                  {INDIA_REGIONS.map((region) => (
                     <SelectItem key={region} value={region}>
                       {region}
                     </SelectItem>
@@ -149,11 +109,6 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                 </SelectContent>
               </Select>
               <FormMessage />
-              {detectedLocation && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Detected: {detectedLocation.formatted}
-                </p>
-              )}
             </FormItem>
           )}
         />
@@ -177,7 +132,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                 <div className="space-y-3">
                   <Slider
                     min={1}
-                    max={8}
+                    max={14}
                     step={1}
                     value={[field.value]}
                     onValueChange={(value) => field.onChange(value[0])}
@@ -185,8 +140,8 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>1 week</span>
-                    <span>4 weeks</span>
-                    <span>8 weeks</span>
+                    <span>7 weeks</span>
+                    <span>14 weeks</span>
                   </div>
                 </div>
               </FormControl>
@@ -248,7 +203,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
               </div>
               <div>
                 <p className="font-medium">Lead Time</p>
-                <p>1-8 weeks</p>
+                <p>1-14 weeks</p>
               </div>
               <div>
                 <p className="font-medium">Coverage</p>

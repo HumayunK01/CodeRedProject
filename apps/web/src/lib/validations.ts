@@ -13,14 +13,13 @@ export const symptomsSchema = z.object({
   abdominal_pain: z.boolean(),
   cough: z.boolean(),
   skin_rash: z.boolean(),
-  age: z.number().min(0, 'Age must be positive').max(120, 'Age must be realistic').optional().default(25),
-  region: z.string().min(1, 'Region is required').max(100, 'Region name too long').optional().default('Unknown'),
-  followUpAnswers: z.record(z.any()).optional().default({}),
+  age: z.number().min(0, 'Age must be positive').max(120, 'Age must be realistic'),
+  region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
 });
 
 export const forecastSchema = z.object({
   region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
-  horizon_weeks: z.number().min(1, 'Minimum 1 week').max(8, 'Maximum 8 weeks'),
+  horizon_weeks: z.number().min(1, 'Minimum 1 week').max(14, 'Maximum 14 weeks'),
 });
 
 export const imageUploadSchema = z.object({

@@ -33,8 +33,38 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
   const getTrendDirection = (predictions: { week: string; cases: number }[]) => {
     if (predictions.length < 2) return 'stable';
     
+    // Handle case where first value is zero to avoid division by zero
     const first = predictions[0].cases;
     const last = predictions[predictions.length - 1].cases;
+    
+    // If first value is zero, look at the overall trend of the data
+    if (first === 0) {
+      let positiveTrends = 0;
+      let negativeTrends = 0;
+      
+      for (let i = 1; i < predictions.length; i++) {
+        const change = predictions[i].cases - predictions[i-1].cases;
+        if (change > 0) {
+          positiveTrends++;
+        } else if (change < 0) {
+          negativeTrends++;
+        }
+      }
+      
+      // If no trends at all (all values are the same), it's stable
+      if (positiveTrends === 0 && negativeTrends === 0) return 'stable';
+      
+      // If more positive than negative trends, it's increasing
+      if (positiveTrends > negativeTrends) return 'increasing';
+      if (negativeTrends > positiveTrends) return 'decreasing';
+      
+      // If equal positive and negative trends, look at overall direction
+      if (last > first) return 'increasing';
+      if (last < first) return 'decreasing';
+      return 'stable';
+    }
+    
+    // Normal percentage change calculation
     const change = ((last - first) / first) * 100;
     
     if (change > 10) return 'increasing';

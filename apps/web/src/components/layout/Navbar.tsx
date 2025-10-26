@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface NavbarProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
 export const Navbar = ({ onMenuClick }: NavbarProps) => {
@@ -75,7 +75,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "glass-strong border-b border-border/50 shadow-medical-lg"
+          ? "glass-strong border-b border-border/50"
           : "glass-strong border-b border-border/30"
       }`}
       initial={{ y: -100, opacity: 0 }}
@@ -90,35 +90,32 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-32 h-32 bg-primary/3 rounded-full blur-2xl animate-pulse"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-accent/3 rounded-full blur-2xl animate-pulse delay-1000"></div>
-        <motion.div
-          className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-        />
       </div>
 
       <div className="flex items-center justify-between h-16 px-4 lg:px-6 relative z-10">
         {/* Enhanced Left Section */}
         <div className="flex items-center space-x-3 lg:space-x-4">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMenuClick}
-              className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
-              aria-label="Toggle menu"
+          {onMenuClick && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <motion.div
-                whileHover={{ rotate: 90 }}
-                transition={{ type: "spring", stiffness: 400 }}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMenuClick}
+                className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
+                aria-label="Toggle menu"
               >
-                <Menu className="h-5 w-5" />
-              </motion.div>
-            </Button>
-          </motion.div>
+                <motion.div
+                  whileHover={{ rotate: 90 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Menu className="h-5 w-5" />
+                </motion.div>
+              </Button>
+            </motion.div>
+          )}
 
           <Link to="/" className="flex items-center space-x-3">
             <motion.div

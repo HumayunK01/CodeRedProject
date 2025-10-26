@@ -8,6 +8,7 @@
 - [Code Standards](#code-standards)
 - [Testing](#testing)
 - [API Integration](#api-integration)
+- [PDF Report Generation](#pdf-report-generation)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -281,6 +282,56 @@ const result = await apiClient.forecastRegion(input);
 
 ---
 
+## 📄 PDF Report Generation
+
+### Overview
+OutbreakLens includes a sophisticated PDF report generation system that creates professional medical reports suitable for clinical use. The system uses jsPDF and html2canvas to convert styled HTML content into high-quality PDF documents.
+
+### Key Components
+The PDF generation is implemented in the [DiagnosisResults.tsx](file:///d:/Projects/CodeRedProject/apps/web/src/components/diagnosis/DiagnosisResults.tsx) component and consists of:
+
+1. **HTML Template Generation** - Dynamically creates styled HTML content
+2. **Canvas Rendering** - Uses html2canvas to render HTML as high-resolution images
+3. **PDF Assembly** - Combines rendered pages into a single PDF document
+
+### Implementation Details
+```typescript
+// Key functions in DiagnosisResults.tsx
+const generateReportHtml = () => { /* Creates HTML template */ }
+const downloadReport = async () => { /* Generates and downloads PDF */ }
+```
+
+### Customization
+To customize the PDF generation:
+
+1. Modify the `generateReportHtml` function to change styling and content
+2. Adjust the `downloadReport` function to modify rendering quality or process
+3. Update CSS styles in the HTML template for visual changes
+
+### Dependencies
+The PDF generation system relies on two key libraries specified in the root `package.json`:
+
+```json
+"dependencies": {
+  "html2canvas": "^1.4.1",
+  "jspdf": "^3.0.3"
+}
+```
+
+### Best Practices
+- Test PDF generation across different browsers
+- Optimize for print with appropriate CSS styles
+- Handle large content by breaking into multiple pages
+- Ensure font loading with appropriate delays
+- Provide fallbacks for error handling
+
+### Documentation
+For detailed information about PDF generation, see:
+- [PDF Generation Documentation](../pdf-generation.md)
+- [DiagnosisResults Component](file:///d:/Projects/CodeRedProject/apps/web/src/components/diagnosis/DiagnosisResults.tsx)
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -335,6 +386,7 @@ npx tailwindcss -i ./src/index.css -o ./dist/output.css --watch
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS Docs](https://tailwindcss.com/docs)
 - [Vite Guide](https://vitejs.dev/guide/)
+- [PDF Generation Guide](../pdf-generation.md)
 
 ### Tools
 - [React DevTools](https://react.dev/learn/react-developer-tools)

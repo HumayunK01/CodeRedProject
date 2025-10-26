@@ -24,6 +24,7 @@ OutbreakLens is a comprehensive healthcare platform that combines machine learni
 - **📍 Location Intelligence**: GPS-based risk assessment and location-specific insights
 - **📊 Real-time Analytics**: Interactive dashboards and comprehensive reporting tools
 - **🗺️ Geospatial Intelligence**: Heat maps and hotspot detection for outbreak monitoring
+- **📋 Professional Reporting**: High-quality PDF medical reports for healthcare professionals
 
 ### 🎯 Mission
 Transform healthcare delivery through precision AI diagnostics and proactive epidemiological surveillance, enabling faster response times and better health outcomes in malaria-endemic regions.
@@ -44,6 +45,7 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - **State**: TanStack Query for server state
 - **Theme**: Dark/Light mode with Next Themes
 - **PWA**: Progressive Web App capabilities
+- **PDF Generation**: jsPDF + html2canvas for professional medical reports
 
 </details>
 
@@ -101,6 +103,7 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - [x] **PWA Support**: Installable app with offline capabilities
 - [x] **Accessibility**: WCAG AA compliant design
 - [x] **Performance**: Optimized with lazy loading and caching
+- [x] **Professional PDF Reports**: High-quality medical reports for healthcare use
 
 #### 📊 Data Visualization
 - [x] **Interactive Charts**: Animated line/area charts with tooltips
@@ -108,6 +111,18 @@ Transform healthcare delivery through precision AI diagnostics and proactive epi
 - [x] **Sparklines**: Trend indicators in dashboard cards
 - [x] **Heat Maps**: Geographic outbreak intensity visualization
 - [x] **Real-time Updates**: Live data refresh and animations
+
+#### 📄 Reporting Features
+- [x] **Medical-Grade PDF Generation**: Professionally formatted diagnosis reports
+- [x] **Patient Information Section**: Comprehensive patient data display
+- [x] **Symptom Assessment Visualization**: Clear presentation of reported symptoms
+- [x] **Risk Level Indicators**: Color-coded risk assessment results
+- [x] **Confidence Metrics**: Model confidence scores with visual indicators
+- [x] **Clinical Interpretations**: Expert-level explanations of results
+- [x] **Model Information**: Details about the AI models used
+- [x] **Medical Disclaimers**: Required legal and medical disclaimers
+- [x] **Multi-page Layout**: Organized content across multiple pages
+- [x] **Print-Optimized Design**: Properly formatted for medical documentation
 
 </details>
 
@@ -157,6 +172,9 @@ outbreaklens-monorepo/           # Root monorepo directory
 │   │   │   │   │   └── location-detector.tsx # Geolocation services component
 │   │   │   │   ├── layout/    # Navigation and layout
 │   │   │   │   ├── diagnosis/ # Diagnosis-specific components
+│   │   │   │   │   ├── DiagnosisResults.tsx   # Diagnosis results with PDF generation
+│   │   │   │   │   ├── SymptomsForm.tsx       # Symptom input form
+│   │   │   │   │   └── ImageUploader.tsx     # Medical image upload component
 │   │   │   │   └── forecast/  # Forecasting components
 │   │   │   ├── pages/         # Route-based page components
 │   │   │   ├── lib/           # Utilities and configurations
@@ -410,6 +428,53 @@ python src/main.py
 **Note**: The Flask API runs on `http://localhost:8000` and provides mock ML responses for development.
 
 </details>
+
+---
+
+## 📄 PDF Report Generation
+
+OutbreakLens includes a sophisticated PDF report generation system that creates professional medical reports for healthcare professionals. The system uses jsPDF and html2canvas to convert styled HTML content into high-quality PDF documents.
+
+### Features
+
+- **Medical-Grade Design**: Professionally formatted reports suitable for clinical use
+- **Multi-page Layout**: Content organized across multiple pages for readability
+- **Responsive Design**: Reports adapt to A4 paper size with proper scaling
+- **High-Quality Rendering**: Vector-based graphics and crisp text rendering
+- **Risk-Based Styling**: Color-coded elements based on diagnosis risk levels
+- **Patient Information**: Comprehensive patient data section
+- **Symptom Visualization**: Clear presentation of reported symptoms
+- **Clinical Interpretations**: Expert-level explanations of results
+- **Model Information**: Details about the AI models used
+- **Legal Compliance**: Required medical disclaimers and licensing information
+
+### Technical Implementation
+
+The PDF generation system is implemented in the [DiagnosisResults.tsx](file:///d:/Projects/CodeRedProject/apps/web/src/components/diagnosis/DiagnosisResults.tsx) component and includes:
+
+1. **HTML Template Generation**: Dynamically creates styled HTML content
+2. **Canvas Rendering**: Uses html2canvas to render HTML as high-resolution images
+3. **PDF Assembly**: Combines rendered pages into a single PDF document
+4. **Quality Optimization**: High-resolution rendering with proper scaling
+5. **Error Handling**: Fallback to HTML download if PDF generation fails
+
+### Usage
+
+Healthcare professionals can generate PDF reports by clicking the "Download Report" button in the diagnosis results section. The system automatically:
+1. Collects all relevant patient data and diagnosis results
+2. Generates a professionally styled HTML template
+3. Renders the content to high-quality images
+4. Assembles the images into a PDF document
+5. Triggers the browser's download dialog
+
+### Customization
+
+The PDF generation system can be customized by modifying the [generateReportHtml](file:///d:/Projects/CodeRedProject/apps/web/src/components/diagnosis/DiagnosisResults.tsx#L72-L312) function in [DiagnosisResults.tsx](file:///d:/Projects/CodeRedProject/apps/web/src/components/diagnosis/DiagnosisResults.tsx). Key customization points include:
+- Styling and layout through CSS
+- Content organization and sections
+- Risk-based color coding
+- Header/footer content
+- Page numbering and watermarks
 
 ---
 
@@ -706,6 +771,7 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 - 🔗 **API Integration**: Connected frontend to backend with development proxy
 - 📦 **Workspace Management**: Updated package.json scripts for monorepo workflows
 - 🧪 **Mock ML Services**: Added realistic mock responses for development
+- 📄 **Professional PDF Reports**: Enhanced medical report generation with improved styling
 
 ### Version 1.0.0 (Previous)
 - ✨ Initial frontend implementation

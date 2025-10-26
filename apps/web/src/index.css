@@ -9,81 +9,74 @@
 
 @layer base {
   :root {
-    /* Background System - Deep black with purple glow */
-    --background: 260 20% 6%;
-    --foreground: 280 15% 95%;
+    /* Light mode - Clean medical theme with purple accents */
+    --background: 0 0% 100%;
+    --foreground: 260 20% 15%;
 
-    /* Card System - Dark purples with subtle gradients */
-    --card: 260 25% 8%;
-    --card-foreground: 280 15% 95%;
+    /* Card System - Light with subtle purple tints */
+    --card: 0 0% 98%;
+    --card-foreground: 260 20% 15%;
 
     /* Popover System */
-    --popover: 260 25% 8%;
-    --popover-foreground: 280 15% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 20% 15%;
 
-    /* Primary System - Electric purple for web3 cyberpunk feel */
-    --primary: 270 95% 60%;
-    --primary-foreground: 260 20% 6%;
-    --primary-light: 270 90% 70%;
-    --primary-dark: 270 100% 50%;
+    /* Primary System - Medical purple for professional feel */
+    --primary: 270 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 270 80% 65%;
+    --primary-dark: 270 90% 45%;
 
-    /* Secondary System - Deep purple grays */
-    --secondary: 260 15% 12%;
-    --secondary-foreground: 280 15% 85%;
+    /* Secondary System - Light grays with purple hints */
+    --secondary: 260 10% 95%;
+    --secondary-foreground: 260 20% 20%;
 
-    /* Muted System - Dark purple-tinted blacks */
-    --muted: 260 10% 15%;
-    --muted-foreground: 280 8% 65%;
+    /* Muted System - Light purple-tinted grays */
+    --muted: 260 8% 92%;
+    --muted-foreground: 260 15% 45%;
 
-    /* Accent System - Bright neon purple */
-    --accent: 280 100% 65%;
-    --accent-foreground: 260 20% 6%;
-    --accent-light: 280 95% 75%;
+    /* Accent System - Bright medical purple */
+    --accent: 280 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 280 80% 70%;
 
-    /* Status Colors - Web3 cyberpunk grade */
-    --success: 280 85% 55%;
-    --success-foreground: 260 20% 6%;
-    --warning: 35 95% 60%;
-    --warning-foreground: 260 20% 6%;
-    --destructive: 0 85% 55%;
-    --destructive-foreground: 280 15% 95%;
+    /* Status Colors - Medical grade */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Border & Input System */
-    --border: 260 15% 18%;
-    --input: 260 15% 12%;
-    --ring: 270 95% 60%;
+    --border: 260 15% 88%;
+    --input: 260 8% 95%;
+    --ring: 270 85% 55%;
 
-    /* Glassmorphism & Effects - Cyberpunk style */
-    --glass-bg: 260 25% 8% / 0.9;
-    --glass-border: 270 50% 30% / 0.3;
-    --shadow-soft: 270 40% 20% / 0.15;
-    --shadow-medium: 270 40% 20% / 0.20;
-    --shadow-strong: 270 40% 20% / 0.25;
+    /* Glassmorphism & Effects - Light medical style */
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 270 30% 80% / 0.3;
+    --shadow-soft: 260 20% 0% / 0.05;
+    --shadow-medium: 260 20% 0% / 0.08;
+    --shadow-strong: 260 20% 0% / 0.12;
 
-    /* Gradients - Web3 cyberpunk aesthetics */
-    --gradient-primary: linear-gradient(135deg, hsl(270 95% 60%), hsl(280 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(260 15% 12%), hsl(260 25% 8%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 100% 65%), hsl(270 95% 60%));
-    --gradient-glass: linear-gradient(135deg, hsl(260 25% 8% / 0.95), hsl(260 15% 12% / 0.8));
+    /* Gradients - Light medical aesthetics */
+    --gradient-primary: linear-gradient(135deg, hsl(270 85% 55%), hsl(280 85% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(260 10% 95%), hsl(260 8% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(280 85% 60%), hsl(270 85% 55%));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.9), hsl(260 8% 98% / 0.8));
 
-    /* Radius System - Web3 precision */
+    /* Radius System - Medical precision */
     --radius: 0.75rem;
 
-    --sidebar-background: 260 20% 7%;
-
-    --sidebar-foreground: 280 15% 90%;
-
-    --sidebar-primary: 270 95% 60%;
-
-    --sidebar-primary-foreground: 260 20% 6%;
-
-    --sidebar-accent: 260 15% 10%;
-
-    --sidebar-accent-foreground: 280 15% 85%;
-
-    --sidebar-border: 260 15% 15%;
-
-    --sidebar-ring: 270 95% 60%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 260 20% 15%;
+    --sidebar-primary: 270 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 8% 95%;
+    --sidebar-accent-foreground: 260 20% 20%;
+    --sidebar-border: 260 15% 90%;
+    --sidebar-ring: 270 85% 55%;
   }
 
   .dark {
@@ -303,5 +296,21 @@
     font-family: 'Urbanist', monospace;
     font-weight: 400;
     letter-spacing: 0.025em;
+  }
+
+  /* Marquee animation for medical disclaimer */
+  .animate-marquee {
+    display: inline-block;
+    animation: marquee 15s linear infinite;
+    padding-left: 100%;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
   }
 }

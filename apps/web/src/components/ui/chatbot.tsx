@@ -551,25 +551,6 @@ export const Chatbot = ({ className = '', isOpen: externalIsOpen, onToggle }: Ch
                   </motion.div>
                 </div>
 
-                {/* Enhanced Medical Disclaimer */}
-                <motion.div
-                  className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <div className="flex items-center space-x-2 text-sm">
-                    <motion.div
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                    >
-                      <AlertCircle className="w-4 h-4 text-warning flex-shrink-0" />
-                    </motion.div>
-                    <span className="text-warning font-medium">
-                      For informational purposes only • Always consult healthcare professionals for medical advice
-                    </span>
-                  </div>
-                </motion.div>
               </div>
             </Card>
           </motion.div>

@@ -69,4 +69,17 @@ export class StorageManager {
       .map(row => row.map(cell => `"${cell}"`).join(','))
       .join('\n');
   }
+
+  static exportToJson(): string {
+    const results = this.getAllResults();
+    return JSON.stringify(results, null, 2);
+  }
+
+  static exportToPdf(): Promise<Blob> {
+    // This would require additional libraries like jsPDF
+    // For now, we'll return a Promise that resolves to a Blob with JSON data
+    const results = this.getAllResults();
+    const json = JSON.stringify(results, null, 2);
+    return Promise.resolve(new Blob([json], { type: 'application/json' }));
+  }
 }

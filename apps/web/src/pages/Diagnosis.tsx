@@ -1,36 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { SymptomsForm } from "@/components/diagnosis/SymptomsForm";
 import { DiagnosisResults } from "@/components/diagnosis/DiagnosisResults";
-import { DEMO_MODE } from "@/lib/api";
-import { DiagnosisResult } from "@/lib/types";
+import { DiagnosisResult, SymptomsInput } from "@/lib/types";
+import { StorageManager } from "@/lib/storage";
 import {
   Stethoscope,
   Activity,
-  Heart,
-  Thermometer,
-  Droplets,
   AlertTriangle,
   CheckCircle,
-  Info,
   Brain,
   Zap,
   Shield,
-  Clock,
-  Users,
-  TrendingUp,
-  FileText
+  Microscope,
+  TestTube
 } from "lucide-react";
 
 const Diagnosis = () => {
   const [results, setResults] = useState<DiagnosisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [storedPatientData, setStoredPatientData] = useState<SymptomsInput & { id?: string; timestamp?: string } | null>(null);
+
+  // Load the most recent patient data from storage
+  useEffect(() => {
+    const loadRecentPatientData = () => {
+      try {
+        const allResults = StorageManager.getAllResults();
+        const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
+        if (diagnosisResults.length > 0) {
+          const mostRecent = diagnosisResults[0];
+          setStoredPatientData({
+            ...(mostRecent.input as SymptomsInput),
+            id: mostRecent.id,
+            timestamp: mostRecent.timestamp
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to load patient data:', error);
+      }
+    };
+
+    loadRecentPatientData();
+  }, []);
 
   const handleResult = (result: DiagnosisResult) => {
     setResults(result);
     setIsLoading(false);
+    
+    // Load the patient data again after a new result is generated
+    setTimeout(() => {
+      const allResults = StorageManager.getAllResults();
+      const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
+      if (diagnosisResults.length > 0) {
+        const mostRecent = diagnosisResults[0];
+        setStoredPatientData({
+          ...(mostRecent.input as SymptomsInput),
+          id: mostRecent.id,
+          timestamp: mostRecent.timestamp
+        });
+      }
+    }, 500);
   };
 
   const handleLoading = (loading: boolean) => {
@@ -40,193 +70,141 @@ const Diagnosis = () => {
     }
   };
 
-  const capabilities = [
-    {
-      title: "AI-Powered Analysis",
-      description: "Advanced machine learning algorithms trained on clinical data",
-      icon: Brain,
-      color: "text-primary"
-    },
-    {
-      title: "Real-Time Processing",
-      description: "Instant symptom analysis with <2 second response times",
-      icon: Zap,
-      color: "text-accent"
-    },
-    {
-      title: "Clinical Validation",
-      description: "Validated against WHO guidelines and medical standards",
-      icon: Shield,
-      color: "text-success"
-    }
-  ];
-
-  const trustIndicators = [
-    { label: "WHO Approved", icon: CheckCircle, status: "verified" },
-    { label: "HIPAA Compliant", icon: Shield, status: "secure" },
-    { label: "24/7 Monitoring", icon: Activity, status: "active" },
-    { label: "Medical Grade", icon: Stethoscope, status: "certified" }
-  ];
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background relative">
+      {/* Background Elements */}
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+      
+      {/* Medical Disclaimer Marquee */}
+      <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
+        <div className="flex items-center justify-center">
+          <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
+          <div className="relative overflow-hidden w-full max-w-4xl">
+            <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
+              This ML-powered assessment tool is for decision support only and should never replace professional medical diagnosis. Always consult with qualified healthcare providers for medical decisions.
+            </div>
+          </div>
+          <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
+        </div>
+      </div>
+
       {/* Enhanced Header Section */}
-      <section className="relative px-4 py-16 lg:px-6 lg:py-20 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-
+      <section className="relative px-4 py-8 lg:px-6 lg:py-12 overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+          <motion.div 
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center space-y-6"
+            transition={{ duration: 0.4 }}
+            className="text-center mb-1"
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 backdrop-blur-sm"
-            >
-              <Brain className="h-4 w-4 text-primary animate-pulse" />
-              <span className="text-sm font-medium text-primary">
-                AI-Powered Medical Intelligence
-              </span>
-            </motion.div>
-
-            <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            >
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Malaria Diagnosis
-              </span>
-              <br />
-              <span className="text-foreground">
-                Risk Assessment
-              </span>
-            </motion.h1>
-
-            <motion.p
-              className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
-              Advanced ML-powered symptom analysis and clinical evaluation for
-              <span className="text-primary font-medium"> accurate malaria risk assessment</span>.
-              Get instant results with confidence scores and medical recommendations.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-6 pt-4"
-            >
-              {DEMO_MODE && (
-                <Badge variant="outline" className="border-primary/30 text-primary px-4 py-2">
-                  Demo Mode - AI Analysis Active
-                </Badge>
-              )}
-
-              {/* Trust Indicators */}
-              <div className="flex flex-wrap justify-center gap-4">
-                {trustIndicators.map((indicator, index) => {
-                  const Icon = indicator.icon;
-                  return (
-                    <motion.div
-                      key={indicator.label}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.8 + index * 0.1, duration: 0.4 }}
-                      className="flex items-center space-x-2 px-3 py-1 rounded-full bg-success/10 border border-success/20"
-                    >
-                      <Icon className="h-3 w-3 text-success" />
-                      <span className="text-xs font-medium text-success">{indicator.label}</span>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
+            <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 mb-3">
+              <Microscope className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+              Malaria Risk Assessment
+            </h1>
+            <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
+              Advanced ML-powered symptom analysis for accurate malaria risk evaluation
+            </p>
+            
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.08 }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
+              >
+                <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium">ML-Powered</span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.16 }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
+              >
+                <Shield className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium">HIPAA Compliant</span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.24 }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
+              >
+                <Activity className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium">24/7 Monitoring</span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32 }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
+              >
+                <Stethoscope className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium">Medical Grade</span>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Main Dashboard Content */}
-      <div className="px-4 lg:px-6 pb-16">
-        <div className="max-w-7xl mx-auto space-y-16">
-
-          {/* Capabilities Section */}
-          <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-            </motion.div>
-          </section>
-
+      <div className="px-4 lg:px-6 pb-12 pt-1">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-12 gap-8">
+          <div className="grid lg:grid-cols-12 gap-6">
             {/* Assessment Form - Takes up more space */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.6 }}
               className="lg:col-span-8"
             >
-              <Card className="data-card border-0 shadow-medical-lg">
-                <div className="p-8 lg:p-12">
+              <Card className="data-card border-0 shadow-medical-lg bg-gradient-to-br from-card to-secondary/5">
+                <div className="p-5 lg:p-6">
                   {/* Enhanced Form Header */}
-                  <div className="mb-10">
+                  <div className="mb-6">
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.6 }}
-                      viewport={{ once: true }}
-                      className="flex items-center mb-6"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25, duration: 0.5 }}
+                      className="flex items-center mb-4"
                     >
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 mr-4">
-                        <Activity className="h-7 w-7 text-primary" />
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 mr-4">
+                        <TestTube className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-2xl md:text-3xl font-semibold mb-2">
+                        <h2 className="text-xl md:text-2xl font-bold mb-1">
                           Patient Assessment
                         </h2>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                           Comprehensive symptom analysis and risk evaluation
                         </p>
                       </div>
                     </motion.div>
 
                     <motion.p
-                      className="text-muted-foreground leading-relaxed text-lg"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4, duration: 0.6 }}
-                      viewport={{ once: true }}
+                      className="text-muted-foreground leading-relaxed text-sm max-w-2xl"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.5 }}
                     >
                       Provide accurate patient information and symptoms for the most reliable risk assessment.
                       Our AI system analyzes clinical patterns, patient history, and epidemiological data to deliver
-                      <span className="text-primary font-medium"> precise risk evaluations</span> with confidence scores
+                      <span className="text-primary font-semibold"> precise risk evaluations</span> with confidence scores
                       and medical recommendations.
                     </motion.p>
                   </div>
 
                   {/* Symptoms Form */}
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                    viewport={{ once: true }}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35, duration: 0.5 }}
                   >
                     <SymptomsForm
                       onResult={handleResult}
@@ -239,169 +217,27 @@ const Diagnosis = () => {
 
             {/* Enhanced Results Sidebar */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
               className="lg:col-span-4"
             >
-              <div className="sticky top-8 space-y-8">
+              <div className="sticky top-6 space-y-5">
                 {/* Results Display */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  viewport={{ once: true }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
                 >
                   <DiagnosisResults
                     results={results}
                     isLoading={isLoading}
+                    patientData={storedPatientData || undefined}
                   />
-                </motion.div>
-
-                {/* Enhanced Information Cards */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-                    <div className="flex items-start space-x-3 mb-6">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Info className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-primary mb-3">AI Analysis Process</h3>
-                        <ul className="space-y-3">
-                          <li className="flex items-start space-x-3">
-                            <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-muted-foreground">Clinical pattern recognition using trained ML models</span>
-                          </li>
-                          <li className="flex items-start space-x-3">
-                            <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-muted-foreground">Epidemiological data correlation and risk assessment</span>
-                          </li>
-                          <li className="flex items-start space-x-3">
-                            <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-muted-foreground">Confidence scoring and medical recommendation generation</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-
-                {/* Enhanced Common Symptoms Guide */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card p-6">
-                    <div className="flex items-start space-x-3 mb-6">
-                      <div className="p-2 rounded-lg bg-warning/10">
-                        <AlertTriangle className="h-5 w-5 text-warning" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-warning mb-3">Common Malaria Indicators</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Key symptoms that may indicate malaria infection requiring immediate medical attention:
-                        </p>
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
-                            <Thermometer className="h-4 w-4 text-destructive" />
-                            <span className="text-sm font-medium">High fever (38°C+)</span>
-                          </div>
-                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                            <Droplets className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium">Chills and sweating</span>
-                          </div>
-                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
-                            <Heart className="h-4 w-4 text-destructive" />
-                            <span className="text-sm font-medium">Headache and fatigue</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
                 </motion.div>
               </div>
             </motion.div>
-        </div>
-
-          {/* Enhanced Medical Disclaimer */}
-          <section className="mt-16">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto"
-            >
-              <Card className="p-8 bg-gradient-to-br from-warning/5 to-warning/10 border-warning/30 shadow-medical-lg">
-                <div className="flex items-start space-x-6">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.4, duration: 0.6 }}
-                    viewport={{ once: true }}
-                    className="p-4 rounded-full bg-warning/20 flex-shrink-0"
-                  >
-                    <AlertTriangle className="h-8 w-8 text-warning" />
-                  </motion.div>
-                  <div className="flex-1">
-                    <motion.h3
-                      className="font-semibold text-warning mb-4 text-xl"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5, duration: 0.6 }}
-                      viewport={{ once: true }}
-                    >
-                      Important Medical Disclaimer
-                    </motion.h3>
-                    <motion.p
-                      className="text-muted-foreground leading-relaxed text-lg"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6, duration: 0.6 }}
-                      viewport={{ once: true }}
-                    >
-                      This AI-powered assessment tool is designed for <strong className="text-warning font-semibold">decision support only</strong> and should never replace
-                      professional medical diagnosis, consultation, or treatment. Always consult with qualified healthcare providers
-                      for medical decisions, laboratory testing, and treatment plans.
-
-                      <br /><br />
-                      <span className="text-warning font-medium">If you suspect malaria or any serious illness, seek immediate medical attention.</span>
-                      Early diagnosis and treatment are critical for the best outcomes.
-                    </motion.p>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7, duration: 0.6 }}
-                      viewport={{ once: true }}
-                      className="mt-6 flex flex-wrap gap-4"
-                    >
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        <span>For healthcare professional use</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        <span>Clinical decision support tool</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        <span>Not a replacement for medical diagnosis</span>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          </section>
+          </div>
         </div>
       </div>
     </div>

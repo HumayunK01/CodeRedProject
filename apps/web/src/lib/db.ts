@@ -1,4 +1,4 @@
-import { PrismaClient } from "../../../../database/generated";
+import { PrismaClient } from "../../../database/generated";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -16,4 +16,3 @@ if (import.meta.env.DEV) {
 }
 
 export default db;
-
