@@ -126,18 +126,35 @@ outbreaklens-monorepo/
 git clone https://github.com/HumayunK01/CodeRedProject.git
 cd outbreaklens-monorepo
 
-# Install dependencies
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+cd apps/inference
+pip install -r requirements.txt
+cd ../..
 
 # Configure environment
 cp apps/web/.env.example apps/web/.env.local
 # Add your API keys and database URL
 
-# Start development
-npm run dev
+# Ensure ML models are present in apps/inference/models/
+# Models are not included in the repository due to size constraints
+# Contact the team to obtain the pre-trained models
 ```
 
-Visit `http://localhost:8080` 🎉
+### Start Development Servers
+
+```bash
+# Terminal 1: Start the frontend
+npm run dev
+
+# Terminal 2: Start the backend (Flask)
+cd apps/inference
+python flask_app.py
+```
+
+Visit `http://localhost:8080` for the frontend and `http://localhost:8000` for the backend API 🎉
 
 ### Environment Variables
 
@@ -240,6 +257,16 @@ vercel
 ```bash
 cd apps/inference
 railway up
+```
+
+### Local Development (Both Services)
+```bash
+# Terminal 1: Start the frontend
+npm run dev
+
+# Terminal 2: Start the backend
+cd apps/inference
+python flask_app.py
 ```
 
 ### Docker (Full Stack)
