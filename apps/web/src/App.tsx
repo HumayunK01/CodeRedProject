@@ -16,6 +16,7 @@ import Reports from "./pages/Reports";
 import About from "./pages/About";
 import Docs from "./pages/Docs";
 import Status from "./pages/Status";
+import Usecase from "./pages/Usecase";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -44,6 +45,7 @@ const AnimatedRoutes = () => {
           <Route path="/about" element={<About />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/status" element={<Status />} />
+          <Route path="/usecase" element={<Usecase />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>

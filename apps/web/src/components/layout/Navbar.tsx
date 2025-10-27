@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, Activity, Sun, Moon, Settings, FileText, TrendingUp, Microscope, Zap, Brain, Sparkles } from "lucide-react";
+import { Menu, Activity, Sun, Moon, Settings, FileText, TrendingUp, Microscope, Zap, Brain, Sparkles, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -69,6 +69,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
     { name: "About", path: "/about", icon: FileText },
     { name: "Documentation", path: "/docs", icon: FileText },
     { name: "System Status", path: "/status", icon: Activity },
+    { name: "Use Case Demo", path: "/usecase", icon: Play },
   ];
 
   return (
