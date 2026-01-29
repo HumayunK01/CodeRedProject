@@ -146,7 +146,7 @@ const Diagnosis = () => {
               Diagnosis
             </h1>
             <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
-              Advanced ML-powered symptom analysis and image detection for accurate malaria risk evaluation.
+              Answer a few questions or upload a sample image to receive a clear malaria risk assessment.
             </p>
 
 
@@ -164,13 +164,12 @@ const Diagnosis = () => {
             <SectionHeader
               icon={TestTube}
               title="Patient Assessment"
-              subtitle="Dual Mode Analysis"
+              subtitle="Choose how you’d like to provide information"
             />
 
             <div className="mb-6">
               <p className="text-sm text-foreground/60 leading-relaxed max-w-3xl">
-                Choose between symptom-based assessment or blood smear image analysis.
-                Our system uses advanced CNN models for image analysis and symptom pattern recognition.
+                Quickly evaluate potential malaria risk by providing patient details or uploading a microscopy sample.
               </p>
             </div>
 

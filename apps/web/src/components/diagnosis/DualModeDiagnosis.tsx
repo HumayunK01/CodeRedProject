@@ -30,8 +30,8 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <div className="space-y-1">
-            <h3 className="text-lg font-medium text-primary">Assessment Method</h3>
-            <p className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Select your preferred data source</p>
+            <h3 className="text-lg font-medium text-primary">How would you like to begin?</h3>
+            <p className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">You can use either method based on the information you have.</p>
           </div>
 
           <TabsList className="bg-primary/5 border border-primary/10 p-1 h-12 rounded-full relative flex items-center">
@@ -51,7 +51,7 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
                   />
                 )}
                 {tab === "symptoms" ? <FileText className="h-3.5 w-3.5" /> : <Image className="h-3.5 w-3.5" />}
-                {tab === "symptoms" ? "Symptoms" : "Microscopy"}
+                {tab === "symptoms" ? "Answer Symptoms" : "Upload Sample Image"}
               </TabsTrigger>
             ))}
           </TabsList>

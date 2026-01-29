@@ -104,7 +104,10 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <User className="w-4 h-4" />
             </div>
-            <h4 className="text-base font-bold text-primary uppercase tracking-wide">Patient Demographics</h4>
+            <div>
+              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Patient Demographics</h4>
+              <p className="text-xs text-foreground/50 font-medium">This information helps us tailor the assessment more accurately.</p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -215,7 +218,10 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Activity className="w-4 h-4" />
             </div>
-            <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Symptoms</h4>
+            <div>
+              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Symptoms</h4>
+              <p className="text-xs text-foreground/50 font-medium mt-1">Select all symptoms the patient is currently experiencing.</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -267,7 +273,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
           {isSubmitting ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Analysis...</>
           ) : (
-            <><Stethoscope className="mr-2 h-4 w-4" /> Run Diagnosis Model</>
+            <><Stethoscope className="mr-2 h-4 w-4" /> Get Assessment Results</>
           )}
         </Button>
       </form>

@@ -47,8 +47,8 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
           <Microscope className="h-8 w-8 text-primary/40" />
         </div>
         <div className="max-w-[200px]">
-          <h4 className="text-sm font-semibold text-primary">No Analysis Yet</h4>
-          <p className="text-xs text-muted-foreground mt-1">Submit the assessment form or upload an image to view results.</p>
+          <h4 className="text-sm font-semibold text-primary">Your results will appear here once the assessment is complete.</h4>
+          <p className="text-xs text-muted-foreground mt-1">Review the information on the left, then submit to see the analysis.</p>
         </div>
       </div>
     );
