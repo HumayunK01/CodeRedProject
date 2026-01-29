@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { 
-  Code, 
-  Settings, 
-  Database, 
+import {
+  Code,
+  Settings,
+  Database,
   Zap,
   ExternalLink,
   Copy,
@@ -77,7 +77,7 @@ const Docs = () => {
 }`
     },
     {
-      method: "POST", 
+      method: "POST",
       path: "/predict/symptoms",
       description: "Analyze symptoms for malaria risk assessment",
       request: `{
@@ -130,7 +130,7 @@ const Docs = () => {
   ];
 
   return (
-    <div className="p-4 lg:p-6 space-y-8">
+    <div className="p-4 lg:p-6 space-y-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -141,7 +141,7 @@ const Docs = () => {
         <div>
           <h1 className="text-4xl font-bold mb-4">Documentation</h1>
           <p className="text-xl text-muted-foreground">
-            Complete developer guide for OutbreakLens integration and deployment
+            Complete developer guide for Foresee integration and deployment
           </p>
         </div>
 
@@ -172,7 +172,7 @@ const Docs = () => {
               <CardTitle>Quick Start</CardTitle>
             </div>
             <CardDescription>
-              Get OutbreakLens running locally in minutes
+              Get Foresee running locally in minutes
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -182,8 +182,8 @@ const Docs = () => {
                 id="env-setup"
                 language="bash"
                 code={`# Clone the repository
-git clone https://github.com/your-org/outbreaklens-frontend.git
-cd outbreaklens-frontend
+git clone https://github.com/your-org/foresee-frontend.git
+cd foresee-frontend
 
 # Install dependencies
 npm install
@@ -199,7 +199,7 @@ cp .env.example .env.local`}
                 id="env-config"
                 language="env"
                 code={`# .env.local
-NEXT_PUBLIC_APP_NAME=OutbreakLens
+NEXT_PUBLIC_APP_NAME=Foresee
 INFER_BASE_URL=http://localhost:8000
 INFER_TIMEOUT_MS=15000`}
               />
@@ -242,7 +242,7 @@ npm run dev
             {apiEndpoints.map((endpoint, index) => (
               <div key={index} className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Badge 
+                  <Badge
                     variant={endpoint.method === "GET" ? "secondary" : "default"}
                     className="font-mono"
                   >
@@ -252,9 +252,9 @@ npm run dev
                     {endpoint.path}
                   </code>
                 </div>
-                
+
                 <p className="text-muted-foreground">{endpoint.description}</p>
-                
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-medium mb-2">Request</h4>
@@ -264,7 +264,7 @@ npm run dev
                       code={endpoint.request}
                     />
                   </div>
-                  
+
                   <div>
                     <h4 className="font-medium mb-2">Response</h4>
                     <CodeBlock
@@ -274,7 +274,7 @@ npm run dev
                     />
                   </div>
                 </div>
-                
+
                 {index < apiEndpoints.length - 1 && (
                   <hr className="border-border/50" />
                 )}
@@ -368,7 +368,7 @@ npm run preview`}
               <CardTitle>Deployment Guide</CardTitle>
             </div>
             <CardDescription>
-              Deploy OutbreakLens to production environments
+              Deploy Foresee to production environments
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -403,7 +403,7 @@ CMD ["nginx", "-g", "daemon off;"]`}
                 language="env"
                 code={`# Production Environment
 NODE_ENV=production
-NEXT_PUBLIC_APP_NAME=OutbreakLens
+NEXT_PUBLIC_APP_NAME=Foresee
 INFER_BASE_URL=https://api.your-domain.com
 INFER_TIMEOUT_MS=15000
 
@@ -436,12 +436,12 @@ SENTRY_DSN=your_sentry_dsn`}
             <ExternalLink className="mr-2 h-4 w-4" />
             GitHub Issues
           </Button>
-          
+
           <Button variant="outline" size="lg">
             <ExternalLink className="mr-2 h-4 w-4" />
             API Documentation
           </Button>
-          
+
           <Button asChild size="lg" className="btn-medical">
             <Link to="/about">
               Contact Team

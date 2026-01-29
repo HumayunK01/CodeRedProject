@@ -38,7 +38,7 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.message) {
       toast.error("Please fill in all required fields");
       return;
@@ -50,14 +50,14 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
     }
 
     setIsLoading(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       setIsSubmitted(true);
       toast.success("Message sent successfully! We'll get back to you soon.");
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -90,7 +90,7 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-foreground">
             Email *
@@ -158,9 +158,9 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
         />
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full btn-medical" 
+      <Button
+        type="submit"
+        className="w-full btn-medical"
         disabled={isLoading || isSubmitted}
       >
         {isLoading ? (
@@ -198,7 +198,7 @@ export const ContactForm = ({ variant = "default", className = "" }: ContactForm
             <div>
               <CardTitle>Get in Touch</CardTitle>
               <CardDescription>
-                Have questions about OutbreakLens? We'd love to hear from you.
+                Have questions about Foresee? We'd love to hear from you.
               </CardDescription>
             </div>
           </div>

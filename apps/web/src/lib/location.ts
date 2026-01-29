@@ -1,4 +1,4 @@
-// Location detection utilities for OutbreakLens
+// Location detection utilities for Foresee
 
 export interface LocationData {
   latitude: number;

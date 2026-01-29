@@ -65,7 +65,7 @@ export class ChatbotService {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
-          'X-Title': 'OutbreakLens - AI Malaria Assistant',
+          'X-Title': 'Foresee - AI Malaria Assistant',
         },
         body: JSON.stringify({
           model: model || 'deepseek/deepseek-chat',
@@ -147,7 +147,7 @@ export class ChatbotService {
 
     // Website usage guidance
     if (lowerMessage.includes('how to use') || lowerMessage.includes('website') || lowerMessage.includes('navigate') || lowerMessage.includes('guide')) {
-      return "Here's how to use the OutbreakLens website:\n\n1. **Diagnosis Page** - Assess malaria risk by:\n   • Entering symptoms and patient information\n   • Using location detection for accurate assessment\n   • Getting AI-powered risk analysis\n\n2. **Forecast Page** - View outbreak predictions by:\n   • Selecting a region for forecasting\n   • Choosing time horizon (1-8 weeks)\n   • Viewing interactive charts and maps\n\n3. **Navigation** - Use the sidebar to:\n   • Switch between Diagnosis and Forecast pages\n   • Access reports and documentation\n   • View system status\n\n4. **AI Chat** - I'm here to help with:\n   • Malaria information and guidance\n   • Website navigation assistance\n   • Answering malaria-related questions\n\nWould you like me to explain any specific feature in more detail?";
+      return "Here's how to use the Foresee website:\n\n1. **Diagnosis Page** - Assess malaria risk by:\n   • Entering symptoms and patient information\n   • Using location detection for accurate assessment\n   • Getting AI-powered risk analysis\n\n2. **Forecast Page** - View outbreak predictions by:\n   • Selecting a region for forecasting\n   • Choosing time horizon (1-8 weeks)\n   • Viewing interactive charts and maps\n\n3. **Navigation** - Use the sidebar to:\n   • Switch between Diagnosis and Forecast pages\n   • Access reports and documentation\n   • View system status\n\n4. **AI Chat** - I'm here to help with:\n   • Malaria information and guidance\n   • Website navigation assistance\n   • Answering malaria-related questions\n\nWould you like me to explain any specific feature in more detail?";
     }
 
     // Only respond to malaria and health-related queries

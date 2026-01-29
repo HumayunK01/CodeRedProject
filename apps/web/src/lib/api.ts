@@ -1,4 +1,4 @@
-// OutbreakLens API Client (Real API Only)
+// Foresee API Client (Real API Only)
 
 import { DiagnosisResult, SymptomsInput, ForecastResult, ForecastInput, HealthStatus, ApiError, DashboardStats } from './types';
 import { StorageManager } from './storage';
@@ -115,7 +115,7 @@ class ApiClient {
   async getHealth(): Promise<HealthStatus> {
     try {
       const response = await this.fetchWithTimeout(`${BASE_URL}/health`);
-      
+
       if (!response.ok) {
         return {
           status: 'down',
@@ -138,12 +138,12 @@ class ApiClient {
     try {
       // Get stored results to send to backend for real statistics
       const storedResults = StorageManager.getAllResults();
-      
+
       // Encode stored results as URL parameter
       const encodedResults = encodeURIComponent(JSON.stringify(storedResults));
-      
+
       const response = await this.fetchWithTimeout(`${BASE_URL}/dashboard/stats?stored_results=${encodedResults}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch dashboard stats: ${response.status}`);
       }

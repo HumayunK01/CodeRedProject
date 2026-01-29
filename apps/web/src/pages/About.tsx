@@ -68,7 +68,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* Enhanced Header Section */}
-      <section className="relative px-4 py-16 lg:px-6 lg:py-20 overflow-hidden">
+      <section className="relative px-4 py-10 lg:px-6 lg:py-12 mt-2 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
@@ -99,7 +99,7 @@ const About = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              About <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">OutbreakLens</span>
+              About <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Foresee</span>
               <br />
               <span className="text-foreground">
                 Medical Intelligence Platform
@@ -142,8 +142,8 @@ const About = () => {
       </section>
 
       {/* Main Content */}
-      <div className="px-4 lg:px-6 pb-16">
-        <div className="max-w-7xl mx-auto space-y-16">
+      <div className="px-4 lg:px-6 pb-10">
+        <div className="max-w-7xl mx-auto space-y-10">
 
           {/* Enhanced Mission */}
           <section>
@@ -352,7 +352,7 @@ const About = () => {
                       <div className="space-y-3">
                         <h3 className="font-semibold text-lg text-warning">Medical Decision Support</h3>
                         <p className="text-muted-foreground leading-relaxed">
-                          OutbreakLens is designed as a decision support tool to assist healthcare
+                          Foresee is designed as a decision support tool to assist healthcare
                           professionals. It is not intended to replace clinical judgment,
                           professional medical advice, diagnosis, or treatment.
                         </p>
@@ -462,7 +462,7 @@ const About = () => {
                   <Button asChild size="lg" className="btn-medical shadow-medical-lg">
                     <Link to="/diagnosis">
                       <Sparkles className="mr-2 h-5 w-5" />
-                      Try OutbreakLens
+                      Try Foresee
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>

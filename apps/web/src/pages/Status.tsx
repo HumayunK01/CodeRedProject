@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiClient } from "@/lib/api";
 import { HealthStatus } from "@/lib/types";
-import { 
-  Activity, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  Activity,
+  CheckCircle,
+  AlertTriangle,
   XCircle,
   RefreshCw,
   Server,
@@ -39,7 +39,7 @@ const Status = () => {
       };
       setHealth(errorHealth);
       setLastCheck(new Date().toISOString());
-      
+
       toast({
         title: "Health Check Failed",
         description: "Unable to connect to the backend service.",
@@ -122,7 +122,7 @@ const Status = () => {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-8">
+    <div className="p-4 lg:p-6 space-y-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -134,11 +134,11 @@ const Status = () => {
           <div>
             <h1 className="text-3xl font-bold">System Status</h1>
             <p className="text-muted-foreground">
-              Real-time monitoring of OutbreakLens services and infrastructure
+              Real-time monitoring of Foresee services and infrastructure
             </p>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={checkHealth}
             disabled={isLoading}
             variant="outline"
@@ -159,49 +159,49 @@ const Status = () => {
       >
         <Card className="data-card">
           <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {health && (
-                <motion.div
-                  animate={{ 
-                    scale: health.status === 'ok' ? [1, 1.1, 1] : 1,
-                  }}
-                  transition={{ 
-                    repeat: health.status === 'ok' ? Infinity : 0,
-                    duration: 2 
-                  }}
-                >
-                  {getStatusIcon(health.status)}
-                </motion.div>
-              )}
-              <div>
-                <CardTitle>
-                  Overall System Health
-                </CardTitle>
-                <CardDescription>
-                  {health?.message || 'Checking system status...'}
-                </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {health && (
+                  <motion.div
+                    animate={{
+                      scale: health.status === 'ok' ? [1, 1.1, 1] : 1,
+                    }}
+                    transition={{
+                      repeat: health.status === 'ok' ? Infinity : 0,
+                      duration: 2
+                    }}
+                  >
+                    {getStatusIcon(health.status)}
+                  </motion.div>
+                )}
+                <div>
+                  <CardTitle>
+                    Overall System Health
+                  </CardTitle>
+                  <CardDescription>
+                    {health?.message || 'Checking system status...'}
+                  </CardDescription>
+                </div>
               </div>
+
+              {health && (
+                <Badge variant={getStatusColor(health.status) as any}>
+                  <motion.div
+                    className="flex items-center space-x-1"
+                    animate={{ opacity: [1, 0.7, 1] }}
+                    transition={{
+                      repeat: health.status !== 'ok' ? Infinity : 0,
+                      duration: 1.5
+                    }}
+                  >
+                    <div className="h-2 w-2 rounded-full bg-current" />
+                    <span>{health.status.toUpperCase()}</span>
+                  </motion.div>
+                </Badge>
+              )}
             </div>
-            
-            {health && (
-              <Badge variant={getStatusColor(health.status) as any}>
-                <motion.div
-                  className="flex items-center space-x-1"
-                  animate={{ opacity: [1, 0.7, 1] }}
-                  transition={{ 
-                    repeat: health.status !== 'ok' ? Infinity : 0,
-                    duration: 1.5 
-                  }}
-                >
-                  <div className="h-2 w-2 rounded-full bg-current" />
-                  <span>{health.status.toUpperCase()}</span>
-                </motion.div>
-              </Badge>
-            )}
-          </div>
           </CardHeader>
-          
+
           {lastCheck && (
             <CardContent>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -214,7 +214,7 @@ const Status = () => {
       </motion.div>
 
       {/* Service Status */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
         {services.map((service, index) => {
           const Icon = service.icon;
           return (
@@ -236,13 +236,13 @@ const Status = () => {
                         <CardDescription>{service.description}</CardDescription>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <motion.div
-                        animate={{ 
+                        animate={{
                           scale: service.status === 'ok' ? [1, 1.05, 1] : 1,
                         }}
-                        transition={{ 
+                        transition={{
                           repeat: service.status === 'ok' ? Infinity : 0,
                           duration: 3,
                           delay: index * 0.2
@@ -254,7 +254,7 @@ const Status = () => {
                         <motion.div
                           className="flex items-center space-x-1"
                           animate={{ opacity: [1, 0.8, 1] }}
-                          transition={{ 
+                          transition={{
                             repeat: service.status !== 'ok' ? Infinity : 0,
                             duration: 2,
                             delay: index * 0.1
@@ -267,7 +267,7 @@ const Status = () => {
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <div className="text-sm text-muted-foreground">
                     <code className="bg-muted/50 px-2 py-1 rounded text-xs">
@@ -300,19 +300,19 @@ const Status = () => {
                 <p className="font-medium mb-1">Version</p>
                 <p className="text-muted-foreground">{buildInfo.version}</p>
               </div>
-              
+
               <div>
                 <p className="font-medium mb-1">Build ID</p>
                 <p className="text-muted-foreground font-mono">{buildInfo.build}</p>
               </div>
-              
+
               <div>
                 <p className="font-medium mb-1">Deployed</p>
                 <p className="text-muted-foreground">
                   {dayjs(buildInfo.deployed).format('MMM D, YYYY')}
                 </p>
               </div>
-              
+
               <div>
                 <p className="font-medium mb-1">Commit</p>
                 <p className="text-muted-foreground font-mono">{buildInfo.commit}</p>
@@ -343,14 +343,14 @@ const Status = () => {
                 </div>
                 <p className="text-sm text-muted-foreground">Average Response Time</p>
               </div>
-              
+
               <div className="text-center space-y-2">
                 <div className="text-2xl font-bold text-primary">
                   N/A
                 </div>
                 <p className="text-sm text-muted-foreground">Uptime (30 days)</p>
               </div>
-              
+
               <div className="text-center space-y-2">
                 <div className="text-2xl font-bold text-accent">
                   N/A

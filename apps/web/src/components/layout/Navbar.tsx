@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Menu, Activity, Sun, Moon, Settings, FileText, TrendingUp, Microscope, Zap, Brain, Sparkles, Play } from "lucide-react";
+import { Menu, Activity, Settings, FileText, TrendingUp, Microscope, Zap, Brain, Play, Sparkles, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   SignedIn,
   SignedOut,
@@ -18,15 +18,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuShortcut
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-interface NavbarProps {
-  onMenuClick?: () => void;
-}
+export const Navbar = () => {
 
-export const Navbar = ({ onMenuClick }: NavbarProps) => {
-  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -59,370 +59,238 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
   }, [navigate]);
 
   const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: Activity, shortcut: "⌘D" },
-    { name: "Diagnosis", path: "/diagnosis", icon: Microscope, shortcut: "⌘M" },
+    { name: "Home", path: "/", icon: Home },
+    { name: "Dashboard", path: "/dashboard", icon: Activity },
+    { name: "Diagnosis", path: "/diagnosis", icon: Microscope },
     { name: "Forecast", path: "/forecast", icon: TrendingUp },
     { name: "Reports", path: "/reports", icon: FileText },
   ];
 
-  const quickActions = [
-    { name: "About", path: "/about", icon: FileText },
-    { name: "Documentation", path: "/docs", icon: FileText },
-    { name: "System Status", path: "/status", icon: Activity },
-    { name: "Use Case Demo", path: "/usecase", icon: Play },
-  ];
-
   return (
-    <motion.header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "glass-strong border-b border-border/50"
-          : "glass-strong border-b border-border/30"
-      }`}
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{
-        duration: 0.6,
-        ease: "easeOut",
-        opacity: { duration: 0.4, delay: 0.2 }
-      }}
-    >
-      {/* Enhanced animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-primary/3 rounded-full blur-2xl animate-pulse"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-accent/3 rounded-full blur-2xl animate-pulse delay-1000"></div>
-      </div>
-
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6 relative z-10">
-        {/* Enhanced Left Section */}
-        <div className="flex items-center space-x-3 lg:space-x-4">
-          {onMenuClick && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMenuClick}
-                className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
-                aria-label="Toggle menu"
-              >
-                <motion.div
-                  whileHover={{ rotate: 90 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  <Menu className="h-5 w-5" />
-                </motion.div>
-              </Button>
-            </motion.div>
-          )}
-
-          <Link to="/" className="flex items-center space-x-3">
-            <motion.div
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30"
-              animate={{
-                boxShadow: [
-                  "0 0 10px hsl(var(--primary) / 0.2)",
-                  "0 0 15px hsl(var(--primary) / 0.3)",
-                  "0 0 10px hsl(var(--primary) / 0.2)"
-                ]
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <Activity className="h-5 w-5 text-primary" />
-              <motion.div
-                className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10"
-                animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.3, 0.6, 0.3]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex items-center"
-            >
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent transition-all duration-300 hidden sm:block">
-                  OutbreakLens
-                </h1>
-                <motion.p
-                  className="text-xs text-muted-foreground hidden lg:block"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  Medical Intelligence Platform
-                </motion.p>
-              </div>
-            </motion.div>
+    <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 pointer-events-none ${scrolled ? "pt-2" : "pt-4"}`}>
+      <motion.nav
+        initial={false}
+        animate={{
+          y: 0,
+          opacity: 1,
+          width: scrolled ? "85%" : "99%",
+          maxWidth: scrolled ? "1100px" : "1600px"
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20
+        }}
+        className={`pointer-events-auto transition-all duration-500 ${scrolled
+          ? "bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/20 py-2 px-6"
+          : "bg-white shadow-sm border border-primary/5 py-4 px-8"
+          } rounded-[32px] flex items-center justify-between`}
+      >
+        {/* Left: Logo & Brand */}
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img
+              src="/blacklogo.svg"
+              alt="Foresee"
+              className="h-10 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+            />
+            <span className="font-display font-bold text-xl sm:text-2xl tracking-tight text-primary">
+              Foresee
+            </span>
           </Link>
         </div>
 
-        {/* Enhanced Center Navigation - Desktop */}
-        <nav className="hidden lg:flex items-center justify-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
-          {navItems.map((item, index) => {
-            const Icon = item.icon;
+        {/* Center: Navigation Links (Desktop) */}
+        <div className="hidden lg:flex items-center gap-2">
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path;
-
             return (
-              <motion.div
-                key={item.path}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index, duration: 0.4 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  to={item.path}
-                  className={`group relative px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 overflow-hidden ${
-                    isActive
-                      ? "bg-gradient-to-r from-primary/15 via-primary/10 to-accent/15 text-primary-foreground shadow-medical border border-primary/30"
-                      : "text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-primary/8 hover:via-primary/5 hover:to-accent/8 border border-transparent hover:border-primary/30"
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 z-10 ${isActive ? "text-primary" : "text-foreground/70 hover:text-primary"
                   }`}
-                >
-                  {/* Active indicator */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-accent"
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-
+              >
+                {isActive && (
                   <motion.div
-                    className={`transition-all duration-300 ${
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
-                    }`}
-                    whileHover={{ scale: 1.1, rotate: isActive ? 0 : 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </motion.div>
-
-                  <motion.span
-                    className={`transition-all duration-300 ${
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
-                    }`}
-                    animate={{
-                      color: isActive ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"
-                    }}
-                    whileHover={{
-                      color: "hsl(var(--primary))",
-                      x: 2
-                    }}
-                  >
-                    {item.name}
-                  </motion.span>
-
-                  {/* Hover glow effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
-                    initial={false}
+                    layoutId="navbar-pill"
+                    className="absolute inset-0 bg-primary/10 rounded-full -z-10"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
-                </Link>
-              </motion.div>
+                )}
+                <div className="flex items-center gap-2">
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </div>
+              </Link>
             );
           })}
-        </nav>
+        </div>
 
-        {/* Enhanced Right Section */}
-        <div className="flex items-center space-x-2 lg:space-x-3">
-          {/* Enhanced Quick Actions Dropdown */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
-                >
-                  <motion.div
-                    whileHover={{ rotate: 90 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </motion.div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 p-2">
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center space-x-2 mb-3 px-2"
-                >
-                  <div className="p-1.5 rounded-md bg-gradient-to-br from-primary/10 to-accent/10">
-                    <Zap className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="font-medium text-primary">Quick Actions</span>
-                </motion.div>
-                <DropdownMenuSeparator />
-                {quickActions.map((action, index) => {
-                  const Icon = action.icon;
-                  return (
-                    <motion.div
-                      key={action.path}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <DropdownMenuItem asChild>
-                        <Link to={action.path} className="flex items-center cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                          <Icon className="h-4 w-4 mr-3 text-muted-foreground" />
-                          {action.name}
-                        </Link>
-                      </DropdownMenuItem>
-                    </motion.div>
-                  );
-                })}
-                <DropdownMenuSeparator />
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="p-3">
-                    <Activity className="h-4 w-4 mr-3" />
-                    Dashboard
-                    <DropdownMenuShortcut className="ml-auto">⌘D</DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/diagnosis")} className="p-3">
-                    <Microscope className="h-4 w-4 mr-3" />
-                    Diagnosis
-                    <DropdownMenuShortcut className="ml-auto">⌘M</DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                </motion.div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </motion.div>
-
-          {/* Enhanced Theme Toggle */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
-              aria-label="Toggle theme"
-            >
-              <AnimatePresence mode="wait">
-                {theme === "dark" ? (
-                  <motion.div
-                    key="sun"
-                    initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
-                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                    exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="relative"
-                  >
-                    <Sun className="h-4 w-4" />
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-warning/20 to-warning/10 rounded-full"
-                      animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                    />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="moon"
-                    initial={{ rotate: 90, opacity: 0, scale: 0.8 }}
-                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                    exit={{ rotate: -90, opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="relative"
-                  >
-                    <Moon className="h-4 w-4" />
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-indigo/20 to-purple/10 rounded-full"
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
-                      transition={{ repeat: Infinity, duration: 2.5 }}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Button>
-          </motion.div>
-
-          {/* Enhanced Clerk Authentication */}
+        {/* Right: Actions (Desktop) */}
+        <div className="hidden lg:flex items-center gap-3 sm:gap-4">
+          <div className="h-6 w-px bg-border/50 mx-2"></div>
           <SignedOut>
-            <motion.div
-              className="flex items-center space-x-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <SignInButton mode="modal">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 transition-all duration-300 text-foreground hover:text-primary rounded-xl"
-                  >
-                    Sign In
-                  </Button>
-                </SignInButton>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <SignUpButton mode="modal">
-                  <Button
-                    size="sm"
-                    className="btn-medical hidden md:flex shadow-medical hover:shadow-medical-lg transition-all duration-300"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Sign Up
-                  </Button>
-                </SignUpButton>
-              </motion.div>
-            </motion.div>
+            <SignInButton mode="modal">
+              <Button className="bg-primary hover:bg-primary-hover text-white rounded-full px-6 shadow-md hover:shadow-lg transition-all duration-300">
+                <span className="flex items-center gap-2">Sign In</span>
+              </Button>
+            </SignInButton>
           </SignedOut>
 
           <SignedIn>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 300 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "h-10 w-10 border-2 border-primary/20 hover:border-primary/40 transition-colors"
-                  }
-                }}
-              />
-            </motion.div>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8 sm:w-10 sm:h-10 border-2 border-white shadow-sm"
+                }
+              }}
+            />
           </SignedIn>
+
+          {/* Settings / More Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full w-10 h-10 bg-secondary/50 hover:bg-secondary text-primary border border-primary/5 hover:border-primary/20"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-primary/10 shadow-xl bg-white/95 backdrop-blur-md">
+              <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-primary/50 uppercase tracking-wider">
+                Resources
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate('/docs')} className="rounded-lg focus:bg-secondary cursor-pointer">
+                <FileText className="mr-2 h-4 w-4 text-primary" />
+                <span>Documentation</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="bg-primary/5 my-1" />
+
+              <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-primary/50 uppercase tracking-wider">
+                Company
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate('/about')} className="rounded-lg focus:bg-secondary cursor-pointer">
+                <Brain className="mr-2 h-4 w-4 text-primary" />
+                <span>About</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
-    </motion.header>
+
+        {/* Mobile Menu Toggle (Visible on small screens) */}
+        <div className="lg:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full text-primary"
+              >
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] rounded-l-[24px] border-l border-primary/10 bg-white/95 backdrop-blur-md">
+              <div className="flex flex-col h-full py-6">
+                <div className="flex items-center gap-3 mb-8 px-2">
+                  <img
+                    src="/blacklogo.svg"
+                    alt="Foresee"
+                    className="h-8 w-auto object-contain"
+                  />
+                  <span className="font-display font-bold text-xl tracking-tight text-primary">
+                    Foresee
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-2 space-y-1">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${isActive
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                          }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className="w-5 h-5" />
+                          <span>{item.name}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+
+                  {/* Settings Link for Mobile */}
+                  <Link
+                    to="/about"
+                    className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${location.pathname === '/about'
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Brain className="w-5 h-5" />
+                      <span>About</span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/docs"
+                    className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${location.pathname === '/docs'
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5" />
+                      <span>Documentation</span>
+                    </div>
+                  </Link>
+
+                </div>
+
+                <div className="mt-auto pt-8 border-t border-border/50">
+                  <div className="space-y-4 px-2">
+                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider pl-2">
+                      Account
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <Button className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl shadow-md">
+                            Sign In
+                          </Button>
+                        </SignInButton>
+                      </SignedOut>
+                      <SignedIn>
+                        <div className="flex items-center gap-3 pl-2">
+                          <UserButton
+                            appearance={{
+                              elements: {
+                                avatarBox: "w-10 h-10 border-2 border-white shadow-sm"
+                              }
+                            }}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-foreground">My Account</span>
+                            <span className="text-xs text-muted-foreground">Manage profile</span>
+                          </div>
+                        </div>
+                      </SignedIn>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </motion.nav>
+    </div>
   );
 };

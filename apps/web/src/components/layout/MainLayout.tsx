@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { Navbar } from "./Navbar";
 import Footer from "./Footer";
-import { Chatbot } from "@/components/ui/chatbot";
-import { ChatbotIntroModal } from "@/components/ui/chatbot-intro-modal";
+// import { Chatbot } from "@/components/ui/chatbot";
+// import { ChatbotIntroModal } from "@/components/ui/chatbot-intro-modal";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
+  /*
   const [showChatbotIntro, setShowChatbotIntro] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
 
@@ -34,17 +35,18 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     setShowChatbotIntro(false);
     localStorage.setItem('chatbot-intro-seen', 'true');
   };
+  */
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20 lg:pt-24">
       {/* Navbar */}
       <Navbar />
-      
+
       {/* Main Content Area */}
       <div className="flex">
         {/* Page Content */}
         <main className="flex-1">
-          <div className="pt-16 min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col">
             <div className="flex-1">
               {children}
             </div>
@@ -54,15 +56,15 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       </div>
 
       {/* AI Chatbot */}
-      <Chatbot isOpen={chatbotOpen} onToggle={setChatbotOpen} />
+      {/* <Chatbot isOpen={chatbotOpen} onToggle={setChatbotOpen} /> */}
 
       {/* Chatbot Introduction Modal */}
-      {showChatbotIntro && (
+      {/* {showChatbotIntro && (
         <ChatbotIntroModal
           onClose={handleCloseIntro}
           onOpenChat={handleOpenChatFromIntro}
         />
-      )}
+      )} */}
     </div>
   );
 };

@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import LocomotiveScroll from "locomotive-scroll";
+import "locomotive-scroll/dist/locomotive-scroll.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
+import { Preloader } from "@/components/ui/preloader";
 
 // Pages
 import Home from "./pages/Home";
@@ -26,7 +30,7 @@ const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -53,20 +57,57 @@ const AnimatedRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="outbreaklens-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <MainLayout>
-            <AnimatedRoutes />
-          </MainLayout>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem("preloader-seen");
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (loading) {
+      sessionStorage.setItem("preloader-seen", "true");
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    const scroll = new LocomotiveScroll({
+      lenisOptions: {
+        duration: 1.2,
+        lerp: 0.1,
+        smoothWheel: true,
+        wheelMultiplier: 1,
+      }
+    });
+
+    return () => {
+      scroll.destroy();
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} storageKey="foresee-theme">
+        <TooltipProvider>
+          <AnimatePresence>
+            {loading && <Preloader />}
+          </AnimatePresence>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <MainLayout>
+              <AnimatedRoutes />
+            </MainLayout>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

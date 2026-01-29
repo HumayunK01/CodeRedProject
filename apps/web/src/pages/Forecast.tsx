@@ -44,14 +44,14 @@ const Forecast = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-      
+
       {/* Medical Disclaimer Marquee */}
       <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
         <div className="flex items-center justify-center">
           <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
           <div className="relative overflow-hidden w-full max-w-4xl">
             <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
-              This ML-powered forecasting tool is for decision support only and should never replace professional epidemiological analysis. Always consult with qualified public health experts for outbreak response decisions.
+              This Foresee ML-powered forecasting tool is for decision support only and should never replace professional epidemiological analysis. Always consult with qualified public health experts for outbreak response decisions.
             </div>
           </div>
           <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
@@ -59,9 +59,9 @@ const Forecast = () => {
       </div>
 
       {/* Enhanced Header Section */}
-      <section className="relative px-4 py-8 lg:px-6 lg:py-12 overflow-hidden">
+      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -71,12 +71,12 @@ const Forecast = () => {
               <TrendingUp className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              Outbreak Forecasting
+              Foresee Outbreak Forecasting
             </h1>
             <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
               Advanced ML-powered outbreak prediction for proactive malaria prevention
             </p>
-            
+
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
               <motion.div
@@ -121,10 +121,10 @@ const Forecast = () => {
       </section>
 
       {/* Main Dashboard Content */}
-      <div className="px-4 lg:px-6 pb-12 pt-1">
+      <div className="px-4 lg:px-6 pb-6 pt-2">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-12 gap-6">
+          <div className="grid lg:grid-cols-12 gap-4">
             {/* Forecast Form - Takes up less space */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}

@@ -1,4 +1,4 @@
-// OutbreakLens Type Definitions
+// Foresee Type Definitions
 
 // Export Prisma types for convenience
 export type {

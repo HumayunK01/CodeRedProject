@@ -2,139 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
-/* OutbreakLens Web3 Design System
+/* Foresee Web3 Design System
    Dark purples and blacks with electric violet accents for crypto/web3 aesthetics
    All colors MUST be HSL for consistency
 */
 
 @layer base {
   :root {
-    /* Light mode - Clean medical theme with purple accents */
-    --background: 0 0% 100%;
-    --foreground: 260 20% 15%;
+    /* Nature/Medical Theme - Forest & Sand */
+    --background: 46 17% 82%;
+    /* #DAD6C9 - Main Background (Darker Beige) */
+    --foreground: 166 60% 10%;
+    /* Deep Green/Black for text */
 
-    /* Card System - Light with subtle purple tints */
-    --card: 0 0% 98%;
-    --card-foreground: 260 20% 15%;
+    /* Card System */
+    --card: 45 11% 93%;
+    /* #EFEEEB - Light Beige for cards */
+    --card-foreground: 166 60% 15%;
 
     /* Popover System */
-    --popover: 0 0% 100%;
-    --popover-foreground: 260 20% 15%;
+    --popover: 45 11% 93%;
+    --popover-foreground: 166 60% 15%;
 
-    /* Primary System - Medical purple for professional feel */
-    --primary: 270 85% 55%;
+    /* Primary System - Deep Forest Green */
+    --primary: 166 60% 15%;
+    /* #0F3D32 - The Branding Green */
     --primary-foreground: 0 0% 100%;
-    --primary-light: 270 80% 65%;
-    --primary-dark: 270 90% 45%;
+    --primary-hover: 166 50% 25%;
+    --primary-active: 166 60% 10%;
+    --primary-light: 166 40% 80%;
 
-    /* Secondary System - Light grays with purple hints */
-    --secondary: 260 10% 95%;
-    --secondary-foreground: 260 20% 20%;
+    /* Secondary System - Lighter Beige */
+    --secondary: 45 11% 93%;
+    /* #EFEEEB */
+    --secondary-foreground: 166 60% 15%;
 
-    /* Muted System - Light purple-tinted grays */
-    --muted: 260 8% 92%;
-    --muted-foreground: 260 15% 45%;
+    /* Muted System */
+    --muted: 46 10% 75%;
+    --muted-foreground: 166 30% 35%;
 
-    /* Accent System - Bright medical purple */
-    --accent: 280 85% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 280 80% 70%;
+    /* Accent System - Soft Green/Sage */
+    --accent: 142 30% 85%;
+    --accent-foreground: 166 60% 15%;
+    --accent-light: 142 30% 92%;
 
-    /* Status Colors - Medical grade */
-    --success: 142 76% 36%;
+    /* Status Colors */
+    --success: 142 60% 35%;
+    /* Green matches theme */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 35 80% 50%;
+    /* Burnt Orange/Gold */
     --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
     /* Border & Input System */
-    --border: 260 15% 88%;
-    --input: 260 8% 95%;
-    --ring: 270 85% 55%;
+    --border: 46 10% 70%;
+    /* Darker border for beige bg */
+    --input: 45 11% 93%;
+    --ring: 166 60% 15%;
 
-    /* Glassmorphism & Effects - Light medical style */
-    --glass-bg: 0 0% 100% / 0.8;
-    --glass-border: 270 30% 80% / 0.3;
-    --shadow-soft: 260 20% 0% / 0.05;
-    --shadow-medium: 260 20% 0% / 0.08;
-    --shadow-strong: 260 20% 0% / 0.12;
+    /* Dark Section (Deep Green) */
+    --dark-section: 166 60% 15%;
+    /* #0F3D32 */
 
-    /* Gradients - Light medical aesthetics */
-    --gradient-primary: linear-gradient(135deg, hsl(270 85% 55%), hsl(280 85% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(260 10% 95%), hsl(260 8% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 85% 60%), hsl(270 85% 55%));
-    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.9), hsl(260 8% 98% / 0.8));
+    /* Glassmorphism */
+    --glass-bg: 45 11% 93% / 0.6;
+    --glass-border: 166 60% 15% / 0.1;
+    --shadow-soft: 166 60% 10% / 0.05;
+    --shadow-medium: 166 60% 10% / 0.1;
+    --shadow-strong: 166 60% 10% / 0.15;
 
-    /* Radius System - Medical precision */
-    --radius: 0.75rem;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(166 60% 25%), hsl(166 60% 15%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45 11% 93%), hsl(46 17% 82%));
+    --gradient-accent: linear-gradient(135deg, hsl(142 30% 85%), hsl(142 30% 92%));
+    --gradient-glass: linear-gradient(135deg, hsl(45 11% 93% / 0.9), hsl(46 17% 82% / 0.8));
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 260 20% 15%;
-    --sidebar-primary: 270 85% 55%;
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 45 11% 93%;
+    --sidebar-foreground: 166 60% 15%;
+    --sidebar-primary: 166 60% 15%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 8% 95%;
-    --sidebar-accent-foreground: 260 20% 20%;
-    --sidebar-border: 260 15% 90%;
-    --sidebar-ring: 270 85% 55%;
+    --sidebar-accent: 46 17% 82%;
+    --sidebar-accent-foreground: 166 60% 15%;
+    --sidebar-border: 46 10% 70%;
+    --sidebar-ring: 166 60% 15%;
   }
 
-  .dark {
-    /* Dark mode - Web3 dark theme with bright purple accents */
-    --background: 260 30% 4%;
-    --foreground: 280 20% 95%;
 
-    --card: 260 25% 7%;
-    --card-foreground: 280 20% 95%;
-
-    --popover: 260 25% 7%;
-    --popover-foreground: 280 20% 95%;
-
-    --primary: 270 95% 65%;
-    --primary-foreground: 280 20% 95%;
-    --primary-light: 270 90% 75%;
-    --primary-dark: 270 100% 55%;
-
-    --secondary: 260 15% 14%;
-    --secondary-foreground: 280 25% 90%;
-
-    --muted: 260 12% 12%;
-    --muted-foreground: 260 10% 70%;
-
-    --accent: 280 100% 70%;
-    --accent-foreground: 260 30% 4%;
-    --accent-light: 280 95% 80%;
-
-    --success: 280 85% 65%;
-    --success-foreground: 260 30% 4%;
-    --warning: 45 100% 70%;
-    --warning-foreground: 260 30% 4%;
-    --destructive: 0 90% 70%;
-    --destructive-foreground: 260 30% 4%;
-
-    --border: 260 20% 18%;
-    --input: 260 15% 14%;
-    --ring: 270 90% 65%;
-
-    --glass-bg: 260 30% 4% / 0.95;
-    --glass-border: 270 40% 40% / 0.3;
-    --shadow-soft: 270 50% 15% / 0.7;
-    --shadow-medium: 270 50% 15% / 0.9;
-    --shadow-strong: 270 50% 15% / 1.1;
-
-    --gradient-primary: linear-gradient(135deg, hsl(270 95% 65%), hsl(280 100% 70%));
-    --gradient-secondary: linear-gradient(135deg, hsl(260 15% 14%), hsl(260 25% 7%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 100% 70%), hsl(270 95% 65%));
-    --gradient-glass: linear-gradient(135deg, hsl(260 30% 7% / 0.98), hsl(260 25% 12% / 0.9));
-    --sidebar-background: 260 25% 5%;
-    --sidebar-foreground: 280 20% 90%;
-    --sidebar-primary: 270 90% 60%;
-    --sidebar-primary-foreground: 260 30% 4%;
-    --sidebar-accent: 260 15% 12%;
-    --sidebar-accent-foreground: 280 25% 85%;
-    --sidebar-border: 260 20% 15%;
-    --sidebar-ring: 270 90% 60%;
-  }
 }
 
 @layer base {
@@ -142,9 +101,13 @@
     @apply border-border;
   }
 
+  html {
+    overflow-x: hidden;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Urbanist', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    @apply bg-background text-foreground antialiased overflow-x-hidden;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-optical-sizing: auto;
     font-weight: 400;
@@ -158,30 +121,22 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-muted/30;
+    background-color: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary/30 rounded-full;
+    @apply bg-primary/100 rounded-full border-[2px] border-transparent bg-clip-content;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/50;
+    @apply bg-primary/60;
   }
 
-  /* Medical-grade text selection */
-  ::selection {
-    background-color: hsl(var(--primary) / 0.2);
-    color: hsl(var(--primary-light));
-  }
 
-  ::-moz-selection {
-    background-color: hsl(var(--primary) / 0.2);
-    color: hsl(var(--primary));
-  }
 }
 
 @layer components {
+
   /* Glassmorphism components */
   .glass {
     background: hsl(var(--glass-bg));
@@ -198,17 +153,17 @@
   /* Medical shadows */
   .shadow-medical {
     box-shadow: 0 4px 6px -1px hsl(var(--shadow-soft)),
-                0 2px 4px -1px hsl(var(--shadow-soft));
+      0 2px 4px -1px hsl(var(--shadow-soft));
   }
 
   .shadow-medical-lg {
     box-shadow: 0 10px 15px -3px hsl(var(--shadow-medium)),
-                0 4px 6px -2px hsl(var(--shadow-soft));
+      0 4px 6px -2px hsl(var(--shadow-soft));
   }
 
   .shadow-medical-xl {
     box-shadow: 0 20px 25px -5px hsl(var(--shadow-strong)),
-                0 10px 10px -5px hsl(var(--shadow-medium));
+      0 10px 10px -5px hsl(var(--shadow-medium));
   }
 
   /* Gradient backgrounds */
@@ -245,6 +200,61 @@
     @apply opacity-100;
   }
 
+  /* Container system - Centered content with max-width */
+  .container-saas {
+    @apply max-w-7xl mx-auto px-4 sm:px-6;
+  }
+
+  /* Inset Section System - Floating rounded blocks */
+  .section-inset {
+    @apply mx-2 rounded-[24px] py-12 lg:py-20 overflow-hidden;
+    @apply transition-transform duration-500 ease-out;
+  }
+
+  /* Light Sections - Lighter Beige */
+  .section-light {
+    background-color: hsl(var(--secondary));
+    /* #EFEEEB */
+    color: hsl(var(--foreground));
+  }
+
+  .section-alt {
+    background-color: hsl(var(--card));
+    /* Also #EFEEEB or White if overridden */
+    color: hsl(var(--foreground));
+  }
+
+  /* Dark Sections - Deep Green SaaS Contrast */
+  .section-dark {
+    background-color: hsl(var(--primary));
+    /* #0F3D32 */
+    color: white;
+  }
+
+  /* Ensure text inside dark sections is readable */
+  .section-dark .text-muted-foreground {
+    color: hsl(166 20% 80%);
+  }
+
+  .section-dark .text-foreground {
+    color: white;
+  }
+
+  /* Card overrides for SaaS look */
+  .card-saas {
+    @apply rounded-[24px] shadow-sm p-6 lg:p-8;
+    background-color: hsl(var(--secondary));
+    /* #EFEEEB */
+    border: 1px solid hsl(var(--border) / 0.5);
+    @apply transition-all duration-300 hover:shadow-md;
+  }
+
+  /* Adjust shadow for SaaS feel */
+  .shadow-saas {
+    box-shadow: 0 4px 20px -2px rgba(15, 61, 50, 0.08);
+    /* Green tinted shadow */
+  }
+
   /* Scientific data visualization */
   .data-card {
     @apply bg-card/50 backdrop-blur-sm border border-border/50;
@@ -275,42 +285,64 @@
 
   /* Urbanist Font Utilities */
   .font-display {
-    font-family: 'Urbanist', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     letter-spacing: -0.025em;
   }
 
   .font-heading {
-    font-family: 'Urbanist', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 500;
     letter-spacing: -0.015em;
   }
 
   .font-body {
-    font-family: 'Urbanist', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 400;
     letter-spacing: 0;
   }
 
   .font-mono {
-    font-family: 'Urbanist', monospace;
+    font-family: 'Inter', monospace;
     font-weight: 400;
     letter-spacing: 0.025em;
   }
 
-  /* Marquee animation for medical disclaimer */
+  /* Marquee animation */
   .animate-marquee {
-    display: inline-block;
-    animation: marquee 15s linear infinite;
-    padding-left: 100%;
+    display: flex;
+    animation: marquee 40s linear infinite;
+  }
+
+  /* Gradient Mask for fading edges */
+  .mask-gradient-x {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
   }
 
   @keyframes marquee {
     0% {
       transform: translateX(0);
     }
+
     100% {
-      transform: translateX(-100%);
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Disable hover effects on touch devices */
+  @media (hover: none) {
+    * {
+      pointer-events: auto !important;
+    }
+
+    .hover\:shadow-md:hover,
+    .hover\:shadow-lg:hover,
+    .hover\:scale-\[1\.02\]:hover,
+    .hover\:bg-\[#1A4D3F\]\/80:hover {
+      transform: none !important;
+      background-color: inherit !important;
+      box-shadow: inherit !important;
     }
   }
 }

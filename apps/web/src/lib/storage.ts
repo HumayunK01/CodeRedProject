@@ -1,8 +1,8 @@
-// OutbreakLens Local Storage Utilities
+// Foresee Local Storage Utilities
 
 import { StoredResult } from './types';
 
-const STORAGE_KEY = 'outbreaklens-results';
+const STORAGE_KEY = 'foresee-results';
 const MAX_STORED_RESULTS = 50;
 
 export class StorageManager {
@@ -51,7 +51,7 @@ export class StorageManager {
 
   static exportToCsv(): string {
     const results = this.getAllResults();
-    
+
     if (results.length === 0) {
       return 'No data to export';
     }

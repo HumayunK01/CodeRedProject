@@ -88,14 +88,14 @@ const Usecase = () => {
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
 
-      <div className="container mx-auto py-8 px-4 relative z-10">
+      <div className="container mx-auto py-6 px-4 relative z-10 mt-2">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8 text-center">
+          <div className="mb-6 text-center">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
               Use Case Demonstration
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Watch how OutbreakLens transforms disease outbreak detection and response through our advanced AI-powered platform.
+              Watch how Foresee transforms disease outbreak detection and response through our advanced AI-powered platform.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ const Usecase = () => {
                 <span>Platform Overview</span>
               </CardTitle>
               <CardDescription>
-                See OutbreakLens in action with real-world scenarios
+                See Foresee in action with real-world scenarios
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -212,9 +212,9 @@ const Usecase = () => {
             </CardContent>
           </Card>
 
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center">
             <p className="text-muted-foreground">
-              Experience how OutbreakLens revolutionizes epidemic intelligence and public health response.
+              Experience how Foresee revolutionizes epidemic intelligence and public health response.
             </p>
           </div>
         </div>

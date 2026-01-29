@@ -71,7 +71,7 @@ const Dashboard = () => {
       suffix: "%"
     }
   ]);
-  
+
   const [systemMetrics, setSystemMetrics] = useState([
     {
       title: "Model Accuracy",
@@ -102,7 +102,7 @@ const Dashboard = () => {
       description: "Active coverage areas"
     }
   ]);
-  
+
   const [alerts, setAlerts] = useState([
     {
       type: "success",
@@ -119,7 +119,7 @@ const Dashboard = () => {
       icon: AlertTriangle
     }
   ]);
-  
+
   const [recentActivity, setRecentActivity] = useState([
     {
       type: "diagnosis",
@@ -143,14 +143,14 @@ const Dashboard = () => {
       status: "info"
     }
   ]);
-  
+
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const stats = await apiClient.getDashboardStats();
-        
+
         // Update quick stats with real data
         setQuickStats([
           {
@@ -194,7 +194,7 @@ const Dashboard = () => {
             suffix: "%"
           }
         ]);
-        
+
         // Update system metrics with real data
         setSystemMetrics([
           {
@@ -226,17 +226,17 @@ const Dashboard = () => {
             description: "Active coverage areas"
           }
         ]);
-        
+
         // Update recent activity with real data
         setRecentActivity(stats.recent_activity);
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
 
@@ -246,14 +246,14 @@ const Dashboard = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-      
+
       {/* Medical Disclaimer Marquee */}
       <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
         <div className="flex items-center justify-center">
           <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
           <div className="relative overflow-hidden w-full max-w-4xl">
             <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
-              This ML-powered dashboard provides real-time analytics for decision support only and should never replace professional medical or epidemiological analysis. Always consult with qualified experts for healthcare decisions.
+              This Foresee ML-powered dashboard provides real-time analytics for decision support only and should never replace professional medical or epidemiological analysis. Always consult with qualified experts for healthcare decisions.
             </div>
           </div>
           <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
@@ -261,9 +261,9 @@ const Dashboard = () => {
       </div>
 
       {/* Enhanced Header Section */}
-      <section className="relative px-4 py-8 lg:px-6 lg:py-12 overflow-hidden">
+      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -273,12 +273,12 @@ const Dashboard = () => {
               <Activity className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              System Dashboard
+              Foresee Dashboard
             </h1>
             <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
               Real-time monitoring and analytics for malaria diagnosis and outbreak forecasting systems
             </p>
-            
+
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
               <motion.div
@@ -323,8 +323,8 @@ const Dashboard = () => {
       </section>
 
       {/* Main Dashboard Content */}
-      <div className="px-4 lg:px-6 pb-16">
-        <div className="max-w-7xl mx-auto space-y-12">
+      <div className="px-4 lg:px-6 pb-8">
+        <div className="max-w-7xl mx-auto space-y-4">
 
           {/* Enhanced Quick Stats */}
           <section>
@@ -335,7 +335,7 @@ const Dashboard = () => {
               viewport={{ once: true }}
               className="text-center mb-8"
             >
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 pt-6">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 pt-2">
                 Real-Time Analytics
               </h2>
               <p className="text-muted-foreground">
@@ -582,23 +582,20 @@ const Dashboard = () => {
                     transition={{ delay: index * 0.2, duration: 0.5 }}
                     viewport={{ once: true }}
                   >
-                    <Card className={`data-card border-l-4 ${
-                      alert.type === 'success'
-                        ? 'border-l-success'
-                        : 'border-l-warning'
-                    }`}>
+                    <Card className={`data-card border-l-4 ${alert.type === 'success'
+                      ? 'border-l-success'
+                      : 'border-l-warning'
+                      }`}>
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg ${
-                            alert.type === 'success'
-                              ? 'bg-success/10'
-                              : 'bg-warning/10'
-                          }`}>
-                            <Icon className={`h-4 w-4 ${
-                              alert.type === 'success'
-                                ? 'text-success'
-                                : 'text-warning'
-                            }`} />
+                          <div className={`p-2 rounded-lg ${alert.type === 'success'
+                            ? 'bg-success/10'
+                            : 'bg-warning/10'
+                            }`}>
+                            <Icon className={`h-4 w-4 ${alert.type === 'success'
+                              ? 'text-success'
+                              : 'text-warning'
+                              }`} />
                           </div>
                           <div className="flex-1">
                             <h4 className="font-medium text-sm mb-1">{alert.title}</h4>
@@ -656,11 +653,10 @@ const Dashboard = () => {
                         viewport={{ once: true }}
                         className="flex items-center space-x-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                       >
-                        <div className={`p-2 rounded-lg ${
-                          activity.type === 'diagnosis'
-                            ? 'bg-primary/10'
-                            : 'bg-accent/10'
-                        }`}>
+                        <div className={`p-2 rounded-lg ${activity.type === 'diagnosis'
+                          ? 'bg-primary/10'
+                          : 'bg-accent/10'
+                          }`}>
                           {activity.type === 'diagnosis' ? (
                             <Microscope className="h-4 w-4 text-primary" />
                           ) : (
@@ -681,8 +677,8 @@ const Dashboard = () => {
                             activity.status === 'success'
                               ? 'default'
                               : activity.status === 'warning'
-                              ? 'destructive'
-                              : 'secondary'
+                                ? 'destructive'
+                                : 'secondary'
                           }
                           className="shrink-0"
                         >

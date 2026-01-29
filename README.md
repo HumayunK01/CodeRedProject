@@ -1,4 +1,4 @@
-# 🧬 OutbreakLens
+# 🧬 Foresee
 
 > **Diagnose Today, Predict Tomorrow** - AI-powered malaria diagnosis and outbreak forecasting platform
 
@@ -7,14 +7,14 @@
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#)
 
 <div align="center">
-  <img src="apps/web/public/preview.png" alt="OutbreakLens Dashboard" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <img src="apps/web/public/preview.png" alt="Foresee Dashboard" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
 </div>
 
 ---
 
-## 🌟 What is OutbreakLens?
+## 🌟 What is Foresee?
 
-OutbreakLens is a comprehensive healthcare platform that combines cutting-edge machine learning with epidemiological expertise to revolutionize malaria detection and prevention. Built to serve healthcare professionals and endemic regions, it provides real-time diagnosis, outbreak predictions, and intelligent assistance.
+Foresee is a comprehensive healthcare platform that combines cutting-edge machine learning with epidemiological expertise to revolutionize malaria detection and prevention. Built to serve healthcare professionals and endemic regions, it provides real-time diagnosis, outbreak predictions, and intelligent assistance.
 
 ### ✨ Key Features
 
@@ -92,7 +92,7 @@ Chatbot: OpenRouter AI integration
 ## 📦 Project Structure
 
 ```
-outbreaklens-monorepo/
+foresee-monorepo/
 ├── apps/
 │   ├── web/                    # Frontend (React + Vite)
 │   │   ├── src/
@@ -124,7 +124,7 @@ outbreaklens-monorepo/
 ```bash
 # Clone repository
 git clone https://github.com/HumayunK01/CodeRedProject.git
-cd outbreaklens-monorepo
+cd foresee-monorepo
 
 # Install frontend dependencies
 npm install
@@ -325,7 +325,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### ⚠️ Medical Disclaimer
 
-OutbreakLens is a decision support tool and **NOT a substitute for professional medical diagnosis**. All results must be interpreted by qualified healthcare providers. Always consult medical professionals for diagnosis and treatment decisions.
+Foresee is a decision support tool and **NOT a substitute for professional medical diagnosis**. All results must be interpreted by qualified healthcare providers. Always consult medical professionals for diagnosis and treatment decisions.
 
 ---
 
@@ -340,18 +340,18 @@ OutbreakLens is a decision support tool and **NOT a substitute for professional 
 
 ## 🔗 Links
 
-- [🏠 Live Demo](https://outbreaklens.dev)
-- [📖 Documentation](https://docs.outbreaklens.dev)
+- [🏠 Live Demo](https://foresee.app)
+- [📖 Documentation](https://docs.foresee.app)
 - [🐙 GitHub Repository](https://github.com/HumayunK01/CodeRedProject)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the OutbreakLens Team**
+**Built with ❤️ by the Foresee Team**
 
 *Transforming healthcare through AI*
 
-[⭐ Star us on GitHub](https://github.com/HumayunK01/CodeRedProject) | [🐦 Follow updates](https://twitter.com/outbreaklens) | [💼 Connect](https://linkedin.com/in/devhumayun)
+[⭐ Star us on GitHub](https://github.com/HumayunK01/CodeRedProject) | [🐦 Follow updates](https://twitter.com/foresee) | [💼 Connect](https://linkedin.com/in/devhumayun)
 
 </div>

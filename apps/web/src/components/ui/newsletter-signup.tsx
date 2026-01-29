@@ -18,18 +18,18 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !email.includes("@")) {
       toast.error("Please enter a valid email address");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setIsSubscribed(true);
       toast.success("Successfully subscribed to our newsletter!");
       setEmail("");
@@ -49,7 +49,7 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
           </div>
           <CardTitle>Stay Updated</CardTitle>
           <CardDescription>
-            Get the latest updates on AI healthcare innovation and OutbreakLens features.
+            Get the latest updates on AI healthcare innovation and Foresee features.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -64,9 +64,9 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
                 required
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full btn-medical" 
+            <Button
+              type="submit"
+              className="w-full btn-medical"
               disabled={isLoading || isSubscribed}
             >
               {isLoading ? (
@@ -105,10 +105,10 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
           className="flex-1"
           required
         />
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           onClick={handleSubmit}
-          className="btn-medical" 
+          className="btn-medical"
           disabled={isLoading || isSubscribed}
         >
           {isLoading ? (
@@ -149,10 +149,10 @@ export const NewsletterSignup = ({ variant = "default", className = "" }: Newsle
           className="flex-1"
           required
         />
-        <Button 
-          type="submit" 
-          size="sm" 
-          className="btn-medical" 
+        <Button
+          type="submit"
+          size="sm"
+          className="btn-medical"
           disabled={isLoading || isSubscribed}
         >
           {isLoading ? (

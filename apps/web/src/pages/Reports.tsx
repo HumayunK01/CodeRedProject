@@ -114,12 +114,12 @@ const Reports = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `outbreaklens-reports-${dayjs().format('YYYY-MM-DD')}.csv`;
+      a.download = `foresee-reports-${dayjs().format('YYYY-MM-DD')}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Export Successful",
         description: "Reports have been exported to CSV format.",
@@ -140,12 +140,12 @@ const Reports = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `outbreaklens-reports-${dayjs().format('YYYY-MM-DD')}.json`;
+      a.download = `foresee-reports-${dayjs().format('YYYY-MM-DD')}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Export Successful",
         description: "Reports have been exported to JSON format.",
@@ -167,24 +167,24 @@ const Reports = () => {
       const csvUrl = URL.createObjectURL(csvBlob);
       const csvA = document.createElement('a');
       csvA.href = csvUrl;
-      csvA.download = `outbreaklens-reports-${dayjs().format('YYYY-MM-DD')}.csv`;
+      csvA.download = `foresee-reports-${dayjs().format('YYYY-MM-DD')}.csv`;
       document.body.appendChild(csvA);
       csvA.click();
       document.body.removeChild(csvA);
       URL.revokeObjectURL(csvUrl);
-      
+
       // Export JSON
       const json = StorageManager.exportToJson();
       const jsonBlob = new Blob([json], { type: 'application/json' });
       const jsonUrl = URL.createObjectURL(jsonBlob);
       const jsonA = document.createElement('a');
       jsonA.href = jsonUrl;
-      jsonA.download = `outbreaklens-reports-${dayjs().format('YYYY-MM-DD')}.json`;
+      jsonA.download = `foresee-reports-${dayjs().format('YYYY-MM-DD')}.json`;
       document.body.appendChild(jsonA);
       jsonA.click();
       document.body.removeChild(jsonA);
       URL.revokeObjectURL(jsonUrl);
-      
+
       toast({
         title: "Export Successful",
         description: "Reports have been exported in multiple formats.",
@@ -204,7 +204,7 @@ const Reports = () => {
     // Force re-render by updating the search term
     setSearchTerm(prev => prev + " ");
     setSearchTerm(prev => prev.trim());
-    
+
     toast({
       title: "Result Deleted",
       description: "The selected result has been removed.",
@@ -218,8 +218,8 @@ const Reports = () => {
   const getResultColor = (result: StoredResult) => {
     if (result.type === 'diagnosis') {
       const diagResult = result.result as any;
-      if (diagResult.label?.toLowerCase().includes('positive') || 
-          diagResult.label?.toLowerCase().includes('high')) {
+      if (diagResult.label?.toLowerCase().includes('positive') ||
+        diagResult.label?.toLowerCase().includes('high')) {
         return 'destructive';
       }
       return 'default';
@@ -233,7 +233,7 @@ const Reports = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-      
+
       {/* Medical Disclaimer Marquee */}
       <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
         <div className="flex items-center justify-center">
@@ -248,7 +248,7 @@ const Reports = () => {
       </div>
 
       {/* Enhanced Header Section */}
-      <section className="relative px-4 py-8 lg:px-6 lg:py-12 overflow-hidden">
+      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: -15 }}
@@ -265,7 +265,7 @@ const Reports = () => {
             <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
               Comprehensive archive of diagnosis results and outbreak forecasts
             </p>
-            
+
             {/* Export Buttons */}
             <div className="flex justify-center gap-3 mb-6">
               <Button onClick={handleExportCsv} variant="outline" size="sm" className="flex items-center gap-2">
@@ -281,7 +281,7 @@ const Reports = () => {
                 Export All
               </Button>
             </div>
-            
+
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
               <motion.div
@@ -326,7 +326,7 @@ const Reports = () => {
       </section>
 
       {/* Statistics Overview */}
-      <section className="px-4 lg:px-6 pb-12 pt-1">
+      <section className="px-4 lg:px-6 pb-6 pt-2">
         <div className="max-w-7xl mx-auto space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -369,7 +369,7 @@ const Reports = () => {
       </section>
 
       {/* Enhanced Filters */}
-      <section className="px-4 lg:px-6 pb-12 pt-1">
+      <section className="px-4 lg:px-6 pb-6 pt-2">
         <div className="max-w-7xl mx-auto space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -438,9 +438,9 @@ const Reports = () => {
       </section>
 
       {/* Enhanced Main Content Grid */}
-      <div className="px-4 lg:px-6 pb-12 pt-1">
+      <div className="px-4 lg:px-6 pb-6 pt-2">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4">
             {/* Enhanced Results List */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -514,18 +514,16 @@ const Reports = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1, duration: 0.4 }}
                             viewport={{ once: true }}
-                            className={`group p-6 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-medical-lg ${
-                              selectedResult?.id === result.id
-                                ? 'border-primary bg-primary/5 shadow-medical'
-                                : 'border-border hover:border-primary/30 hover:bg-card/50'
-                            }`}
+                            className={`group p-6 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-medical-lg ${selectedResult?.id === result.id
+                              ? 'border-primary bg-primary/5 shadow-medical'
+                              : 'border-border hover:border-primary/30 hover:bg-card/50'
+                              }`}
                             onClick={() => setSelectedResult(result)}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 transition-all duration-300 ${
-                                  selectedResult?.id === result.id ? 'scale-110' : 'group-hover:scale-105'
-                                }`}>
+                                <div className={`p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 transition-all duration-300 ${selectedResult?.id === result.id ? 'scale-110' : 'group-hover:scale-105'
+                                  }`}>
                                   <Icon className="h-5 w-5 text-primary" />
                                 </div>
 
@@ -562,15 +560,14 @@ const Reports = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className={`opacity-0 group-hover:opacity-100 transition-all duration-300 ${
-                                    selectedResult?.id === result.id ? 'opacity-100' : ''
-                                  }`}
+                                  className={`opacity-0 group-hover:opacity-100 transition-all duration-300 ${selectedResult?.id === result.id ? 'opacity-100' : ''
+                                    }`}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
-                            
+
                             {result.type === 'diagnosis' && (
                               <div className="mt-3 pt-3 border-t border-border/50">
                                 <div className="flex items-center justify-between text-xs">
@@ -584,12 +581,11 @@ const Reports = () => {
                                 {(result.result as any).confidence !== undefined && (
                                   <div className="mt-2">
                                     <div className="w-full bg-secondary rounded-full h-1.5">
-                                      <div 
-                                        className={`h-1.5 rounded-full ${
-                                          (result.result as any).label?.includes('High') ? 'bg-destructive' :
+                                      <div
+                                        className={`h-1.5 rounded-full ${(result.result as any).label?.includes('High') ? 'bg-destructive' :
                                           (result.result as any).label?.includes('Medium') ? 'bg-warning' :
-                                          'bg-success'
-                                        }`}
+                                            'bg-success'
+                                          }`}
                                         style={{ width: `${(result.result as any).confidence * 100}%` }}
                                       ></div>
                                     </div>
@@ -607,7 +603,7 @@ const Reports = () => {
                     </div>
                   )}
                 </CardContent>
-                
+
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
                   <div className="border-t border-border/50 p-6">
@@ -621,7 +617,7 @@ const Reports = () => {
                         <ChevronLeft className="h-4 w-4" />
                         <span>Previous</span>
                       </Button>
-                      
+
                       <div className="flex items-center space-x-2">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           // Calculate start index for pagination window
@@ -635,7 +631,7 @@ const Reports = () => {
                               startPage = currentPage - 2;
                             }
                           }
-                              
+
                           const page = startPage + i;
                           return (
                             <Button
@@ -648,7 +644,7 @@ const Reports = () => {
                             </Button>
                           );
                         })}
-                        
+
                         {totalPages > 5 && (
                           <>
                             {currentPage < totalPages - 2 && (
@@ -666,7 +662,7 @@ const Reports = () => {
                           </>
                         )}
                       </div>
-                      
+
                       <Button
                         onClick={handleNextPage}
                         disabled={currentPage === totalPages}
@@ -752,18 +748,18 @@ const Reports = () => {
                             {(selectedResult.result as any).label && (
                               <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                                 <span className="font-medium">Risk Level</span>
-                                <Badge 
+                                <Badge
                                   variant={
                                     (selectedResult.result as any).label.includes('High') ? 'destructive' :
-                                    (selectedResult.result as any).label.includes('Medium') ? 'secondary' :
-                                    'default'
+                                      (selectedResult.result as any).label.includes('Medium') ? 'secondary' :
+                                        'default'
                                   }
                                 >
                                   {(selectedResult.result as any).label}
                                 </Badge>
                               </div>
                             )}
-                            
+
                             {(selectedResult.result as any).confidence !== undefined && (
                               <div className="p-3 bg-muted/30 rounded-lg">
                                 <div className="flex justify-between mb-1">
@@ -771,14 +767,14 @@ const Reports = () => {
                                   <span className="font-mono">{((selectedResult.result as any).confidence * 100).toFixed(1)}%</span>
                                 </div>
                                 <div className="w-full bg-secondary rounded-full h-2">
-                                  <div 
-                                    className="bg-primary h-2 rounded-full" 
+                                  <div
+                                    className="bg-primary h-2 rounded-full"
                                     style={{ width: `${(selectedResult.result as any).confidence * 100}%` }}
                                   ></div>
                                 </div>
                               </div>
                             )}
-                            
+
                             {(selectedResult.result as any).probability !== undefined && (
                               <div className="p-3 bg-muted/30 rounded-lg">
                                 <div className="flex justify-between mb-1">
@@ -786,8 +782,8 @@ const Reports = () => {
                                   <span className="font-mono">{((selectedResult.result as any).probability * 100).toFixed(1)}%</span>
                                 </div>
                                 <div className="w-full bg-secondary rounded-full h-2">
-                                  <div 
-                                    className="bg-accent h-2 rounded-full" 
+                                  <div
+                                    className="bg-accent h-2 rounded-full"
                                     style={{ width: `${(selectedResult.result as any).probability * 100}%` }}
                                   ></div>
                                 </div>
