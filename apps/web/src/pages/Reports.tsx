@@ -34,6 +34,29 @@ import {
 import dayjs from "dayjs";
 import { useToast } from "@/hooks/use-toast";
 
+// --- Sub-components (Matched to Diagnosis/Dashboard) ---
+
+const DashboardContainer = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <section className={`relative overflow-hidden bg-primary backdrop-blur-xl rounded-[24px] border border-primary/10 ${className}`}>
+    {children}
+  </section>
+);
+
+const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: any, title: string, subtitle: string, rightElement?: React.ReactNode }) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 shadow-sm">
+        <Icon className="h-5 w-5 text-primary" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-primary uppercase tracking-tight">{title}</h3>
+        <p className="text-[11px] text-foreground/60 font-semibold uppercase tracking-widest leading-none">{subtitle}</p>
+      </div>
+    </div>
+    {rightElement}
+  </div>
+);
+
 const Reports = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -228,612 +251,403 @@ const Reports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Background Elements */}
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
 
-      {/* Medical Disclaimer Marquee */}
-      <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
-        <div className="flex items-center justify-center">
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
-          <div className="relative overflow-hidden w-full max-w-4xl">
-            <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
-              This ML-powered assessment tool is for decision support only and should never replace professional medical diagnosis. Always consult with qualified healthcare providers for medical decisions.
-            </div>
-          </div>
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
-        </div>
-      </div>
+      {/* Header Section */}
+      <section className="mx-2 mt-4 relative overflow-hidden">
+        <div className="relative px-6 py-12 lg:p-16 rounded-[24px] bg-primary border border-white/10 flex flex-col justify-center overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
 
-      {/* Enhanced Header Section */}
-      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center mb-1"
-          >
-            <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 mb-3">
-              <BarChart3 className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              Medical Reports Archive
+          <div className="relative z-10 max-w-6xl mx-auto text-center space-y-4">
+            <h1 className="text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
+              Reports
             </h1>
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-              Comprehensive archive of diagnosis results and outbreak forecasts
+            <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
+              Reference past diagnosis and forecast results to track health trends, review outcomes, and inform future decision-making.
             </p>
-
-            {/* Export Buttons */}
-            <div className="flex justify-center gap-3 mb-6">
-              <Button onClick={handleExportCsv} variant="outline" size="sm" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Export CSV
-              </Button>
-              <Button onClick={handleExportJson} variant="outline" size="sm" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Export JSON
-              </Button>
-              <Button onClick={handleExportAll} variant="default" size="sm" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Export All
-              </Button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">ML-Powered</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.16 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Shield className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">HIPAA Compliant</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.24 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">24/7 Monitoring</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Stethoscope className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">Medical Grade</span>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Statistics Overview */}
-      <section className="px-4 lg:px-6 pb-6 pt-2">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-8"
-          >
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 pt-6">
-              Data Overview
-            </h2>
-            <p className="text-muted-foreground">
-              Comprehensive statistics and insights from your medical data archive
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card p-6 h-full text-center group hover:shadow-medical-lg transition-all duration-300">
-                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 mb-4 ${stat.color}`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold mb-2">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground font-medium">{stat.title}</p>
-                  </Card>
-                </motion.div>
-              );
-            })}
           </div>
         </div>
       </section>
 
-      {/* Enhanced Filters */}
-      <section className="px-4 lg:px-6 pb-6 pt-2">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-8"
-          >
-            <h3 className="text-xl font-semibold mb-2">Search & Filter</h3>
-            <p className="text-muted-foreground">
-              Find specific results and organize your medical data archive
-            </p>
-          </motion.div>
+      {/* Main Layout Grid */}
+      <div className="mx-2 grid lg:grid-cols-12 gap-4 items-stretch relative px-1">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <Card className="data-card p-6 shadow-medical-lg">
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div className="flex-1">
+        {/* Column 1: Filters & Stats (Sidebar) */}
+        <div className="lg:col-span-4 space-y-4 relative z-10 h-full">
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4 space-y-8">
+
+            {/* Stats Section */}
+            <div>
+              <SectionHeader
+                icon={BarChart3}
+                title="Data Overview"
+                subtitle="Archive Statistics"
+              />
+              <p className="text-xs text-muted-foreground mb-4 -mt-4">
+                A summary of all stored assessments and forecasts for quick reference.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                {stats.map((stat, i) => (
+                  <div key={i} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-xl text-center hover:bg-white/60 transition-colors duration-300 group">
+                    <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} opacity-80 group-hover:opacity-100 transition-all`} strokeWidth={1.5} />
+                    <p className="text-xs uppercase font-bold text-foreground/60 mb-1 tracking-wider">{stat.title}</p>
+                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            <div>
+              <SectionHeader
+                icon={Filter}
+                title="Search & Filter"
+                subtitle="Find Records"
+              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Search</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search by ID, symptoms, or region..."
+                      placeholder="Search by region, symptoms, or date..."
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        setCurrentPage(1); // Reset to first page when searching
+                        setCurrentPage(1);
                       }}
-                      className="pl-10 input-medical h-12 text-base"
+                      className="pl-9 bg-white/50 border-white/40 h-11 rounded-xl focus-visible:ring-primary/20 transition-all font-medium"
                     />
                   </div>
                 </div>
 
-                <Select value={typeFilter} onValueChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1); // Reset to first page when filtering
-                }}>
-                  <SelectTrigger className="w-full sm:w-48 h-12">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Results</SelectItem>
-                    <SelectItem value="diagnosis">Diagnosis Only</SelectItem>
-                    <SelectItem value="forecast">Forecasts Only</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Record Type</label>
+                  <p className="text-[10px] text-muted-foreground">Filter results by diagnosis or forecast reports.</p>
+                  <Select value={typeFilter} onValueChange={(value) => {
+                    setTypeFilter(value);
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="bg-white/50 border-white/40 h-11 rounded-xl focus:ring-primary/20 transition-all font-medium">
+                      <SelectValue placeholder="All Results" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Results</SelectItem>
+                      <SelectItem value="diagnosis">Diagnosis Only</SelectItem>
+                      <SelectItem value="forecast">Forecasts Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+            </div>
 
-              {filteredResults.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-4 text-sm text-muted-foreground"
-                >
-                  Showing {filteredResults.length} of {results.length} results
-                </motion.div>
-              )}
-            </Card>
-          </motion.div>
+            {/* Export Section */}
+            <div>
+              <SectionHeader
+                icon={Download}
+                title="Export Data"
+                subtitle="Download Reports"
+              />
+              <p className="text-xs text-muted-foreground mb-4 -mt-4">
+                Download selected reports for sharing, record-keeping, or further analysis.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleExportCsv} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
+                  CSV
+                </Button>
+                <Button onClick={handleExportJson} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
+                  JSON
+                </Button>
+                <Button onClick={handleExportAll} variant="default" className="col-span-2 shadow-lg shadow-primary/20 rounded-xl h-11 text-white font-semibold tracking-wide hover:opacity-90 transition-all">
+                  Download Reports
+                </Button>
+              </div>
+            </div>
+
+          </DashboardContainer>
         </div>
-      </section>
 
-      {/* Enhanced Main Content Grid */}
-      <div className="px-4 lg:px-6 pb-6 pt-2">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid lg:grid-cols-3 gap-4">
-            {/* Enhanced Results List */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              viewport={{ once: true }}
-              className="lg:col-span-2"
-            >
-              <Card className="data-card shadow-medical-lg">
-                <CardHeader className="pb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <BarChart3 className="h-5 w-5 text-primary" />
-                        <span>Results History</span>
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        {filteredResults.length === 0
-                          ? 'No results found matching your criteria'
-                          : `Showing ${startIndex + 1}-${Math.min(endIndex, filteredResults.length)} of ${filteredResults.length} results`
-                        }
-                      </CardDescription>
-                    </div>
-
-                    {filteredResults.length > 0 && (
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">
-                          Page {currentPage} of {totalPages}
-                        </p>
-                        <p className="text-xs text-primary font-medium">
-                          {results.length} total records
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {filteredResults.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="text-center py-12"
-                    >
-                      <div className="p-4 rounded-full bg-muted/30 w-fit mx-auto mb-6">
-                        <FileText className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Try adjusting your search terms or filters to find relevant results.
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setTypeFilter("all");
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <div className="space-y-4">
-                      {currentResults.map((result, index) => {
-                        const Icon = getResultIcon(result.type);
-                        const resultData = result.result as any;
-
-                        return (
-                          <motion.div
-                            key={result.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1, duration: 0.4 }}
-                            viewport={{ once: true }}
-                            className={`group p-6 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-medical-lg ${selectedResult?.id === result.id
-                              ? 'border-primary bg-primary/5 shadow-medical'
-                              : 'border-border hover:border-primary/30 hover:bg-card/50'
-                              }`}
-                            onClick={() => setSelectedResult(result)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 transition-all duration-300 ${selectedResult?.id === result.id ? 'scale-110' : 'group-hover:scale-105'
-                                  }`}>
-                                  <Icon className="h-5 w-5 text-primary" />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center space-x-3 mb-2">
-                                    <Badge
-                                      variant={getResultColor(result) as any}
-                                      className="font-medium"
-                                    >
-                                      {result.type}
-                                    </Badge>
-                                    <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                                      <Clock className="h-3 w-3" />
-                                      <span>{dayjs(result.timestamp).format('MMM D, YYYY')}</span>
-                                    </div>
-                                  </div>
-
-                                  <p className="font-semibold text-base mb-1 truncate">
-                                    {result.type === 'diagnosis'
-                                      ? `Malaria Risk: ${(result.result as any).label || 'Assessment'}`
-                                      : resultData.region || 'Medical Result'}
-                                  </p>
-
-                                  <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {result.type === 'diagnosis'
-                                      ? `Confidence: ${((result.result as any).confidence * 100).toFixed(1)}%${(result.result as any).explanations ? ' • With analysis' : ''}`
-                                      : `Forecast: ${resultData.predictions?.length || 0} weeks • ${resultData.hotspot_score ? 'Risk analysis included' : 'Regional predictions'}`
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className={`opacity-0 group-hover:opacity-100 transition-all duration-300 ${selectedResult?.id === result.id ? 'opacity-100' : ''
-                                    }`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            {result.type === 'diagnosis' && (
-                              <div className="mt-3 pt-3 border-t border-border/50">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-muted-foreground">Patient Age:</span>
-                                  <span className="font-medium">{(result.input as any).age || 'N/A'} years</span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs mt-1">
-                                  <span className="text-muted-foreground">Region:</span>
-                                  <span className="font-medium">{(result.input as any).region || 'N/A'}</span>
-                                </div>
-                                {(result.result as any).confidence !== undefined && (
-                                  <div className="mt-2">
-                                    <div className="w-full bg-secondary rounded-full h-1.5">
-                                      <div
-                                        className={`h-1.5 rounded-full ${(result.result as any).label?.includes('High') ? 'bg-destructive' :
-                                          (result.result as any).label?.includes('Medium') ? 'bg-warning' :
-                                            'bg-success'
-                                          }`}
-                                        style={{ width: `${(result.result as any).confidence * 100}%` }}
-                                      ></div>
-                                    </div>
-                                    <div className="flex justify-between text-xs mt-1">
-                                      <span className="text-muted-foreground">Confidence</span>
-                                      <span className="font-medium">{((result.result as any).confidence * 100).toFixed(1)}%</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="border-t border-border/50 p-6">
-                    <div className="flex items-center justify-between">
-                      <Button
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                        className="flex items-center space-x-2"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span>Previous</span>
-                      </Button>
-
-                      <div className="flex items-center space-x-2">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          // Calculate start index for pagination window
-                          let startPage = 1;
-                          if (totalPages > 5) {
-                            if (currentPage <= 3) {
-                              startPage = 1;
-                            } else if (currentPage >= totalPages - 2) {
-                              startPage = totalPages - 4;
-                            } else {
-                              startPage = currentPage - 2;
-                            }
-                          }
-
-                          const page = startPage + i;
-                          return (
-                            <Button
-                              key={page}
-                              onClick={() => handlePageChange(page)}
-                              variant={currentPage === page ? "default" : "outline"}
-                              className="w-10 h-10 p-0"
-                            >
-                              {page}
-                            </Button>
-                          );
-                        })}
-
-                        {totalPages > 5 && (
-                          <>
-                            {currentPage < totalPages - 2 && (
-                              <span className="text-muted-foreground">...</span>
-                            )}
-                            {currentPage < totalPages - 1 && (
-                              <Button
-                                onClick={() => handlePageChange(totalPages)}
-                                variant="outline"
-                                className="w-10 h-10 p-0"
-                              >
-                                {totalPages}
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      <Button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        variant="outline"
-                        className="flex items-center space-x-2"
-                      >
-                        <span>Next</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+        {/* Column 2: Results List (Main Area) */}
+        <div className="lg:col-span-8 space-y-4 relative z-10 h-full">
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8 h-full flex flex-col min-h-[600px]">
+            <div className="space-y-1 mb-6 shrink-0">
+              <div className="flex items-center justify-between">
+                <SectionHeader
+                  icon={Database}
+                  title="Results History"
+                  subtitle="Stored Records"
+                />
+                {filteredResults.length > 0 && (
+                  <div className="text-right mb-6">
+                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10">
+                      {filteredResults.length} Result{filteredResults.length !== 1 ? 's' : ''} Found
+                    </Badge>
                   </div>
                 )}
-              </Card>
-            </motion.div>
+              </div>
 
-            {/* Enhanced Result Details */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              viewport={{ once: true }}
-              className="lg:col-span-1"
-            >
-              <Card className="data-card shadow-medical-lg sticky top-8">
-                <CardHeader className="pb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Eye className="h-5 w-5 text-primary" />
-                        <span>Result Details</span>
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        {selectedResult
-                          ? 'Comprehensive analysis and raw data'
-                          : 'Select a result to explore details'
-                        }
-                      </CardDescription>
-                    </div>
+              <p className="text-sm text-foreground/60 ml-1">
+                Open any report to review risk levels, trends, and supporting details from that assessment.
+              </p>
+            </div>
 
-                    {selectedResult && (
-                      <div className="text-right">
-                        <Badge
-                          variant={getResultColor(selectedResult) as any}
-                          className="mb-2"
-                        >
-                          {selectedResult.type}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteResult(selectedResult.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
+            <div className="flex-1 space-y-4">
+              {filteredResults.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[300px] border-2 border-dashed border-primary/10 rounded-[24px]">
+                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
+                    <Search className="h-8 w-8 text-primary/40" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {selectedResult ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-6"
-                    >
-                      {/* Summary Info */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-muted/30 p-3 rounded-lg">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Record Type</p>
-                          <p className="font-semibold capitalize">{selectedResult.type}</p>
-                        </div>
-                        <div className="bg-muted/30 p-3 rounded-lg">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Date Created</p>
-                          <p className="font-semibold">{dayjs(selectedResult.timestamp).format('MMM D, YYYY')}</p>
-                        </div>
-                      </div>
+                  <h4 className="text-sm font-semibold text-primary">No Records Found</h4>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-[200px] text-center">
+                    Try adjusting search terms or filters to find what you're looking for.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {currentResults.map((result) => {
+                    const Icon = getResultIcon(result.type);
+                    const isSelected = selectedResult?.id === result.id;
 
-                      {selectedResult.type === 'diagnosis' && (
-                        <div className="border-t pt-4">
-                          <h4 className="font-semibold mb-3 text-primary">Diagnosis Report</h4>
-                          <div className="space-y-3">
-                            {(selectedResult.result as any).label && (
-                              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="font-medium">Risk Level</span>
-                                <Badge
-                                  variant={
-                                    (selectedResult.result as any).label.includes('High') ? 'destructive' :
-                                      (selectedResult.result as any).label.includes('Medium') ? 'secondary' :
-                                        'default'
-                                  }
-                                >
-                                  {(selectedResult.result as any).label}
+                    return (
+                      <motion.div
+                        key={result.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`
+                              group relative overflow-hidden p-4 rounded-xl border transition-all duration-300 cursor-pointer
+                              ${isSelected
+                            ? 'bg-primary/5 border-primary/20 shadow-lg'
+                            : 'bg-white/40 border-white/60 hover:bg-white/60 hover:border-primary/20 hover:shadow-md'
+                          }
+                            `}
+                        onClick={() => setSelectedResult(result)}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className={`
+                                     p-3 rounded-xl transition-all duration-300
+                                     ${isSelected ? 'bg-primary text-white shadow-lg' : 'bg-white text-primary shadow-sm group-hover:scale-110'}
+                                   `}>
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={getResultColor(result) as any} className="text-[10px] uppercase font-bold px-2 py-0.5 h-5">
+                                  {result.type}
                                 </Badge>
+                                <span className="text-xs text-muted-foreground font-medium">
+                                  {dayjs(result.timestamp).format('MMM D, YYYY • h:mm A')}
+                                </span>
                               </div>
-                            )}
+                              <h4 className="font-bold text-foreground/90">
+                                {result.type === 'diagnosis'
+                                  ? `Diagnosis – ${(result.result as any).label || 'Assessment'} Risk`
+                                  : `Forecast – ${(result.result as any).region || 'Regional'} (${(result.result as any).predictions?.length || 4}-week outlook)`
+                                }
+                              </h4>
+                              <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
+                                {result.type === 'diagnosis'
+                                  ? `Symptoms: ${(result.input as any).symptoms?.join(', ') || 'N/A'}`
+                                  : `Period: ${(result.result as any).predictions?.length || 0} weeks projection`
+                                }
+                              </p>
+                            </div>
+                          </div>
 
-                            {(selectedResult.result as any).confidence !== undefined && (
-                              <div className="p-3 bg-muted/30 rounded-lg">
-                                <div className="flex justify-between mb-1">
-                                  <span className="font-medium">Model Confidence</span>
-                                  <span className="font-mono">{((selectedResult.result as any).confidence * 100).toFixed(1)}%</span>
-                                </div>
-                                <div className="w-full bg-secondary rounded-full h-2">
-                                  <div
-                                    className="bg-primary h-2 rounded-full"
-                                    style={{ width: `${(selectedResult.result as any).confidence * 100}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            )}
-
-                            {(selectedResult.result as any).probability !== undefined && (
-                              <div className="p-3 bg-muted/30 rounded-lg">
-                                <div className="flex justify-between mb-1">
-                                  <span className="font-medium">Risk Probability</span>
-                                  <span className="font-mono">{((selectedResult.result as any).probability * 100).toFixed(1)}%</span>
-                                </div>
-                                <div className="w-full bg-secondary rounded-full h-2">
-                                  <div
-                                    className="bg-accent h-2 rounded-full"
-                                    style={{ width: `${(selectedResult.result as any).probability * 100}%` }}
-                                  ></div>
-                                </div>
-                              </div>
+                          <div className="flex items-start">
+                            {isSelected && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10 -mt-1 -mr-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteResult(result.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             )}
                           </div>
                         </div>
-                      )}
 
-                      <div className="border-t pt-4">
-                        <h4 className="font-semibold mb-3 text-accent">Input Parameters</h4>
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                          <pre className="text-xs overflow-auto max-h-32 whitespace-pre-wrap">
-                            {JSON.stringify(selectedResult.input, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
+                        {/* Inline Details for Selected Item */}
+                        {isSelected && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            className="mt-4 pt-4 border-t border-primary/10"
+                          >
+                            <div className="grid md:grid-cols-2 gap-4">
+                              {/* Input Data Section */}
+                              <div className="space-y-2">
+                                <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Input Data</h5>
+                                <div className="space-y-3">
+                                  {result.type === 'diagnosis' ? (
+                                    <>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold">Age</span>
+                                          <p className="font-medium text-sm">{(result.input as any).age || 'N/A'} Years</p>
+                                        </div>
+                                        <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold">Region</span>
+                                          <p className="font-medium text-sm">{(result.input as any).region || 'N/A'}</p>
+                                        </div>
+                                      </div>
+                                      {(result.input as any).symptoms?.length > 0 && (
+                                        <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold block mb-2">Reported Symptoms</span>
+                                          <div className="flex flex-wrap gap-1">
+                                            {(result.input as any).symptoms.map((s: string, i: number) => (
+                                              <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/80 border-primary/10 text-foreground/80">
+                                                {s}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    // Forecast Input
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Target Region</span>
+                                        <p className="font-medium text-sm">{(result.input as any).region}</p>
+                                      </div>
+                                      <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Horizon</span>
+                                        <p className="font-medium text-sm">{(result.input as any).horizon_weeks} Weeks</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
 
-                      <div className="border-t pt-4">
-                        <h4 className="font-semibold mb-3 text-success">Analysis Results</h4>
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                          <pre className="text-xs overflow-auto max-h-40 whitespace-pre-wrap">
-                            {JSON.stringify(selectedResult.result, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="text-center py-12"
-                    >
-                      <div className="p-4 rounded-full bg-primary/10 w-fit mx-auto mb-6">
-                        <Eye className="h-12 w-12 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">No Result Selected</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        Click on any result from the history list to view comprehensive
-                        details, technical information, and raw analysis data.
-                      </p>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                              {/* Analysis Results Section */}
+                              <div className="space-y-2">
+                                <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Analysis Results</h5>
+                                <div className="space-y-3">
+                                  {result.type === 'diagnosis' ? (
+                                    <>
+                                      <div className="bg-white/50 p-3 rounded-lg border border-white/60 flex items-center justify-between">
+                                        <div>
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold">Risk Level</span>
+                                          <p className={`font-bold text-sm ${(result.result as any).label?.includes('High') ? 'text-destructive' :
+                                            (result.result as any).label?.includes('Medium') ? 'text-warning' : 'text-success'
+                                            }`}>
+                                            {(result.result as any).label || 'Unknown'}
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold">Confidence</span>
+                                          <p className="font-bold text-sm">{((result.result as any).confidence * 100).toFixed(1)}%</p>
+                                        </div>
+                                      </div>
+                                      {(result.result as any).explanations && (
+                                        <div className="bg-white/50 p-3 rounded-lg border border-white/60">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold mb-2 block">Key Findings</span>
+                                          <ul className="text-xs space-y-1 list-disc pl-4 text-foreground/80">
+                                            {(result.result as any).explanations.slice(0, 3).map((exp: string, i: number) => (
+                                              <li key={i}>{exp}</li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    // Forecast Output
+                                    <>
+                                      <div className="bg-white/50 p-3 rounded-lg border border-white/60 mb-2">
+                                        <div className="flex justify-between items-center mb-2">
+                                          <span className="text-[10px] uppercase text-muted-foreground font-bold">Hotspot Risk Score</span>
+                                          <span className={`font-bold text-sm ${((result.result as any).hotspot_score || 0) > 0.7 ? 'text-destructive' :
+                                            ((result.result as any).hotspot_score || 0) > 0.4 ? 'text-warning' : 'text-success'
+                                            }`}>
+                                            {((result.result as any).hotspot_score || 0).toFixed(2)}
+                                          </span>
+                                        </div>
+                                        <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
+                                          <div
+                                            className={`h-full transition-all ${((result.result as any).hotspot_score || 0) > 0.7 ? 'bg-destructive' :
+                                              ((result.result as any).hotspot_score || 0) > 0.4 ? 'bg-warning' : 'bg-success'
+                                              }`}
+                                            style={{ width: `${Math.min(((result.result as any).hotspot_score || 0) * 100, 100)}%` }}
+                                          />
+                                        </div>
+                                      </div>
+                                      {(result.result as any).predictions?.length > 0 && (
+                                        <div className="bg-white/50 p-3 rounded-lg border border-white/60">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] uppercase text-muted-foreground font-bold">Projected Case Trend</span>
+                                            <span className="text-[10px] text-muted-foreground">(Next 3 Weeks)</span>
+                                          </div>
+                                          <div className="space-y-1.5">
+                                            {(result.result as any).predictions.slice(0, 3).map((p: any, i: number) => (
+                                              <div key={i} className="flex justify-between text-xs items-center">
+                                                <span className="text-foreground/70 font-medium">{p.week}</span>
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-16 h-1.5 bg-primary/10 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-primary/40" style={{ width: `${Math.min((p.cases / 3000000) * 100, 100)}%` }}></div>
+                                                  </div>
+                                                  <span className="font-mono font-medium min-w-[60px] text-right">{p.cases.toLocaleString()}</span>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex flex-col gap-2 border-t border-primary/10 pt-4">
+                <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">Showing the most recent results first</p>
+                <div className="flex items-center justify-between">
+                  <Button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs font-medium"
+                  >
+                    <ChevronLeft className="h-3 w-3 mr-1" /> Previous
+                  </Button>
+                  <span className="text-xs text-foreground/50 font-medium">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs font-medium"
+                  >
+                    Next <ChevronRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+          </DashboardContainer>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
