@@ -49,7 +49,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
 
     try {
       const result = await apiClient.forecastRegion(data);
-      
+
       // Store result in localStorage
       const storedResult = {
         id: Date.now().toString(),
@@ -84,87 +84,92 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Region Selection */}
-        <FormField
-          control={form.control}
-          name="region"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span>Target Region</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+
+        {/* Main Configuration Card */}
+        <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6 space-y-6">
+
+          {/* Region Selection */}
+          <FormField
+            control={form.control}
+            name="region"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2 text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Target Region
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-11 bg-white/50 border-primary/10 hover:bg-white/70 hover:border-primary/30 focus:ring-0 focus:border-primary/30 rounded-xl transition-all">
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="rounded-xl border-primary/10 bg-white/95 backdrop-blur-xl">
+                    {INDIA_REGIONS.map((region) => (
+                      <SelectItem key={region} value={region} className="focus:bg-primary/5 focus:text-primary cursor-pointer">
+                        {region}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-foreground/50 font-medium ml-1">The forecast will be generated using historical data for this location.</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Time Horizon */}
+          <FormField
+            control={form.control}
+            name="horizon_weeks"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between mb-4">
+                  <FormLabel className="flex items-center gap-2 text-xs text-foreground/60 uppercase tracking-wider font-semibold">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Forecast Horizon
+                  </FormLabel>
+                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                    {watchedWeeks} week{watchedWeeks !== 1 ? 's' : ''}
+                  </span>
+                </div>
                 <FormControl>
-                  <SelectTrigger className="input-medical">
-                    <SelectValue placeholder="Select region for forecast" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {INDIA_REGIONS.map((region) => (
-                    <SelectItem key={region} value={region}>
-                      {region}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Time Horizon */}
-        <FormField
-          control={form.control}
-          name="horizon_weeks"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Forecast Horizon</span>
-                </div>
-                <span className="text-sm font-normal text-muted-foreground">
-                  {watchedWeeks} week{watchedWeeks !== 1 ? 's' : ''}
-                </span>
-              </FormLabel>
-              <FormControl>
-                <div className="space-y-3">
-                  <Slider
-                    min={1}
-                    max={14}
-                    step={1}
-                    value={[field.value]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>1 week</span>
-                    <span>7 weeks</span>
-                    <span>14 weeks</span>
+                  <div className="space-y-4 px-1">
+                    <Slider
+                      min={1}
+                      max={14}
+                      step={1}
+                      value={[field.value]}
+                      onValueChange={(value) => field.onChange(value[0])}
+                      className="w-full py-4"
+                    />
+                    <div className="flex justify-between text-[10px] text-foreground/40 font-medium uppercase tracking-wider">
+                      <span>Short-term (1–2 whs)</span>
+                      <span>Mid-term (3–7 weeks)</span>
+                      <span>Long-term (8–14 weeks)</span>
+                    </div>
                   </div>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        {/* Forecast Parameters Info */}
-        <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-start space-x-3">
-            <Info className="h-5 w-5 text-primary mt-0.5" />
-            <div className="space-y-2 text-sm">
-              <p className="font-medium text-primary">Forecast Parameters</p>
-              <div className="space-y-1 text-muted-foreground">
-                <p>• <strong>Region:</strong> Geographic area for outbreak prediction</p>
-                <p>• <strong>Horizon:</strong> Number of weeks to forecast ahead</p>
-                <p>• <strong>Model:</strong> Temporal neural networks with attention</p>
-                <p>• <strong>Data Sources:</strong> Historical cases, climate, demographics</p>
-              </div>
+        {/* Info Card */}
+        <div className="bg-primary/5 border border-primary/10 rounded-[20px] p-5">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-white/50 rounded-lg shadow-sm">
+              <Info className="h-5 w-5 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-primary">Analysis Basis</h4>
+              <p className="text-xs text-foreground/60 leading-relaxed">
+                This forecast is based on historical cases, climate patterns, and population data.
+              </p>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Submit Button */}
         <motion.div
@@ -175,47 +180,33 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full btn-medical"
-            size="lg"
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-[16px] font-medium tracking-wide shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Forecast...
+                Calculating Risk...
               </>
             ) : (
               <>
                 <TrendingUp className="mr-2 h-4 w-4" />
-                Generate Forecast
+                See Risk Projection
               </>
             )}
           </Button>
         </motion.div>
 
-        {/* Model Information */}
-        <Card className="p-4 bg-muted/30">
-          <div className="space-y-2 text-sm">
-            <p className="font-medium">Model Information</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-              <div>
-                <p className="font-medium">Accuracy</p>
-                <p>87.3% ± 2.1%</p>
-              </div>
-              <div>
-                <p className="font-medium">Lead Time</p>
-                <p>1-14 weeks</p>
-              </div>
-              <div>
-                <p className="font-medium">Coverage</p>
-                <p>150+ regions</p>
-              </div>
-              <div>
-                <p className="font-medium">Update Freq</p>
-                <p>Weekly</p>
-              </div>
-            </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/40 border border-white/60 p-3 rounded-xl text-center">
+            <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1">Accuracy</p>
+            <p className="text-sm font-bold text-primary">87.3%</p>
           </div>
-        </Card>
+          <div className="bg-white/40 border border-white/60 p-3 rounded-xl text-center">
+            <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1">Update</p>
+            <p className="text-sm font-bold text-primary">Weekly</p>
+          </div>
+        </div>
       </form>
     </Form>
   );
