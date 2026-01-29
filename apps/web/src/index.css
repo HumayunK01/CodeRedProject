@@ -338,8 +338,7 @@
 
     .hover\:shadow-md:hover,
     .hover\:shadow-lg:hover,
-    .hover\:scale-\[1\.02\]:hover,
-    .hover\:bg-\[#1A4D3F\]\/80:hover {
+    .hover\:scale-\[1\.02\]:hover {
       transform: none !important;
       background-color: inherit !important;
       box-shadow: inherit !important;

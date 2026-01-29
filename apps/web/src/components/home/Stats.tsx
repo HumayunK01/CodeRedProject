@@ -96,7 +96,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: { icon: any,
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.5, ease: "easeOut" }}
             viewport={{ once: true, amount: 0.4 }}
-            className="bg-[#1A4D3F] border border-white/5 rounded-[24px] p-8 flex flex-col items-start gap-6 h-full min-h-[240px] hover:bg-[#1A4D3F]/80 transition-colors duration-300"
+            className="bg-[#1A4D3F] border border-white/5 rounded-[24px] p-8 flex flex-col items-start gap-6 h-full min-h-[240px] hover:bg-[#1A4D3FCC] transition-colors duration-300"
             style={{ backgroundColor: 'hsl(166 60% 18%)' }}
         >
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
