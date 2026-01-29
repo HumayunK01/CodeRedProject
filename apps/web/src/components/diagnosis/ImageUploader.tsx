@@ -1,19 +1,20 @@
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
 import { DiagnosisResult } from "@/lib/types";
 import { imageUploadSchema } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
-import { 
-  Upload, 
-  X, 
-  FileImage, 
+import {
+  Upload,
+  X,
+  FileImage,
   AlertCircle,
-  Loader2
+  Loader2,
+  Scan,
+  ImageIcon
 } from "lucide-react";
 
 interface ImageUploaderProps {
@@ -27,19 +28,15 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
     try {
       imageUploadSchema.parse({ file });
       setSelectedFile(file);
-      
-      // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string);
-      };
+      reader.onload = (e) => setPreview(e.target?.result as string);
       reader.readAsDataURL(file);
-      
     } catch (error) {
       toast({
         title: "Invalid File",
@@ -63,7 +60,6 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -78,18 +74,18 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
   const clearFile = () => {
     setSelectedFile(null);
     setPreview(null);
+    // Reset inputs
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const uploadImage = async () => {
     if (!selectedFile) return;
-
     setIsUploading(true);
     onLoadingChange(true);
-
     try {
       const result = await apiClient.predictImage(selectedFile);
-      
-      // Store result in localStorage
       const storedResult = {
         id: Date.now().toString(),
         type: 'diagnosis' as const,
@@ -97,16 +93,15 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
         input: { image: selectedFile.name },
         result
       };
-      
       StorageManager.saveResult(storedResult);
-      
       onResult(result);
-      
       toast({
         title: "Analysis Complete",
         description: `Diagnosis: ${result.label} (${(result.confidence * 100).toFixed(1)}% confidence)`,
       });
-      
+
+      // Reset the uploader for the next image
+      clearFile();
     } catch (error) {
       toast({
         title: "Analysis Failed",
@@ -120,135 +115,99 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
   };
 
   return (
-    <div className="space-y-4">
-      {/* Upload Area */}
-      <div
-        className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-200 ${
-          dragActive 
-            ? 'border-primary bg-primary/5' 
-            : selectedFile 
-            ? 'border-success bg-success/5' 
-            : 'border-border hover:border-primary/50'
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        {selectedFile ? (
-          /* File Selected */
-          <div className="space-y-4">
-            {preview && (
-              <div className="relative mx-auto w-48 h-48 rounded-lg overflow-hidden">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={clearFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center space-x-2">
-                <FileImage className="h-5 w-5 text-success" />
-                <p className="font-medium text-success">File Ready</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
-              </p>
-            </div>
+    <div className="space-y-6">
+
+      <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <Scan className="w-4 h-4" />
           </div>
-        ) : (
-          /* Upload Prompt */
-          <div className="text-center space-y-4">
-            <motion.div
-              animate={dragActive ? { scale: 1.1 } : { scale: 1 }}
-              transition={{ duration: 0.2 }}
-              className="inline-flex p-4 rounded-full bg-primary/10"
-            >
-              <Upload className="h-8 w-8 text-primary" />
-            </motion.div>
-            
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">
-                {dragActive ? 'Drop image here' : 'Upload Blood Smear Image'}
-              </h3>
-              <p className="text-muted-foreground">
-                Drag and drop your image here, or click to browse
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Supports JPEG, PNG • Max 10MB
-              </p>
-            </div>
-            
-            <Label
-              htmlFor="image-upload"
-              className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg cursor-pointer hover:bg-primary/90 transition-colors"
-            >
-              Browse Files
-            </Label>
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/jpeg,image/png,image/jpg"
-              onChange={handleFileInput}
-              className="hidden"
-            />
+          <div>
+            <h4 className="text-sm font-semibold text-primary uppercase tracking-wide">Image Analysis</h4>
+            <p className="text-[10px] text-foreground/50 uppercase tracking-widest font-medium">Upload blood smear microscopy</p>
           </div>
-        )}
+        </div>
+
+        <div
+          className={`relative group cursor-pointer transition-all duration-300 rounded-[16px] border-2 border-dashed
+              ${dragActive
+              ? 'border-primary bg-primary/5 scale-[1.01]'
+              : selectedFile
+                ? 'border-transparent'
+                : 'border-primary/10 hover:border-primary/30 hover:bg-white/50'
+            }
+            `}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {selectedFile ? (
+            <div className="relative overflow-hidden rounded-[16px]">
+              {preview && (
+                <div className="relative aspect-video w-full">
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); clearFile(); }}>
+                      <X className="mr-2 h-4 w-4" /> Remove Image
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="bg-white/80 p-3 flex items-center justify-between backdrop-blur-md absolute bottom-0 left-0 right-0 m-2 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-success/10 rounded-md text-success"><FileImage className="w-4 h-4" /></div>
+                  <span className="text-xs font-semibold">{selectedFile.name}</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold text-foreground/40 hidden sm:inline-block">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+              </div>
+            </div>
+          ) : (
+            <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                <Upload className="h-6 w-6 text-primary/60 group-hover:text-primary transition-colors" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-primary">Click to upload or drag and drop</h3>
+                <p className="text-xs text-foreground/50">High resolution blood smear images (JPG, PNG)</p>
+              </div>
+              <Label htmlFor="image-upload" className="sr-only">Upload</Label>
+              <input
+                id="image-upload"
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Upload Button */}
+      {/* Action Area */}
       {selectedFile && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div>
           <Button
             onClick={uploadImage}
             disabled={isUploading}
-            className="w-full btn-medical"
-            size="lg"
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-[16px] font-medium tracking-wide shadow-lg shadow-primary/20"
           >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing Image...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Analyze Image
-              </>
-            )}
+            {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</> : <><ImageIcon className="mr-2 h-4 w-4" /> Run Image Analysis</>}
           </Button>
-        </motion.div>
+        </div>
       )}
 
-      {/* Instructions */}
-      <Card className="p-4 bg-primary/5 border-primary/20">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
-          <div className="space-y-1 text-sm">
-            <p className="font-medium text-primary">Image Guidelines</p>
-            <ul className="text-muted-foreground space-y-1">
-              <li>• Use high-resolution microscopic images (at least 1000x1000 pixels)</li>
-              <li>• Ensure proper focus and lighting conditions</li>
-              <li>• Include multiple cells for better analysis accuracy</li>
-              <li>• Avoid blurry or low-contrast images</li>
-            </ul>
-          </div>
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
+        <AlertCircle className="h-5 w-5 text-orange-500/60 mt-0.5 flex-shrink-0" />
+        <div className="space-y-1">
+          <h5 className="text-xs font-bold text-orange-700 uppercase tracking-wide">Image Requirements</h5>
+          <p className="text-xs text-orange-700/70 leading-relaxed">
+            Ensure images are clear, in focus, and well-lit. Poor quality images may result in inaccurate diagnosis. 1000x1000px resolution recommended.
+          </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

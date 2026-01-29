@@ -1,140 +1,76 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
 import { DiagnosisResult } from "@/lib/types";
 import { symptomsSchema, SymptomsFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
 import { INDIA_REGIONS } from "@/lib/constants";
-import { 
+import {
   Stethoscope,
   User,
   MapPin,
   Loader2,
-  Info,
-  Heart,
   Thermometer,
   Droplets,
   Activity,
-  CheckCircle2,
   Clock,
-  TrendingUp,
-  AlertCircle,
-  Calendar,
-  Users,
-  Syringe,
-  Wind
+  Wind,
+  Heart,
+  ChevronRight,
+  Info,
+  ChevronDown,
+  Check
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SymptomsFormProps {
   onResult: (result: DiagnosisResult) => void;
   onLoadingChange: (loading: boolean) => void;
 }
 
-// Regions are imported from shared constants
-
 const symptoms = [
-  {
-    key: "fever",
-    label: "Do you currently have a fever?",
-    description: "Body temperature above 38°C (100.4°F)",
-    icon: Thermometer
-  },
-  {
-    key: "chills",
-    label: "Do you experience chills or shivering?",
-    description: "Feeling cold, shivering, followed by sweating",
-    icon: Wind
-  },
-  {
-    key: "headache",
-    label: "Do you have headaches?",
-    description: "Persistent or severe head pain",
-    icon: Activity
-  },
-  {
-    key: "fatigue",
-    label: "Do you feel extremely tired or fatigued?",
-    description: "Profound tiredness and lack of energy",
-    icon: Clock
-  },
-  {
-    key: "muscle_aches",
-    label: "Do you have muscle or joint pain?",
-    description: "Body aches, especially in muscles and joints",
-    icon: Activity
-  },
-  {
-    key: "nausea",
-    label: "Do you feel nauseous or sick to your stomach?",
-    description: "Feeling of queasiness or urge to vomit",
-    icon: Droplets
-  },
-  {
-    key: "diarrhea",
-    label: "Do you have diarrhea?",
-    description: "Loose, watery stools",
-    icon: Droplets
-  },
-  {
-    key: "abdominal_pain",
-    label: "Do you have abdominal pain or cramping?",
-    description: "Pain or discomfort in the stomach area",
-    icon: Heart
-  },
-  {
-    key: "cough",
-    label: "Do you have a cough?",
-    description: "Dry or productive cough",
-    icon: Wind
-  },
-  {
-    key: "skin_rash",
-    label: "Do you have a skin rash or unusual spots?",
-    description: "Red, itchy, or unusual skin markings",
-    icon: Droplets
-  }
+  { key: "fever", label: "Fever", description: "> 38°C / 100.4°F", icon: Thermometer },
+  { key: "chills", label: "Chills/Shivering", description: "Cold sensations", icon: Wind },
+  { key: "headache", label: "Severe Headache", description: "Persistent pain", icon: Activity },
+  { key: "fatigue", label: "Extreme Fatigue", description: "Lethargy", icon: Clock },
+  { key: "muscle_aches", label: "Muscle/Joint Pain", description: "Body aches", icon: Activity },
+  { key: "nausea", label: "Nausea/Vomiting", description: "Stomach upset", icon: Droplets },
+  { key: "diarrhea", label: "Diarrhea", description: "Loose stools", icon: Droplets },
+  { key: "abdominal_pain", label: "Abdominal Pain", description: "Cramping", icon: Heart },
+  { key: "cough", label: "Dry Cough", description: "Persistent", icon: Wind },
+  { key: "skin_rash", label: "Skin Rash", description: "Unusual spots", icon: Droplets }
 ] as const;
 
 export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const form = useForm<SymptomsFormData>({
     resolver: zodResolver(symptomsSchema),
     defaultValues: {
-      fever: false,
-      chills: false,
-      headache: false,
-      fatigue: false,
-      muscle_aches: false,
-      nausea: false,
-      diarrhea: false,
-      abdominal_pain: false,
-      cough: false,
-      skin_rash: false,
+      fever: false, chills: false, headache: false, fatigue: false, muscle_aches: false,
+      nausea: false, diarrhea: false, abdominal_pain: false, cough: false, skin_rash: false,
       region: "Unknown"
-      // Removed default age value - user must enter it
     },
   });
 
   const onSubmit = async (data: SymptomsFormData) => {
-    console.log('Form submitted with data:', data);
     setIsSubmitting(true);
     onLoadingChange(true);
-
     try {
       const result = await apiClient.predictSymptoms(data);
-      
-      // Store result in localStorage with ID and timestamp
       const storedResult = {
         id: Date.now().toString(),
         type: 'diagnosis' as const,
@@ -142,34 +78,15 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
         input: data,
         result
       };
-      
       StorageManager.saveResult(storedResult);
-      
       onResult(result);
-      
-      // Provide clearer messaging based on the result
-      let message = `Risk Level: ${result.label}`;
-      if (result.probability !== undefined) {
-        const percentage = (result.probability * 100).toFixed(1);
-        if (result.label.includes('Low')) {
-          message = `Risk Level: ${result.label} (${percentage}% confidence this person has low malaria risk)`;
-        } else if (result.label.includes('Medium')) {
-          message = `Risk Level: ${result.label} (${percentage}% confidence this person has medium malaria risk)`;
-        } else {
-          message = `Risk Level: ${result.label} (${percentage}% confidence this person has high malaria risk)`;
-        }
-      }
-      
-      toast({
-        title: "Assessment Complete",
-        description: message,
-      });
-      
+      toast({ title: "Assessment Complete", description: `Risk Level: ${result.label}` });
+      form.reset();
     } catch (error) {
       toast({
         title: "Assessment Failed",
-        description: error instanceof Error ? error.message : "Failed to assess symptoms. Please check your connection and try again.",
-        variant: "destructive",
+        description: error instanceof Error ? error.message : "Failed to assess symptoms.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -179,206 +96,180 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        console.log('Form submit event triggered');
-        form.handleSubmit(onSubmit)();
-      }} className="space-y-6">
-        {/* Patient Information */}
-        <Card className="p-5 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20 shadow-sm">
-          <div className="space-y-5">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-2.5 rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Patient Information</h3>
-                <p className="text-xs text-muted-foreground">Basic demographic details for accurate risk assessment</p>
-              </div>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-5">
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm flex items-center space-x-1.5">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>Age (years)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="120"
-                          placeholder="Enter patient age"
-                          className="input-medical pl-3 py-5 text-sm rounded-lg"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                        <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                          <User className="h-4 w-4" />
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-              <FormField
-                control={form.control}
-                name="region"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm flex items-center space-x-1.5">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span>Region/Location</span>
-                    </FormLabel>
-                    <div className="relative">
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="input-medical pl-3 py-5 text-sm rounded-lg">
-                            <SelectValue placeholder="Select patient region" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {INDIA_REGIONS.map((region) => (
-                            <SelectItem key={region} value={region} className="text-sm">
-                              {region}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-                        <MapPin className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Patient Info Section */}
+        <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <User className="w-4 h-4" />
             </div>
+            <h4 className="text-base font-bold text-primary uppercase tracking-wide">Patient Demographics</h4>
           </div>
-        </Card>
 
-        {/* Symptoms Assessment */}
-        <Card className="p-5 bg-gradient-to-br from-accent/5 to-secondary/5 border-accent/20 shadow-sm">
-          <div className="space-y-5">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-2.5 rounded-lg bg-accent/10">
-                <Syringe className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Symptoms Assessment</h3>
-                <p className="text-xs text-muted-foreground">Check all symptoms that apply to the patient</p>
-              </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="age"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Age</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Years"
+                        min="0"
+                        max="120"
+                        className="pl-4 h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="region"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">Region</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={open}
+                          className={cn(
+                            "w-full h-11 justify-between bg-white/50 border-primary/10 hover:bg-white/70 hover:border-primary/30 text-left font-normal rounded-xl",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value && field.value !== "Unknown" ? (
+                            <span className="truncate">{field.value}</span>
+                          ) : (
+                            <span className="text-muted-foreground">Select Region</span>
+                          )}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    {/* 
+                      Fixes:
+                      1. onWheel/onTouchMove stopPropagation: Prevents 'scroll chaining' so the page doesn't scroll when scrolling the list.
+                      2. z-[9999]: Ensures it is definitely on top.
+                      3. Modal behavior: The scrolling issue is often due to the portal not locking body scroll, 
+                         but manually stopping visual scroll events is a robust fix for the dropdown experience.
+                    */}
+                    <PopoverContent
+                      className="w-[300px] p-0 rounded-xl bg-white/95 backdrop-blur-xl border-primary/10 shadow-2xl z-40"
+                      onWheel={(e) => e.stopPropagation()}
+                      onTouchMove={(e) => e.stopPropagation()}
+                    >
+                      <Command className="w-full h-auto overflow-hidden">
+                        <CommandInput
+                          placeholder="Search region..."
+                          className="h-11 border-none bg-transparent focus:ring-0 outline-none text-base"
+                        />
+                        <CommandList className="max-h-[300px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                          <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">No region found.</CommandEmpty>
+                          <CommandGroup className="p-1.5">
+                            {INDIA_REGIONS.map((region) => (
+                              <CommandItem
+                                value={region}
+                                key={region}
+                                onSelect={() => {
+                                  form.setValue("region", region);
+                                  setOpen(false);
+                                }}
+                                className="flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg cursor-pointer aria-selected:bg-primary/5 aria-selected:text-primary transition-colors"
+                              >
+                                {region}
+                                <Check
+                                  className={cn(
+                                    "ml-auto h-4 w-4 text-primary",
+                                    region === field.value ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Symptoms Section */}
+        <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Activity className="w-4 h-4" />
             </div>
-            
-            <div className="space-y-3">
-              {symptoms.map((symptom, index) => {
-                const IconComponent = symptom.icon;
+            <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Symptoms</h4>
+          </div>
 
-                return (
-                <motion.div
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {symptoms.map((symptom) => {
+              const Icon = symptom.icon;
+              return (
+                <FormField
                   key={symptom.key}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.025, duration: 0.15 }}
-                >
-                  <FormField
-                    control={form.control}
-                    name={symptom.key}
-                    render={({ field }) => (
-                        <FormItem className="group">
-                          <div className="space-y-3">
-                            {/* Primary Question */}
-                            <div className="flex items-start space-x-3 p-4 rounded-lg border border-muted bg-background hover:border-accent/50 transition-all duration-200">
-                        <FormControl>
+                  control={form.control}
+                  name={symptom.key}
+                  render={({ field }) => (
+                    <FormItem className="space-y-0">
+                      <FormControl>
+                        <label className={`
+                                  flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group
+                                  ${field.value ? 'bg-primary/5 border-primary/30' : 'bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10'}
+                               `}>
                           <Checkbox
                             checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                  className="mt-0.5 h-5 w-5 data-[state=checked]:bg-accent data-[state=checked]:border-accent rounded"
+                            onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/20"
                           />
-                        </FormControl>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-1.5 mb-1">
-                                  <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                  <FormLabel className="text-sm font-semibold cursor-pointer group-hover:text-accent transition-colors">
-                            {symptom.label}
-                          </FormLabel>
-                                </div>
-                                <p className="text-xs text-muted-foreground pl-5.5">
-                            {symptom.description}
-                          </p>
-                              </div>
-                            </div>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </motion.div>
-                );
-              })}
-            </div>
+                          <div className="flex-1">
+                            <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">{symptom.label}</span>
+                            <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">{symptom.description}</span>
+                          </div>
+                          <div className={`
+                                     w-8 h-8 rounded-full flex items-center justify-center transition-colors
+                                     ${field.value ? 'bg-primary text-white' : 'bg-primary/5 text-primary/40 group-hover:text-primary'}
+                                  `}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                        </label>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              );
+            })}
           </div>
-        </Card>
+        </div>
 
-        {/* Submit Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
+        {/* Submit */}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-[16px] font-medium tracking-wide shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
         >
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full btn-medical py-5 text-base font-semibold rounded-lg"
-            size="lg"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                Analyzing Symptoms...
-              </>
-            ) : (
-              <>
-                <Stethoscope className="mr-1.5 h-4 w-4" />
-                Assess Risk
-              </>
-            )}
-          </Button>
-        </motion.div>
-
-        {/* Information */}
-        <Card className="p-4 bg-primary/5 border-primary/20 rounded-lg">
-          <div className="flex items-start space-x-2.5">
-            <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-            <div className="space-y-2.5 text-xs">
-              <p className="font-semibold text-primary">Malaria Risk Assessment</p>
-              <div className="text-muted-foreground space-y-1.5">
-                <p className="flex items-start space-x-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
-                  <span><strong>Symptom-Based Analysis:</strong> This assessment evaluates your risk of malaria based on reported symptoms and demographic factors</span>
-                </p>
-                <p className="flex items-start space-x-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
-                  <span><strong>Early Detection:</strong> Identifying malaria early improves treatment outcomes significantly</span>
-                </p>
-                <p className="flex items-start space-x-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
-                  <span><strong>Regional Considerations:</strong> Your location helps assess local malaria prevalence patterns</span>
-                </p>
-                <p className="flex items-start space-x-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 text-warning mt-0.5 flex-shrink-0" />
-                  <span><strong>Medical Advice:</strong> This tool provides risk assessment only and does not replace professional medical diagnosis</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
+          {isSubmitting ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Analysis...</>
+          ) : (
+            <><Stethoscope className="mr-2 h-4 w-4" /> Run Diagnosis Model</>
+          )}
+        </Button>
       </form>
     </Form>
   );

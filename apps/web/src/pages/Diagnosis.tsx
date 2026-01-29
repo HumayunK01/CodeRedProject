@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DualModeDiagnosis } from "@/components/diagnosis/DualModeDiagnosis";
 import { DiagnosisResults } from "@/components/diagnosis/DiagnosisResults";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
@@ -14,8 +17,36 @@ import {
   Zap,
   Shield,
   Microscope,
-  TestTube
+  TestTube,
+  Info,
+  Clock,
+  ArrowRight
 } from "lucide-react";
+
+// --- Sub-components (Matched to Dashboard) ---
+
+const DashboardContainer = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <section className={`relative overflow-hidden bg-primary backdrop-blur-xl rounded-[24px] border border-primary/10 ${className}`}>
+    {children}
+  </section>
+);
+
+const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: any, title: string, subtitle: string, rightElement?: React.ReactNode }) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 shadow-sm">
+        <Icon className="h-5 w-5 text-primary" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-primary uppercase tracking-tight">{title}</h3>
+        <p className="text-[11px] text-foreground/60 font-semibold uppercase tracking-widest leading-none">{subtitle}</p>
+      </div>
+    </div>
+    {rightElement}
+  </div>
+);
+
+// --- Main Diagnosis Page Component ---
 
 const Diagnosis = () => {
   const [results, setResults] = useState<DiagnosisResult | null>(null);
@@ -72,7 +103,6 @@ const Diagnosis = () => {
 
         // Check if this is symptom data or image data
         if ('image' in mostRecent.input) {
-          // Image data
           setStoredImageData({
             image: (mostRecent.input as { image: string }).image,
             id: mostRecent.id,
@@ -80,7 +110,6 @@ const Diagnosis = () => {
           });
           setStoredPatientData(null);
         } else {
-          // Symptom data
           setStoredPatientData({
             ...(mostRecent.input as SymptomsInput),
             id: mostRecent.id,
@@ -100,174 +129,71 @@ const Diagnosis = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Background Elements */}
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
 
-      {/* Medical Disclaimer Marquee */}
-      <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
-        <div className="flex items-center justify-center">
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
-          <div className="relative overflow-hidden w-full max-w-4xl">
-            <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
-              This Foresee ML-powered assessment tool is for decision support only and should never replace professional medical diagnosis. Always consult with qualified healthcare providers for medical decisions.
-            </div>
-          </div>
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
-        </div>
-      </div>
 
-      {/* Enhanced Header Section */}
-      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center mb-1"
-          >
-            <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 mb-3">
-              <Microscope className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              Foresee Risk Assessment
+
+      {/* Header Section */}
+      <section className="mx-2 mt-4 relative overflow-hidden">
+        <div className="relative px-6 py-12 lg:p-16 rounded-[24px] bg-primary border border-white/10 flex flex-col justify-center overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
+
+          <div className="relative z-10 max-w-6xl mx-auto text-center space-y-4">
+
+            <h1 className="text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
+              Diagnosis
             </h1>
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-              Advanced ML-powered symptom analysis and image detection for accurate malaria risk evaluation
+            <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
+              Advanced ML-powered symptom analysis and image detection for accurate malaria risk evaluation.
             </p>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">ML-Powered</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.16 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Shield className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">HIPAA Compliant</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.24 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">24/7 Monitoring</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Stethoscope className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">Medical Grade</span>
-              </motion.div>
-            </div>
-          </motion.div>
+
+          </div>
         </div>
       </section>
 
-      {/* Main Dashboard Content */}
-      <div className="px-4 lg:px-6 pb-6 pt-2">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-12 gap-4">
-            {/* Assessment Form - Takes up more space */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15, duration: 0.6 }}
-              className="lg:col-span-8"
-            >
-              <Card className="data-card border-0 shadow-medical-lg bg-gradient-to-br from-card to-secondary/5">
-                <div className="p-5 lg:p-6">
-                  {/* Enhanced Form Header */}
-                  <div className="mb-6">
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25, duration: 0.5 }}
-                      className="flex items-center mb-4"
-                    >
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 mr-4">
-                        <TestTube className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl md:text-2xl font-bold mb-1">
-                          Patient Assessment
-                        </h2>
-                        <p className="text-muted-foreground text-sm">
-                          Comprehensive symptom analysis and image detection
-                        </p>
-                      </div>
-                    </motion.div>
+      {/* Main Layout Grid */}
+      <div className="mx-2 grid lg:grid-cols-12 gap-4 items-start relative px-1">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
-                    <motion.p
-                      className="text-muted-foreground leading-relaxed text-sm max-w-2xl"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.5 }}
-                    >
-                      Choose between symptom-based assessment or blood smear image analysis for malaria detection.
-                      Our AI system uses advanced CNN models for image analysis and symptom pattern recognition to deliver
-                      <span className="text-primary font-semibold"> precise risk evaluations</span> with confidence scores
-                      and medical recommendations.
-                    </motion.p>
-                  </div>
+        {/* Column 1: Assessment Form */}
+        <div className="lg:col-span-8 space-y-4 relative z-10">
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+            <SectionHeader
+              icon={TestTube}
+              title="Patient Assessment"
+              subtitle="Dual Mode Analysis"
+            />
 
-                  {/* Dual Mode Diagnosis Component */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35, duration: 0.5 }}
-                  >
-                    <DualModeDiagnosis
-                      onResult={handleResult}
-                      onLoadingChange={handleLoading}
-                    />
-                  </motion.div>
-                </div>
-              </Card>
-            </motion.div>
+            <div className="mb-6">
+              <p className="text-sm text-foreground/60 leading-relaxed max-w-3xl">
+                Choose between symptom-based assessment or blood smear image analysis.
+                Our system uses advanced CNN models for image analysis and symptom pattern recognition.
+              </p>
+            </div>
 
-            {/* Enhanced Results Sidebar */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="lg:col-span-4"
-            >
-              <div className="sticky top-6 space-y-5">
-                {/* Results Display */}
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                >
-                  <DiagnosisResults
-                    results={results}
-                    isLoading={isLoading}
-                    patientData={storedPatientData || undefined}
-                    imageData={storedImageData || undefined}
-                  />
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
+            <DualModeDiagnosis
+              onResult={handleResult}
+              onLoadingChange={handleLoading}
+            />
+          </DashboardContainer>
+        </div>
+
+        {/* Column 2: Results Sidebar */}
+        <div className="lg:col-span-4 h-full relative z-10">
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4 shadow-sm h-full flex flex-col">
+            <SectionHeader icon={Activity} title="Analysis Results" subtitle="Real-time Output" />
+            <div className="flex-1">
+              <DiagnosisResults
+                results={results}
+                isLoading={isLoading}
+                patientData={storedPatientData || undefined}
+                imageData={storedImageData || undefined}
+              />
+            </div>
+          </DashboardContainer>
         </div>
       </div>
     </div>
