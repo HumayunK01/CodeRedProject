@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkline } from "@/components/ui/sparkline";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { apiClient } from "@/lib/api";
 import {
   Microscope,
@@ -15,135 +13,150 @@ import {
   Activity,
   ArrowRight,
   Clock,
-  Users,
   MapPin,
   Info,
   Brain,
   Zap,
   Shield,
   Globe,
-  AlertTriangle,
-  CheckCircle,
   BarChart3,
-  Calendar
 } from "lucide-react";
+
+// --- Sub-components for Clean Code Architecture ---
+
+const DashboardContainer = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <section className={`relative overflow-hidden bg-primary backdrop-blur-xl rounded-[24px] border border-primary/10 ${className}`}>
+    {children}
+  </section>
+);
+
+const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: any, title: string, subtitle: string, rightElement?: React.ReactNode }) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 shadow-sm">
+        <Icon className="h-5 w-5 text-primary" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-primary uppercase tracking-tight">{title}</h3>
+        <p className="text-[11px] text-foreground/60 font-semibold uppercase tracking-widest leading-none">{subtitle}</p>
+      </div>
+    </div>
+    {rightElement}
+  </div>
+);
+
+const MetricCard = ({ stat }: { stat: any }) => {
+  const Icon = stat.icon;
+  return (
+    <Card className="bg-white/40 backdrop-blur-md border border-white/60 shadow-none hover:shadow-lg hover:-translate-y-0.5 rounded-[20px] group transition-all duration-400 overflow-hidden">
+      <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/5 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+          <Icon className="h-4 w-4 text-primary group-hover:text-white" />
+        </div>
+        <Badge variant="secondary" className="text-[9px] px-2 py-0 h-5 font-bold bg-white/50 text-primary border border-primary/5">
+          {stat.change}
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-4 pt-2">
+        <div>
+          <p className="text-[11px] text-foreground/60 uppercase tracking-widest font-semibold mb-1">{stat.title}</p>
+          <div className="flex items-end justify-between">
+            <h3 className="text-2xl font-bold tracking-tight text-primary">
+              {stat.value}
+              <span className="text-sm ml-0.5 text-primary/40 font-semibold">{stat.suffix}</span>
+            </h3>
+            <div className="h-6 w-16 opacity-40 group-hover:opacity-100 transition-opacity">
+              <Sparkline data={stat.sparklineData} color="hsl(var(--primary))" />
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-primary/5">
+            <span className="text-[11px] text-foreground/60 font-semibold">RELIABILITY</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3 w-3 text-foreground/20 hover:text-primary cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="text-[10px] bg-primary text-white border-none rounded-xl">
+                {stat.tooltip}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const ActionItem = ({ to, title, desc, icon: Icon, color }: { to: string, title: string, desc: string, icon: any, color: string }) => (
+  <Link to={to} className="group/item">
+    <div className="h-full p-6 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-400 flex flex-col items-center text-center gap-4">
+      <div className={`w-14 h-14 flex items-center justify-center rounded-2xl ${color} border transition-all duration-500 group-hover/item:scale-110 shadow-sm`}>
+        <Icon className="h-6 w-6 stroke-2" />
+      </div>
+      <div className="space-y-1">
+        <h4 className="font-semibold text-sm text-primary tracking-tight">{title}</h4>
+        <p className="text-xs text-foreground/60 font-semibold uppercase tracking-widest">{desc}</p>
+      </div>
+      <div className="mt-0 p-1.5 rounded-full bg-primary/5 group-hover/item:bg-primary transition-colors">
+        <ArrowRight className="h-3 w-3 text-primary group-hover/item:text-white" />
+      </div>
+    </div>
+  </Link>
+);
+
+const ActivityLogItem = ({ activity }: { activity: any }) => (
+  <div className="flex items-center gap-4 px-6 py-4 hover:bg-primary/5 transition-all cursor-default group">
+    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/5 text-primary border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">
+      {activity.type === 'diagnosis' ? <Microscope className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium text-primary truncate group-hover:translate-x-1 transition-transform duration-500">{activity.title}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="text-[11px] text-foreground/50 uppercase font-semibold tracking-widest leading-none">{activity.time}</span>
+        <span className="h-0.5 w-0.5 rounded-full bg-primary/20"></span>
+        <span className="text-[11px] text-foreground/50 uppercase font-semibold tracking-widest leading-none">{activity.type}</span>
+      </div>
+    </div>
+    <Badge className={`rounded-lg px-3 h-6 text-[9px] font-medium uppercase border-none shadow-sm ${activity.result === 'Critical' ? 'bg-rose-500 text-white' : 'bg-primary/10 text-primary'}`}>
+      {activity.result}
+    </Badge>
+  </div>
+);
+
+const InfrastructureMetric = ({ metric }: { metric: any }) => (
+  <div className="flex items-center justify-between p-5 rounded-[20px] bg-white/50 backdrop-blur-sm border border-primary/5 hover:bg-primary/5 hover:border-primary/20 transition-all group">
+    <div className="flex items-center gap-4">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">
+        <metric.icon className="h-5 w-5 text-primary stroke-[1.5]" />
+      </div>
+      <div>
+        <p className="text-xs text-foreground/50 uppercase tracking-widest font-semibold mb-0.5">{metric.title}</p>
+        <p className="text-xl font-bold text-primary leading-none">{metric.value}</p>
+      </div>
+    </div>
+    <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] px-2 h-5 rounded-md font-medium uppercase tracking-widest border border-primary/10">
+      {metric.status}
+    </Badge>
+  </div>
+);
+
+// --- Main Dashboard Page Component ---
 
 const Dashboard = () => {
   const [quickStats, setQuickStats] = useState([
-    {
-      title: "Today's Diagnoses",
-      value: 0,
-      change: "+0%",
-      trend: "stable",
-      icon: Microscope,
-      tooltip: "Number of malaria diagnosis tests completed today using image analysis and symptom assessment",
-      sparklineData: [{ value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }],
-      suffix: ""
-    },
-    {
-      title: "Active Forecasts",
-      value: 0,
-      change: "+0",
-      trend: "stable",
-      icon: TrendingUp,
-      tooltip: "Regional outbreak forecasting models currently running with weekly predictions",
-      sparklineData: [{ value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }],
-      suffix: ""
-    },
-    {
-      title: "Risk Regions",
-      value: 0,
-      change: "+0",
-      trend: "stable",
-      icon: MapPin,
-      tooltip: "Geographic regions currently classified as high-risk for malaria outbreaks",
-      sparklineData: [{ value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }],
-      suffix: ""
-    },
-    {
-      title: "System Health",
-      value: 0,
-      change: "Unknown",
-      trend: "stable",
-      icon: Activity,
-      tooltip: "Overall system uptime and performance metrics for ML models and API endpoints",
-      sparklineData: [{ value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }, { value: 0 }],
-      suffix: "%"
-    }
+    { title: "Today's Diagnoses", value: 0, change: "+0%", trend: "stable", icon: Microscope, tooltip: "Tests completed today", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
+    { title: "Active Forecasts", value: 0, change: "+0", trend: "stable", icon: TrendingUp, tooltip: "Regional outbreaks forecasting", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
+    { title: "Risk Regions", value: 0, change: "+0", trend: "stable", icon: MapPin, tooltip: "High-risk regions identified", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
+    { title: "System Health", value: 0, change: "Unknown", trend: "stable", icon: Activity, tooltip: "System performance status", sparklineData: Array(5).fill({ value: 0 }), suffix: "%" }
   ]);
 
   const [systemMetrics, setSystemMetrics] = useState([
-    {
-      title: "Model Accuracy",
-      value: "0%",
-      status: "unknown",
-      icon: Brain,
-      description: "ML diagnostic accuracy rate"
-    },
-    {
-      title: "Response Time",
-      value: "0s",
-      status: "unknown",
-      icon: Zap,
-      description: "Average processing time"
-    },
-    {
-      title: "Data Security",
-      value: "Unknown",
-      status: "unknown",
-      icon: Shield,
-      description: "Healthcare compliance status"
-    },
-    {
-      title: "Global Reach",
-      value: "0",
-      status: "unknown",
-      icon: Globe,
-      description: "Active coverage areas"
-    }
+    { title: "Model Accuracy", value: "0%", status: "unknown", icon: Brain },
+    { title: "Response Time", value: "0s", status: "unknown", icon: Zap },
+    { title: "Data Security", value: "Unknown", status: "unknown", icon: Shield },
+    { title: "Global Reach", value: "0", status: "unknown", icon: Globe }
   ]);
 
-  const [alerts, setAlerts] = useState([
-    {
-      type: "success",
-      title: "System Update Complete",
-      message: "All ML models updated successfully",
-      time: "Just now",
-      icon: CheckCircle
-    },
-    {
-      type: "warning",
-      title: "High Activity Detected",
-      message: "Unusual spike in Mumbai region",
-      time: "Just now",
-      icon: AlertTriangle
-    }
-  ]);
-
-  const [recentActivity, setRecentActivity] = useState([
-    {
-      type: "diagnosis",
-      title: "Blood smear analysis completed",
-      time: "Just now",
-      result: "Pending",
-      status: "info"
-    },
-    {
-      type: "forecast",
-      title: "Mumbai region forecast updated",
-      time: "Just now",
-      result: "Pending",
-      status: "info"
-    },
-    {
-      type: "diagnosis",
-      title: "Symptoms analysis completed",
-      time: "Just now",
-      result: "Pending",
-      status: "info"
-    }
-  ]);
-
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -151,546 +164,112 @@ const Dashboard = () => {
       try {
         const stats = await apiClient.getDashboardStats();
 
-        // Update quick stats with real data
         setQuickStats([
-          {
-            title: "Today's Diagnoses",
-            value: stats.today_diagnoses,
-            change: "+12%",
-            trend: "up",
-            icon: Microscope,
-            tooltip: "Number of malaria diagnosis tests completed today using image analysis and symptom assessment",
-            sparklineData: [{ value: stats.today_diagnoses * 0.75 }, { value: stats.today_diagnoses * 0.9 }, { value: stats.today_diagnoses * 0.85 }, { value: stats.today_diagnoses * 0.95 }, { value: stats.today_diagnoses }],
-            suffix: ""
-          },
-          {
-            title: "Active Forecasts",
-            value: stats.active_forecasts,
-            change: "+3",
-            trend: "up",
-            icon: TrendingUp,
-            tooltip: "Regional outbreak forecasting models currently running with weekly predictions",
-            sparklineData: [{ value: stats.active_forecasts * 0.6 }, { value: stats.active_forecasts * 0.75 }, { value: stats.active_forecasts * 0.875 }, { value: stats.active_forecasts * 0.625 }, { value: stats.active_forecasts }],
-            suffix: ""
-          },
-          {
-            title: "Risk Regions",
-            value: stats.risk_regions,
-            change: "-2",
-            trend: "down",
-            icon: MapPin,
-            tooltip: "Geographic regions currently classified as high-risk for malaria outbreaks",
-            sparklineData: [{ value: stats.risk_regions * 1.6 }, { value: stats.risk_regions * 1.4 }, { value: stats.risk_regions * 1.2 }, { value: stats.risk_regions * 1.4 }, { value: stats.risk_regions }],
-            suffix: ""
-          },
-          {
-            title: "System Health",
-            value: stats.system_health,
-            change: "Excellent",
-            trend: "stable",
-            icon: Activity,
-            tooltip: "Overall system uptime and performance metrics for ML models and API endpoints",
-            sparklineData: [{ value: stats.system_health * 0.99 }, { value: stats.system_health * 0.988 }, { value: stats.system_health * 0.995 }, { value: stats.system_health * 0.991 }, { value: stats.system_health }],
-            suffix: "%"
-          }
+          { title: "Today's Diagnoses", value: stats.today_diagnoses, change: "+12%", trend: "up", icon: Microscope, tooltip: "Tests completed today", sparklineData: [60, 80, 75, 90, 85].map(v => ({ value: v })), suffix: "" },
+          { title: "Active Forecasts", value: stats.active_forecasts, change: "+3", trend: "up", icon: TrendingUp, tooltip: "Active breakout models", sparklineData: [40, 50, 65, 55, 70].map(v => ({ value: v })), suffix: "" },
+          { title: "Risk Regions", value: stats.risk_regions, change: "-2", trend: "down", icon: MapPin, tooltip: "Monitored hotspots", sparklineData: [90, 80, 70, 75, 60].map(v => ({ value: v })), suffix: "" },
+          { title: "System Health", value: stats.system_health, change: "Excellent", trend: "stable", icon: Activity, tooltip: "Uptime and response quality", sparklineData: [99, 98, 99.5, 99, 99.2].map(v => ({ value: v })), suffix: "%" }
         ]);
 
-        // Update system metrics with real data
         setSystemMetrics([
-          {
-            title: "Model Accuracy",
-            value: stats.model_accuracy,
-            status: "excellent",
-            icon: Brain,
-            description: "ML diagnostic accuracy rate"
-          },
-          {
-            title: "Response Time",
-            value: stats.response_time,
-            status: "optimal",
-            icon: Zap,
-            description: "Average processing time"
-          },
-          {
-            title: "Data Security",
-            value: stats.data_security,
-            status: "compliant",
-            icon: Shield,
-            description: "Healthcare compliance status"
-          },
-          {
-            title: "Global Reach",
-            value: stats.global_reach,
-            status: "regions",
-            icon: Globe,
-            description: "Active coverage areas"
-          }
+          { title: "Model Accuracy", value: stats.model_accuracy, status: "excellent", icon: Brain },
+          { title: "Response Time", value: stats.response_time, status: "optimal", icon: Zap },
+          { title: "Data Security", value: stats.data_security, status: "compliant", icon: Shield },
+          { title: "Global Reach", value: stats.global_reach, status: "regions", icon: Globe }
         ]);
 
-        // Update recent activity with real data
         setRecentActivity(stats.recent_activity);
-
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+        console.error('Data Fetch Error:', error);
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Background Elements */}
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
 
-      {/* Medical Disclaimer Marquee */}
-      <div className="bg-destructive/10 dark:bg-destructive/15 border-b border-destructive/20 dark:border-destructive/30 py-1.5 relative z-10">
-        <div className="flex items-center justify-center">
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive mr-1.5 flex-shrink-0 animate-pulse" />
-          <div className="relative overflow-hidden w-full max-w-4xl">
-            <div className="animate-marquee whitespace-nowrap text-xs text-destructive font-medium py-0.5">
-              This Foresee ML-powered dashboard provides real-time analytics for decision support only and should never replace professional medical or epidemiological analysis. Always consult with qualified experts for healthcare decisions.
-            </div>
-          </div>
-          <AlertTriangle className="h-3.5 w-3.5 text-destructive ml-1.5 flex-shrink-0 animate-pulse" />
-        </div>
-      </div>
+      {/* Header Section */}
+      <section className="mx-2 mt-4 relative overflow-hidden">
+        <div className="relative px-6 py-12 lg:p-16 rounded-[24px] bg-primary border border-white/10 flex flex-col justify-center overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
 
-      {/* Enhanced Header Section */}
-      <section className="relative px-4 py-6 lg:px-6 lg:py-8 mt-2 overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center mb-1"
-          >
-            <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 mb-3">
-              <Activity className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              Foresee Dashboard
+          <div className="relative z-10 max-w-6xl mx-auto text-center space-y-4">
+            <h1 className="text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
+              Dashboard
             </h1>
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-              Real-time monitoring and analytics for malaria diagnosis and outbreak forecasting systems
+            <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
+              Real-time monitoring and advanced epidemiological insights for proactive healthcare management.
             </p>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">ML-Powered</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.16 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Shield className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">HIPAA Compliant</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.24 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">24/7 Monitoring</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-secondary/50 dark:bg-secondary/30 backdrop-blur-sm border border-border"
-              >
-                <Globe className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">Global Models</span>
-              </motion.div>
-            </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Main Dashboard Content */}
-      <div className="px-4 lg:px-6 pb-8">
-        <div className="max-w-7xl mx-auto space-y-4">
-
-          {/* Enhanced Quick Stats */}
-          <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 pt-2">
-                Real-Time Analytics
-              </h2>
-              <p className="text-muted-foreground">
-                Live monitoring of diagnosis systems and outbreak predictions
-              </p>
-            </motion.div>
-
+      {/* Primary Metrics Section */}
+      <section className="mx-2 mb-0 relative">
+        <div className="absolute -inset-px bg-gradient-to-r from-primary/10 to-accent/10 rounded-[24px] blur-sm opacity-20 transition duration-700" />
+        <DashboardContainer className="bg-white/80">
+          <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-8 py-8 relative z-10">
             <TooltipProvider>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {quickStats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <motion.div
-                      key={stat.title}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.2, duration: 0.6 }}
-                      viewport={{ once: true }}
-                    >
-                      <Card className="data-card group hover:shadow-medical-lg hover:scale-[1.02] transition-all duration-300 h-full">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
-                                <Icon className="h-5 w-5 text-primary" />
-                              </div>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help transition-colors" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="text-sm">{stat.tooltip}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Sparkline
-                                data={stat.sparklineData}
-                                color={stat.trend === 'up' ? 'hsl(var(--success))' : stat.trend === 'down' ? 'hsl(var(--destructive))' : 'hsl(var(--primary))'}
-                              />
-                              <Badge
-                                variant={stat.trend === 'up' ? 'default' : stat.trend === 'down' ? 'destructive' : 'secondary'}
-                                className={`text-xs ${stat.trend === 'stable' ? 'bg-muted text-muted-foreground' : ''}`}
-                              >
-                                {stat.change}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <p className="text-3xl font-bold">
-                              <AnimatedCounter value={stat.value} />
-                              {stat.suffix}
-                            </p>
-                            <p className="text-sm text-muted-foreground font-medium">{stat.title}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {quickStats.map((stat) => <MetricCard key={stat.title} stat={stat} />)}
               </div>
             </TooltipProvider>
+          </div>
+        </DashboardContainer>
+      </section>
+
+      {/* Main Layout Grid */}
+      <div className="mx-2 grid lg:grid-cols-12 gap-4 items-start relative px-1">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
+
+        {/* Column 1: Core Hub & History */}
+        <div className="lg:col-span-8 space-y-4 relative z-10">
+
+          {/* Action Center */}
+          <section className="relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[24px] blur opacity-30 transition duration-1000" />
+            <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+              <SectionHeader icon={Activity} title="Core Operations" subtitle="Primary hub" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <ActionItem to="/diagnosis" title="Diagnosis" desc="Analysis" icon={Microscope} color="bg-primary/5 text-primary border-primary/10" />
+                <ActionItem to="/forecast" title="Forecast" desc="Epidemic" icon={TrendingUp} color="bg-primary/5 text-primary border-primary/10" />
+                <ActionItem to="/reports" title="Reports" desc="Data Logs" icon={FileText} color="bg-primary/5 text-primary border-primary/10" />
+              </div>
+            </DashboardContainer>
           </section>
 
-          {/* System Health & Performance */}
-          <section className="grid lg:grid-cols-3 gap-8">
-            {/* System Metrics */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <Card className="data-card h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    <span>System Performance</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Key performance indicators and system health metrics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {systemMetrics.map((metric, index) => {
-                      const Icon = metric.icon;
-                      return (
-                        <motion.div
-                          key={metric.title}
-                          initial={{ opacity: 0, y: 10 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1, duration: 0.4 }}
-                          viewport={{ once: true }}
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="p-1.5 rounded-md bg-primary/10">
-                              <Icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{metric.title}</p>
-                              <p className="text-xs text-muted-foreground">{metric.description}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-primary">{metric.value}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {metric.status}
-                            </Badge>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Enhanced Main Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              viewport={{ once: true }}
-              className="lg:col-span-2"
-            >
-              <div className="space-y-4 mb-6">
-                <h3 className="text-xl font-semibold">Quick Actions</h3>
-                <p className="text-muted-foreground">Access core functionality and system tools</p>
-              </div>
-
-              <div className="grid gap-4">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card group cursor-pointer hover:shadow-medical-lg transition-all duration-300">
-                    <Link to="/diagnosis" className="block">
-                      <CardHeader>
-                        <div className="flex items-center space-x-4">
-                          <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10">
-                            <Microscope className="h-6 w-6 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="group-hover:text-primary transition-colors">
-                              Malaria Diagnosis
-                            </CardTitle>
-                            <CardDescription>
-                              Upload blood smear images or enter patient symptoms for ML-powered analysis
-                            </CardDescription>
-                          </div>
-                          <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        </div>
-                      </CardHeader>
-                    </Link>
-                  </Card>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card group cursor-pointer hover:shadow-medical-lg transition-all duration-300">
-                    <Link to="/forecast" className="block">
-                      <CardHeader>
-                        <div className="flex items-center space-x-4">
-                          <div className="p-3 rounded-xl bg-gradient-to-br from-accent/10 to-success/10">
-                            <TrendingUp className="h-6 w-6 text-accent" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="group-hover:text-primary transition-colors">
-                              Outbreak Forecasting
-                            </CardTitle>
-                            <CardDescription>
-                              Predict regional malaria outbreaks with advanced epidemiological models
-                            </CardDescription>
-                          </div>
-                          <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        </div>
-                      </CardHeader>
-                    </Link>
-                  </Card>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="data-card group cursor-pointer hover:shadow-medical-lg transition-all duration-300">
-                    <Link to="/reports" className="block">
-                      <CardHeader>
-                        <div className="flex items-center space-x-4">
-                          <div className="p-3 rounded-xl bg-gradient-to-br from-success/10 to-primary/10">
-                            <FileText className="h-6 w-6 text-success" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="group-hover:text-primary transition-colors">
-                              Reports & History
-                            </CardTitle>
-                            <CardDescription>
-                              View past diagnoses, export reports, and track historical data trends
-                            </CardDescription>
-                          </div>
-                          <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        </div>
-                      </CardHeader>
-                    </Link>
-                  </Card>
-                </motion.div>
-              </div>
-            </motion.div>
-          </section>
-
-          {/* Alerts & Notifications */}
-          <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-6"
-            >
-              <h3 className="text-xl font-semibold mb-2">System Alerts</h3>
-              <p className="text-muted-foreground">Important notifications and system updates</p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {alerts.map((alert, index) => {
-                const Icon = alert.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.2, duration: 0.5 }}
-                    viewport={{ once: true }}
-                  >
-                    <Card className={`data-card border-l-4 ${alert.type === 'success'
-                      ? 'border-l-success'
-                      : 'border-l-warning'
-                      }`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg ${alert.type === 'success'
-                            ? 'bg-success/10'
-                            : 'bg-warning/10'
-                            }`}>
-                            <Icon className={`h-4 w-4 ${alert.type === 'success'
-                              ? 'text-success'
-                              : 'text-warning'
-                              }`} />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm mb-1">{alert.title}</h4>
-                            <p className="text-xs text-muted-foreground mb-2">{alert.message}</p>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {alert.time}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+          {/* Analytical History */}
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+            <SectionHeader
+              icon={Clock}
+              title="Analytical History"
+              subtitle="Audit logs"
+              rightElement={
+                <Button variant="outline" className="rounded-full px-4 h-9 text-[9px] font-medium tracking-widest border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-white shadow-sm" asChild>
+                  <Link to="/reports">VIEW ALL <ArrowRight className="ml-1.5 h-3 w-3" /></Link>
+                </Button>
+              }
+            />
+            <div className="bg-white/40 rounded-[16px] border border-white shadow-inner-sm overflow-hidden divide-y divide-primary/5">
+              {recentActivity.map((activity, i) => <ActivityLogItem key={i} activity={activity} />)}
             </div>
-          </section>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] -ml-48 -mb-48 pointer-events-none opacity-60" />
+          </DashboardContainer>
+        </div>
 
-          {/* Enhanced Recent Activity */}
-          <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <Card className="data-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <span>Recent Activity</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Latest system operations and user interactions
-                      </CardDescription>
-                    </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/reports">
-                        View all
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {recentActivity.map((activity, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1, duration: 0.4 }}
-                        viewport={{ once: true }}
-                        className="flex items-center space-x-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className={`p-2 rounded-lg ${activity.type === 'diagnosis'
-                          ? 'bg-primary/10'
-                          : 'bg-accent/10'
-                          }`}>
-                          {activity.type === 'diagnosis' ? (
-                            <Microscope className="h-4 w-4 text-primary" />
-                          ) : (
-                            <TrendingUp className="h-4 w-4 text-accent" />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{activity.title}</p>
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            <span>{activity.time}</span>
-                          </div>
-                        </div>
-
-                        <Badge
-                          variant={
-                            activity.status === 'success'
-                              ? 'default'
-                              : activity.status === 'warning'
-                                ? 'destructive'
-                                : 'secondary'
-                          }
-                          className="shrink-0"
-                        >
-                          {activity.result}
-                        </Badge>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </section>
+        {/* Column 2: Infrastructure Vitals */}
+        <div className="lg:col-span-4 h-full relative z-10">
+          <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-24 shadow-sm h-full flex flex-col">
+            <SectionHeader icon={BarChart3} title="Infrastructure" subtitle="Vitals" />
+            <div className="grid grid-cols-1 gap-4 flex-1">
+              {systemMetrics.map((metric) => <InfrastructureMetric key={metric.title} metric={metric} />)}
+            </div>
+          </DashboardContainer>
         </div>
       </div>
     </div>
