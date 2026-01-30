@@ -7,7 +7,20 @@
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#)
 
 <div align="center">
-  <img src="apps/web/public/preview.png" alt="Foresee Dashboard" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <img src="apps/web/public/preview.jpg" alt="Foresee Dashboard" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+</div>
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <img src="apps/web/public/preview1.jpg" alt="Foresee Feature Preview 1" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+      </td>
+      <td width="50%">
+        <img src="apps/web/public/preview2 (1).jpg" alt="Foresee Feature Preview 2" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+      </td>
+    </tr>
+  </table>
 </div>
 
 ---
