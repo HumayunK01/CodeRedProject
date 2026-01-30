@@ -24,6 +24,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +33,16 @@ export const Navbar = () => {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Handle resize for responsive width
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Handle keyboard shortcuts
@@ -66,7 +78,7 @@ export const Navbar = () => {
         animate={{
           y: 0,
           opacity: 1,
-          width: scrolled ? "85%" : "99%",
+          width: scrolled ? (isMobile ? "94%" : "85%") : (isMobile ? "96%" : "99%"),
           maxWidth: scrolled ? "1100px" : "1600px"
         }}
         transition={{

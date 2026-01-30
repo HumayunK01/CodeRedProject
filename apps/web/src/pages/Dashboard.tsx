@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,6 +9,9 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { apiClient } from "@/lib/api";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { DiagnosisService, ForecastService } from "@/lib/db";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
+import { motion } from "framer-motion";
 import {
   Microscope,
   TrendingUp,
@@ -91,6 +95,27 @@ const MetricCard = ({ stat }: { stat: any }) => {
   );
 };
 
+const MetricCardSkeleton = () => (
+  <Card className="bg-white/40 backdrop-blur-md border border-white/60 shadow-none rounded-[20px] overflow-hidden">
+    <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+      <Skeleton className="w-10 h-10 rounded-xl bg-primary/5" />
+      <Skeleton className="h-5 w-12 rounded-full" />
+    </CardHeader>
+    <CardContent className="p-4 pt-2">
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-24" />
+        <div className="flex items-end justify-between">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-6 w-16" />
+        </div>
+        <div className="mt-3 pt-2 border-t border-primary/5">
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const ActionItem = ({ to, title, desc, icon: Icon, color }: { to: string, title: string, desc: string, icon: any, color: string }) => (
   <Link to={to} className="group/item">
     <div className="h-full p-6 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-400 flex flex-col items-center text-center gap-4">
@@ -106,6 +131,17 @@ const ActionItem = ({ to, title, desc, icon: Icon, color }: { to: string, title:
       </div>
     </div>
   </Link>
+);
+
+const ActionItemSkeleton = () => (
+  <div className="h-full p-6 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 flex flex-col items-center text-center gap-4">
+    <Skeleton className="w-14 h-14 rounded-2xl" />
+    <div className="space-y-2 w-full flex flex-col items-center">
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-3 w-16" />
+    </div>
+    <Skeleton className="h-6 w-6 rounded-full" />
+  </div>
 );
 
 const ActivityLogItem = ({ activity }: { activity: any }) => (
@@ -127,6 +163,21 @@ const ActivityLogItem = ({ activity }: { activity: any }) => (
   </div>
 );
 
+const ActivityLogItemSkeleton = () => (
+  <div className="flex items-center gap-4 px-6 py-4">
+    <Skeleton className="w-9 h-9 rounded-lg" />
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-4 w-48" />
+      <div className="flex gap-2">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+    <Skeleton className="h-6 w-16 rounded-lg" />
+  </div>
+);
+
+
 const InfrastructureMetric = ({ metric }: { metric: any }) => (
   <div className="flex items-center justify-between p-5 rounded-[20px] bg-white/50 backdrop-blur-sm border border-primary/5 hover:bg-primary/5 hover:border-primary/20 transition-all group">
     <div className="flex items-center gap-4">
@@ -143,6 +194,20 @@ const InfrastructureMetric = ({ metric }: { metric: any }) => (
     </Badge>
   </div>
 );
+
+const InfrastructureMetricSkeleton = () => (
+  <div className="flex items-center justify-between p-5 rounded-[20px] bg-white/50 backdrop-blur-sm border border-primary/5">
+    <div className="flex items-center gap-4">
+      <Skeleton className="w-10 h-10 rounded-xl" />
+      <div className="space-y-1">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-5 w-12" />
+      </div>
+    </div>
+    <Skeleton className="h-5 w-16 rounded-md" />
+  </div>
+);
+
 
 // User Stats Card - Shows database-synced user stats
 const UserStatsCard = () => {
@@ -187,20 +252,32 @@ const UserStatsCard = () => {
       }
     };
 
-    fetchUserDbStats();
-  }, [userWithStats?.clerkId]);
+    if (isSignedIn) {
+      fetchUserDbStats();
+    }
+  }, [userWithStats?.clerkId, isSignedIn]);
 
   if (!isSignedIn) {
     return (
-      <DashboardContainer className="bg-white/90 p-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
-            <User className="h-6 w-6 text-primary/60" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-primary">Sign in to sync your data</h3>
-            <p className="text-xs text-foreground/60 uppercase tracking-wide font-medium">Cloud Storage & Cross-Device Access</p>
-          </div>
+      <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+        <SectionHeader
+          icon={Database}
+          title="Your Synced Data"
+          subtitle="Cloud Storage"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 flex flex-col items-center justify-center gap-2">
+              <Skeleton className="w-10 h-10 rounded-xl bg-gray-200" />
+              <div className="text-center space-y-1 mt-1">
+                <Skeleton className="h-8 w-12 mx-auto bg-gray-200" />
+                <Skeleton className="h-3 w-16 mx-auto bg-gray-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-primary/5">
+          <Skeleton className="h-3 w-40 bg-gray-200" />
         </div>
       </DashboardContainer>
     );
@@ -272,6 +349,7 @@ const UserStatsCard = () => {
 
 const Dashboard = () => {
   const { clerkId, isSignedIn } = useCurrentUser();
+  const { isLoaded } = useAuth(); // used for checking auth loaded status
 
   const [quickStats, setQuickStats] = useState([
     { title: "Today's Diagnoses", value: 0, change: "+0%", trend: "stable", icon: Microscope, tooltip: "Tests completed today", sparklineData: Array(5).fill({ value: 0 }), suffix: "", source: "api" },
@@ -335,6 +413,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      // Only fetch if signed in
+      if (!isSignedIn) return;
+
       try {
         const stats = await apiClient.getDashboardStats();
 
@@ -363,10 +444,38 @@ const Dashboard = () => {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [isSignedIn]);
+
+  if (!isLoaded) return null;
 
   return (
-    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden relative">
+
+      {!isSignedIn && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl p-8 text-center space-y-6"
+          >
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Access Your Dashboard</h2>
+              <p className="text-muted-foreground">
+                Sign in to securely view your diagnosis history and health insights.
+              </p>
+            </div>
+            <SignInButton mode="modal">
+              <Button size="lg" className="w-full rounded-full shadow-lg hover:shadow-xl transition-all">
+                Sign In to Continue
+              </Button>
+            </SignInButton>
+          </motion.div>
+        </div>
+      )}
 
       {/* Header Section */}
       <section className="mx-2 mt-4 relative overflow-hidden">
@@ -386,8 +495,8 @@ const Dashboard = () => {
         </div>
       </section>
 
-      {/* User Stats Card - Shows synced data */}
-      <section className="mx-2">
+      {/* User Stats Card - Shows synced data (Handles its own skeleton) */}
+      <section className="mx-2 relative z-0">
         <UserStatsCard />
       </section>
 
@@ -398,7 +507,10 @@ const Dashboard = () => {
           <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-8 py-8 relative z-10">
             <TooltipProvider>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {quickStats.map((stat) => <MetricCard key={stat.title} stat={stat} />)}
+                {isSignedIn
+                  ? quickStats.map((stat) => <MetricCard key={stat.title} stat={stat} />)
+                  : Array(4).fill(0).map((_, i) => <MetricCardSkeleton key={i} />)
+                }
               </div>
             </TooltipProvider>
           </div>
@@ -410,7 +522,7 @@ const Dashboard = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Core Hub & History */}
-        <div className="lg:col-span-8 space-y-4 relative z-10">
+        <div className="lg:col-span-8 space-y-4 relative z-0">
 
           {/* Action Center */}
           <section className="relative">
@@ -418,9 +530,16 @@ const Dashboard = () => {
             <DashboardContainer className="bg-white/90 p-6 lg:p-8">
               <SectionHeader icon={Activity} title="Core Operations" subtitle="Primary hub" />
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <ActionItem to="/diagnosis" title="Diagnosis" desc="Analysis" icon={Microscope} color="bg-primary/5 text-primary border-primary/10" />
-                <ActionItem to="/forecast" title="Forecast" desc="Epidemic" icon={TrendingUp} color="bg-primary/5 text-primary border-primary/10" />
-                <ActionItem to="/reports" title="Reports" desc="Data Logs" icon={FileText} color="bg-primary/5 text-primary border-primary/10" />
+                {isSignedIn
+                  ? (
+                    <>
+                      <ActionItem to="/diagnosis" title="Diagnosis" desc="Analysis" icon={Microscope} color="bg-primary/5 text-primary border-primary/10" />
+                      <ActionItem to="/forecast" title="Forecast" desc="Epidemic" icon={TrendingUp} color="bg-primary/5 text-primary border-primary/10" />
+                      <ActionItem to="/reports" title="Reports" desc="Data Logs" icon={FileText} color="bg-primary/5 text-primary border-primary/10" />
+                    </>
+                  )
+                  : Array(3).fill(0).map((_, i) => <ActionItemSkeleton key={i} />)
+                }
               </div>
             </DashboardContainer>
           </section>
@@ -432,24 +551,32 @@ const Dashboard = () => {
               title="Analytical History"
               subtitle="Audit logs"
               rightElement={
-                <Button variant="outline" className="rounded-full px-4 h-9 text-[9px] font-medium tracking-widest border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-white shadow-sm" asChild>
-                  <Link to="/reports">VIEW ALL <ArrowRight className="ml-1.5 h-3 w-3" /></Link>
-                </Button>
+                isSignedIn && (
+                  <Button variant="outline" className="rounded-full px-4 h-9 text-[9px] font-medium tracking-widest border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-white shadow-sm" asChild>
+                    <Link to="/reports">VIEW ALL <ArrowRight className="ml-1.5 h-3 w-3" /></Link>
+                  </Button>
+                )
               }
             />
             <div className="bg-white/40 rounded-[16px] border border-white shadow-inner-sm overflow-hidden divide-y divide-primary/5">
-              {recentActivity.map((activity, i) => <ActivityLogItem key={i} activity={activity} />)}
+              {isSignedIn
+                ? recentActivity.map((activity: any, i) => <ActivityLogItem key={i} activity={activity} />)
+                : Array(3).fill(0).map((_, i) => <ActivityLogItemSkeleton key={i} />)
+              }
             </div>
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] -ml-48 -mb-48 pointer-events-none opacity-60" />
           </DashboardContainer>
         </div>
 
         {/* Column 2: Infrastructure Vitals */}
-        <div className="lg:col-span-4 h-full relative z-10">
+        <div className="lg:col-span-4 h-full relative z-0">
           <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-24 shadow-sm h-full flex flex-col">
             <SectionHeader icon={BarChart3} title="Infrastructure" subtitle="Vitals" />
             <div className="grid grid-cols-1 gap-4 flex-1">
-              {systemMetrics.map((metric) => <InfrastructureMetric key={metric.title} metric={metric} />)}
+              {isSignedIn
+                ? systemMetrics.map((metric) => <InfrastructureMetric key={metric.title} metric={metric} />)
+                : Array(4).fill(0).map((_, i) => <InfrastructureMetricSkeleton key={i} />)
+              }
             </div>
           </DashboardContainer>
         </div>

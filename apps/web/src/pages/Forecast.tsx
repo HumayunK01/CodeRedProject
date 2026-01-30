@@ -1,15 +1,20 @@
+
 import { useState } from "react";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ForecastForm } from "@/components/forecast/ForecastForm";
 import { ForecastResults } from "@/components/forecast/ForecastResults";
 import { ForecastResult } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   TrendingUp,
   BarChart3,
   Activity,
   Calendar,
   Settings,
-  Info
+  Info,
+  Shield
 } from "lucide-react";
 
 // --- Sub-components (Matched to Diagnosis/Dashboard) ---
@@ -35,7 +40,44 @@ const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: an
   </div>
 );
 
+// --- Skeleton Components ---
+
+const ForecastFormSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24 bg-gray-200" />
+        <Skeleton className="h-12 w-full rounded-xl bg-gray-200" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-32 bg-gray-200" />
+        <Skeleton className="h-12 w-full rounded-xl bg-gray-200" />
+      </div>
+    </div>
+    <Skeleton className="h-12 w-full rounded-xl bg-gray-200 mt-8" />
+  </div>
+);
+
+const ForecastResultsSkeleton = () => (
+  <div className="space-y-8 h-full">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-24 w-full rounded-xl bg-gray-200" />
+      ))}
+    </div>
+    <div className="space-y-4">
+      <Skeleton className="h-64 w-full rounded-xl bg-gray-200" />
+    </div>
+    <div className="space-y-3">
+      <Skeleton className="h-20 w-full rounded-xl bg-gray-200" />
+      <Skeleton className="h-20 w-full rounded-xl bg-gray-200" />
+    </div>
+  </div>
+);
+
+
 const Forecast = () => {
+  const { isSignedIn, isLoaded } = useAuth();
   const [results, setResults] = useState<ForecastResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,8 +93,36 @@ const Forecast = () => {
     }
   };
 
+  if (!isLoaded) return null;
+
   return (
-    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden relative">
+
+      {!isSignedIn && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl p-8 text-center space-y-6"
+          >
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Access Your Forecasts</h2>
+              <p className="text-muted-foreground">
+                Sign in to create and view advanced epidemiological predictive models.
+              </p>
+            </div>
+            <SignInButton mode="modal">
+              <Button size="lg" className="w-full rounded-full shadow-lg hover:shadow-xl transition-all">
+                Sign In to Continue
+              </Button>
+            </SignInButton>
+          </motion.div>
+        </div>
+      )}
 
       {/* Header Section */}
       <section className="mx-2 mt-4 relative overflow-hidden">
@@ -77,7 +147,7 @@ const Forecast = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Forecast Parameters (Sidebar) */}
-        <div className="lg:col-span-4 space-y-4 relative z-10 h-full">
+        <div className="lg:col-span-4 space-y-4 relative z-0">
           <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4">
             <SectionHeader
               icon={Settings}
@@ -91,15 +161,17 @@ const Forecast = () => {
               </p>
             </div>
 
-            <ForecastForm
-              onResult={handleResult}
-              onLoadingChange={handleLoading}
-            />
+            {isSignedIn ? (
+              <ForecastForm
+                onResult={handleResult}
+                onLoadingChange={handleLoading}
+              />
+            ) : <ForecastFormSkeleton />}
           </DashboardContainer>
         </div>
 
         {/* Column 2: Forecast Results (Main Area) */}
-        <div className="lg:col-span-8 space-y-4 relative z-10 h-full">
+        <div className="lg:col-span-8 space-y-4 relative z-0">
           <DashboardContainer className="bg-white/90 p-6 lg:p-8 h-full flex flex-col">
             <div className="space-y-1 mb-6 shrink-0">
               <SectionHeader
@@ -113,10 +185,12 @@ const Forecast = () => {
             </div>
 
             <div className="flex-1">
-              <ForecastResults
-                results={results}
-                isLoading={isLoading}
-              />
+              {isSignedIn ? (
+                <ForecastResults
+                  results={results}
+                  isLoading={isLoading}
+                />
+              ) : <ForecastResultsSkeleton />}
             </div>
           </DashboardContainer>
         </div>

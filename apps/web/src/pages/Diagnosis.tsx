@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,6 +9,9 @@ import { DualModeDiagnosis } from "@/components/diagnosis/DualModeDiagnosis";
 import { DiagnosisResults } from "@/components/diagnosis/DiagnosisResults";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import { StorageManager } from "@/lib/storage";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
+import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Stethoscope,
   Activity,
@@ -46,9 +50,46 @@ const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: an
   </div>
 );
 
+// --- Skeleton Components ---
+
+const DiagnosisFormSkeleton = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-2 gap-4">
+      <Skeleton className="h-12 w-full rounded-xl bg-gray-200" />
+      <Skeleton className="h-12 w-full rounded-xl bg-gray-200" />
+    </div>
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full rounded-xl bg-gray-200" />
+      <Skeleton className="h-24 w-full rounded-xl bg-gray-200" />
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-10 w-full rounded-xl bg-gray-200" />
+        <Skeleton className="h-10 w-full rounded-xl bg-gray-200" />
+      </div>
+    </div>
+    <Skeleton className="h-12 w-full rounded-xl bg-gray-200 mt-6" />
+  </div>
+);
+
+const DiagnosisResultsSkeleton = () => (
+  <div className="space-y-6 h-full">
+    <div className="space-y-2 text-center">
+      <Skeleton className="h-16 w-16 rounded-full mx-auto bg-gray-200" />
+      <Skeleton className="h-6 w-32 mx-auto bg-gray-200" />
+      <Skeleton className="h-4 w-24 mx-auto bg-gray-200" />
+    </div>
+    <div className="space-y-3 mt-8">
+      <Skeleton className="h-20 w-full rounded-xl bg-gray-200" />
+      <Skeleton className="h-20 w-full rounded-xl bg-gray-200" />
+      <Skeleton className="h-20 w-full rounded-xl bg-gray-200" />
+    </div>
+  </div>
+);
+
+
 // --- Main Diagnosis Page Component ---
 
 const Diagnosis = () => {
+  const { isSignedIn, isLoaded } = useAuth();
   const [results, setResults] = useState<DiagnosisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [storedPatientData, setStoredPatientData] = useState<SymptomsInput & { id?: string; timestamp?: string } | null>(null);
@@ -56,6 +97,8 @@ const Diagnosis = () => {
 
   // Load the most recent patient data from storage
   useEffect(() => {
+    if (!isSignedIn) return; // Don't fetch if not signed in
+
     const loadRecentPatientData = () => {
       try {
         const allResults = StorageManager.getAllResults();
@@ -88,37 +131,39 @@ const Diagnosis = () => {
     };
 
     loadRecentPatientData();
-  }, []);
+  }, [isSignedIn]);
 
   const handleResult = (result: DiagnosisResult) => {
     setResults(result);
     setIsLoading(false);
 
     // Load the patient data again after a new result is generated
-    setTimeout(() => {
-      const allResults = StorageManager.getAllResults();
-      const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
-      if (diagnosisResults.length > 0) {
-        const mostRecent = diagnosisResults[0];
+    if (isSignedIn) {
+      setTimeout(() => {
+        const allResults = StorageManager.getAllResults();
+        const diagnosisResults = allResults.filter(r => r.type === 'diagnosis');
+        if (diagnosisResults.length > 0) {
+          const mostRecent = diagnosisResults[0];
 
-        // Check if this is symptom data or image data
-        if ('image' in mostRecent.input) {
-          setStoredImageData({
-            image: (mostRecent.input as { image: string }).image,
-            id: mostRecent.id,
-            timestamp: mostRecent.timestamp
-          });
-          setStoredPatientData(null);
-        } else {
-          setStoredPatientData({
-            ...(mostRecent.input as SymptomsInput),
-            id: mostRecent.id,
-            timestamp: mostRecent.timestamp
-          });
-          setStoredImageData(null);
+          // Check if this is symptom data or image data
+          if ('image' in mostRecent.input) {
+            setStoredImageData({
+              image: (mostRecent.input as { image: string }).image,
+              id: mostRecent.id,
+              timestamp: mostRecent.timestamp
+            });
+            setStoredPatientData(null);
+          } else {
+            setStoredPatientData({
+              ...(mostRecent.input as SymptomsInput),
+              id: mostRecent.id,
+              timestamp: mostRecent.timestamp
+            });
+            setStoredImageData(null);
+          }
         }
-      }
-    }, 500);
+      }, 500);
+    }
   };
 
   const handleLoading = (loading: boolean) => {
@@ -128,9 +173,36 @@ const Diagnosis = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
+  if (!isLoaded) return null;
 
+  return (
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden relative">
+
+      {!isSignedIn && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl p-8 text-center space-y-6"
+          >
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Access Your Diagnosis</h2>
+              <p className="text-muted-foreground">
+                Sign in to securely access advanced diagnostic tools and result history.
+              </p>
+            </div>
+            <SignInButton mode="modal">
+              <Button size="lg" className="w-full rounded-full shadow-lg hover:shadow-xl transition-all">
+                Sign In to Continue
+              </Button>
+            </SignInButton>
+          </motion.div>
+        </div>
+      )}
 
 
       {/* Header Section */}
@@ -159,7 +231,7 @@ const Diagnosis = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Assessment Form */}
-        <div className="lg:col-span-8 space-y-4 relative z-10">
+        <div className="lg:col-span-8 space-y-4 relative z-0">
           <DashboardContainer className="bg-white/90 p-6 lg:p-8">
             <SectionHeader
               icon={TestTube}
@@ -173,24 +245,28 @@ const Diagnosis = () => {
               </p>
             </div>
 
-            <DualModeDiagnosis
-              onResult={handleResult}
-              onLoadingChange={handleLoading}
-            />
+            {isSignedIn ? (
+              <DualModeDiagnosis
+                onResult={handleResult}
+                onLoadingChange={handleLoading}
+              />
+            ) : <DiagnosisFormSkeleton />}
           </DashboardContainer>
         </div>
 
         {/* Column 2: Results Sidebar */}
-        <div className="lg:col-span-4 h-full relative z-10">
+        <div className="lg:col-span-4 h-full relative z-0">
           <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4 shadow-sm h-full flex flex-col">
             <SectionHeader icon={Activity} title="Analysis Results" subtitle="Real-time Output" />
             <div className="flex-1">
-              <DiagnosisResults
-                results={results}
-                isLoading={isLoading}
-                patientData={storedPatientData || undefined}
-                imageData={storedImageData || undefined}
-              />
+              {isSignedIn ? (
+                <DiagnosisResults
+                  results={results}
+                  isLoading={isLoading}
+                  patientData={storedPatientData || undefined}
+                  imageData={storedImageData || undefined}
+                />
+              ) : <DiagnosisResultsSkeleton />}
             </div>
           </DashboardContainer>
         </div>

@@ -1,4 +1,6 @@
+
 import { useState, useMemo } from "react";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StorageManager } from "@/lib/storage";
 import { StoredResult } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   FileText,
   Download,
@@ -57,15 +60,18 @@ const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: an
   </div>
 );
 
+
 const Reports = () => {
+  const { isSignedIn, isLoaded } = useAuth();
   const { toast } = useToast();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedResult, setSelectedResult] = useState<StoredResult | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 8;
 
-  const results = useMemo(() => StorageManager.getAllResults(), []);
+  const results = useMemo(() => isSignedIn ? StorageManager.getAllResults() : [], [isSignedIn]);
 
   const filteredResults = useMemo(() => {
     return results.filter(result => {
@@ -78,6 +84,10 @@ const Reports = () => {
       return matchesSearch && matchesType;
     });
   }, [results, searchTerm, typeFilter]);
+
+  if (!isLoaded) {
+    return null;
+  }
 
   // Pagination logic
   const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
@@ -251,7 +261,33 @@ const Reports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen bg-transparent space-y-2 lg:space-y-4 pb-2 w-full max-w-[100vw] overflow-x-hidden relative">
+
+      {!isSignedIn && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl p-8 text-center space-y-6"
+          >
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Access Your Reports</h2>
+              <p className="text-muted-foreground">
+                Sign in to securely view your diagnosis history and health insights.
+              </p>
+            </div>
+            <SignInButton mode="modal">
+              <Button size="lg" className="w-full rounded-full shadow-lg hover:shadow-xl transition-all">
+                Sign In to Continue
+              </Button>
+            </SignInButton>
+          </motion.div>
+        </div>
+      )}
 
       {/* Header Section */}
       <section className="mx-2 mt-4 relative overflow-hidden">
@@ -290,13 +326,21 @@ const Reports = () => {
                 A summary of all stored assessments and forecasts for quick reference.
               </p>
               <div className="grid grid-cols-2 gap-4">
-                {stats.map((stat, i) => (
+                {isSignedIn ? stats.map((stat, i) => (
                   <div key={i} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-xl text-center hover:bg-white/60 transition-colors duration-300 group">
                     <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} opacity-80 group-hover:opacity-100 transition-all`} strokeWidth={1.5} />
                     <p className="text-xs uppercase font-bold text-foreground/60 mb-1 tracking-wider">{stat.title}</p>
                     <p className="text-2xl font-bold text-primary">{stat.value}</p>
                   </div>
-                ))}
+                )) : (
+                  Array(4).fill(0).map((_, i) => (
+                    <div key={i} className="bg-white/40 border border-white/60 p-4 rounded-xl text-center">
+                      <Skeleton className="h-8 w-8 mx-auto mb-3 rounded-lg bg-gray-200" />
+                      <Skeleton className="h-3 w-20 mx-auto mb-2 bg-gray-200" />
+                      <Skeleton className="h-6 w-12 mx-auto bg-gray-200" />
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -310,36 +354,40 @@ const Reports = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Search</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by region, symptoms, or date..."
-                      value={searchTerm}
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="pl-9 bg-white/50 border-white/40 h-11 rounded-xl focus-visible:ring-primary/20 transition-all font-medium"
-                    />
-                  </div>
+                  {isSignedIn ? (
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by region, symptoms, or date..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="pl-9 bg-white/50 border-white/40 h-11 rounded-xl focus-visible:ring-primary/20 transition-all font-medium"
+                      />
+                    </div>
+                  ) : <Skeleton className="h-11 w-full rounded-xl bg-gray-200" />}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Record Type</label>
                   <p className="text-[10px] text-muted-foreground">Filter results by diagnosis or forecast reports.</p>
-                  <Select value={typeFilter} onValueChange={(value) => {
-                    setTypeFilter(value);
-                    setCurrentPage(1);
-                  }}>
-                    <SelectTrigger className="bg-white/50 border-white/40 h-11 rounded-xl focus:ring-primary/20 transition-all font-medium">
-                      <SelectValue placeholder="All Results" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Results</SelectItem>
-                      <SelectItem value="diagnosis">Diagnosis Only</SelectItem>
-                      <SelectItem value="forecast">Forecasts Only</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {isSignedIn ? (
+                    <Select value={typeFilter} onValueChange={(value) => {
+                      setTypeFilter(value);
+                      setCurrentPage(1);
+                    }}>
+                      <SelectTrigger className="bg-white/50 border-white/40 h-11 rounded-xl focus:ring-primary/20 transition-all font-medium">
+                        <SelectValue placeholder="All Results" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Results</SelectItem>
+                        <SelectItem value="diagnosis">Diagnosis Only</SelectItem>
+                        <SelectItem value="forecast">Forecasts Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : <Skeleton className="h-11 w-full rounded-xl bg-gray-200" />}
                 </div>
               </div>
             </div>
@@ -355,15 +403,25 @@ const Reports = () => {
                 Download selected reports for sharing, record-keeping, or further analysis.
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <Button onClick={handleExportCsv} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
-                  CSV
-                </Button>
-                <Button onClick={handleExportJson} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
-                  JSON
-                </Button>
-                <Button onClick={handleExportAll} variant="default" className="col-span-2 shadow-lg shadow-primary/20 rounded-xl h-11 text-white font-semibold tracking-wide hover:opacity-90 transition-all">
-                  Download Reports
-                </Button>
+                {isSignedIn ? (
+                  <>
+                    <Button onClick={handleExportCsv} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
+                      CSV
+                    </Button>
+                    <Button onClick={handleExportJson} variant="outline" className="bg-white/40 border-white/60 rounded-xl h-11 hover:bg-white/60 hover:text-primary transition-all font-medium">
+                      JSON
+                    </Button>
+                    <Button onClick={handleExportAll} variant="default" className="col-span-2 shadow-lg shadow-primary/20 rounded-xl h-11 text-white font-semibold tracking-wide hover:opacity-90 transition-all">
+                      Download Reports
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Skeleton className="h-11 w-full rounded-xl bg-gray-200" />
+                    <Skeleton className="h-11 w-full rounded-xl bg-gray-200" />
+                    <Skeleton className="h-11 w-full rounded-xl col-span-2 bg-gray-200" />
+                  </>
+                )}
               </div>
             </div>
 
@@ -380,7 +438,7 @@ const Reports = () => {
                   title="Results History"
                   subtitle="Stored Records"
                 />
-                {filteredResults.length > 0 && (
+                {isSignedIn && filteredResults.length > 0 && (
                   <div className="text-right mb-6">
                     <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10">
                       {filteredResults.length} Result{filteredResults.length !== 1 ? 's' : ''} Found
@@ -395,7 +453,23 @@ const Reports = () => {
             </div>
 
             <div className="flex-1 space-y-4">
-              {filteredResults.length === 0 ? (
+              {!isSignedIn ? (
+                // Dummy Skeleton List for Unauthenticated State
+                <div className="grid gap-3">
+                  {Array(5).fill(0).map((_, i) => (
+                    <div key={i} className="bg-white/40 border border-white/60 p-4 rounded-xl flex items-center gap-4">
+                      <Skeleton className="h-12 w-12 rounded-xl bg-gray-200" />
+                      <div className="space-y-2 flex-1">
+                        <div className="flex justify-between">
+                          <Skeleton className="h-4 w-32 bg-gray-200" />
+                          <Skeleton className="h-4 w-20 bg-gray-200" />
+                        </div>
+                        <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[300px] border-2 border-dashed border-primary/10 rounded-[24px]">
                   <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
                     <Search className="h-8 w-8 text-primary/40" />
@@ -615,7 +689,7 @@ const Reports = () => {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {isSignedIn && totalPages > 1 && (
               <div className="mt-6 flex flex-col gap-2 border-t border-primary/10 pt-4">
                 <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">Showing the most recent results first</p>
                 <div className="flex items-center justify-between">
