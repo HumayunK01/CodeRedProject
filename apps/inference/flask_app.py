@@ -12,6 +12,10 @@ import json
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import tempfile
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -73,6 +77,285 @@ def health_check():
             "message": f"Health check failed: {str(e)}",
             "timestamp": datetime.now().isoformat()
         }
+
+
+# ============================================================================
+# DATABASE API ENDPOINTS
+# ============================================================================
+
+@app.route("/api/users/sync", methods=["POST"])
+def sync_user():
+    """Sync a Clerk user with the database (create or update)"""
+    try:
+        from database import upsert_user, get_user_with_stats
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        clerk_id = data.get("clerkId")
+        email = data.get("email")
+        
+        if not clerk_id or not email:
+            return jsonify({"error": "clerkId and email are required"}), 400
+        
+        # Upsert user in database
+        user = upsert_user(
+            clerk_id=clerk_id,
+            email=email,
+            first_name=data.get("firstName"),
+            last_name=data.get("lastName"),
+            image_url=data.get("imageUrl")
+        )
+        
+        # Get user with stats
+        user_with_stats = get_user_with_stats(clerk_id)
+        
+        return jsonify(user_with_stats if user_with_stats else user)
+    except Exception as e:
+        print(f"Error syncing user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/users/<clerk_id>/stats", methods=["GET"])
+def get_user_stats(clerk_id):
+    """Get user statistics"""
+    try:
+        from database import get_user_with_stats, get_diagnosis_stats_by_user, get_forecast_stats_by_user
+        
+        user = get_user_with_stats(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        user_id = user['id']
+        
+        diagnosis_stats = get_diagnosis_stats_by_user(user_id)
+        forecast_stats = get_forecast_stats_by_user(user_id)
+        
+        return jsonify({
+            "user": user,
+            "diagnosisStats": diagnosis_stats,
+            "forecastStats": forecast_stats
+        })
+    except Exception as e:
+        print(f"Error getting user stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/diagnoses", methods=["POST"])
+def create_diagnosis():
+    """Create a new diagnosis record"""
+    try:
+        from database import create_diagnosis as db_create_diagnosis, get_user_by_clerk_id
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        clerk_id = data.get("clerkId")
+        if not clerk_id:
+            return jsonify({"error": "clerkId is required"}), 400
+        
+        # Get user by clerk ID
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found. Please sync user first."}), 404
+        
+        # Create diagnosis
+        diagnosis = db_create_diagnosis(
+            user_id=user['id'],
+            result=data.get("result", "Unknown"),
+            confidence=data.get("confidence", 0),
+            image_url=data.get("imageUrl"),
+            species=data.get("species"),
+            parasite_count=data.get("parasiteCount"),
+            patient_age=data.get("patientAge"),
+            patient_sex=data.get("patientSex"),
+            location=data.get("location"),
+            latitude=data.get("latitude"),
+            longitude=data.get("longitude"),
+            symptoms=data.get("symptoms"),
+            processing_time=data.get("processingTime"),
+            model_version=data.get("modelVersion")
+        )
+        
+        return jsonify(diagnosis), 201
+    except Exception as e:
+        print(f"Error creating diagnosis: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/diagnoses/<clerk_id>", methods=["GET"])
+def get_user_diagnoses(clerk_id):
+    """Get diagnoses for a specific user"""
+    try:
+        from database import get_user_by_clerk_id, get_diagnoses_by_user
+        
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        limit = request.args.get("limit", default=20, type=int)
+        diagnoses = get_diagnoses_by_user(user['id'], limit=limit)
+        
+        # Convert datetime objects to ISO strings for JSON serialization
+        for d in diagnoses:
+            if d.get('createdAt'):
+                d['createdAt'] = d['createdAt'].isoformat()
+            if d.get('updatedAt'):
+                d['updatedAt'] = d['updatedAt'].isoformat()
+        
+        return jsonify(diagnoses)
+    except Exception as e:
+        print(f"Error getting diagnoses: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/diagnoses/<clerk_id>/stats", methods=["GET"])
+def get_diagnosis_stats(clerk_id):
+    """Get diagnosis statistics for a user"""
+    try:
+        from database import get_user_by_clerk_id, get_diagnosis_stats_by_user
+        
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        stats = get_diagnosis_stats_by_user(user['id'])
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Error getting diagnosis stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/forecasts", methods=["POST"])
+def create_forecast_record():
+    """Create a new forecast record"""
+    try:
+        from database import create_forecast as db_create_forecast, get_user_by_clerk_id
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        clerk_id = data.get("clerkId")
+        if not clerk_id:
+            return jsonify({"error": "clerkId is required"}), 400
+        
+        # Get user by clerk ID
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found. Please sync user first."}), 404
+        
+        # Create forecast
+        forecast = db_create_forecast(
+            user_id=user['id'],
+            region=data.get("region", "Unknown"),
+            horizon_weeks=data.get("horizonWeeks", 4),
+            predictions=data.get("predictions", []),
+            hotspot_score=data.get("hotspotScore"),
+            risk_level=data.get("riskLevel"),
+            confidence=data.get("confidence"),
+            model_version=data.get("modelVersion"),
+            latitude=data.get("latitude"),
+            longitude=data.get("longitude"),
+            country=data.get("country"),
+            temperature=data.get("temperature"),
+            rainfall=data.get("rainfall"),
+            humidity=data.get("humidity")
+        )
+        
+        # Convert datetime objects for JSON serialization
+        if forecast:
+            if forecast.get('createdAt'):
+                forecast['createdAt'] = forecast['createdAt'].isoformat()
+            if forecast.get('updatedAt'):
+                forecast['updatedAt'] = forecast['updatedAt'].isoformat()
+            if forecast.get('startDate'):
+                forecast['startDate'] = forecast['startDate'].isoformat()
+            if forecast.get('endDate'):
+                forecast['endDate'] = forecast['endDate'].isoformat()
+        
+        return jsonify(forecast), 201
+    except Exception as e:
+        print(f"Error creating forecast: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/forecasts/<clerk_id>", methods=["GET"])
+def get_user_forecasts(clerk_id):
+    """Get forecasts for a specific user"""
+    try:
+        from database import get_user_by_clerk_id, get_forecasts_by_user
+        
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        limit = request.args.get("limit", default=20, type=int)
+        forecasts = get_forecasts_by_user(user['id'], limit=limit)
+        
+        # Convert datetime objects to ISO strings for JSON serialization
+        for f in forecasts:
+            if f.get('createdAt'):
+                f['createdAt'] = f['createdAt'].isoformat()
+            if f.get('updatedAt'):
+                f['updatedAt'] = f['updatedAt'].isoformat()
+            if f.get('startDate'):
+                f['startDate'] = f['startDate'].isoformat()
+            if f.get('endDate'):
+                f['endDate'] = f['endDate'].isoformat()
+        
+        return jsonify(forecasts)
+    except Exception as e:
+        print(f"Error getting forecasts: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/forecasts/<clerk_id>/stats", methods=["GET"])
+def get_forecast_stats(clerk_id):
+    """Get forecast statistics for a user"""
+    try:
+        from database import get_user_by_clerk_id, get_forecast_stats_by_user
+        
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        stats = get_forecast_stats_by_user(user['id'])
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Error getting forecast stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/activity/<clerk_id>", methods=["GET"])
+def get_activity(clerk_id):
+    """Get recent activity for a user"""
+    try:
+        from database import get_user_by_clerk_id, get_user_activity
+        
+        user = get_user_by_clerk_id(clerk_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        limit = request.args.get("limit", default=5, type=int)
+        activities = get_user_activity(user['id'], limit=limit)
+        
+        # Convert datetime objects to ISO strings for JSON serialization
+        for a in activities:
+            if a.get('createdAt'):
+                a['createdAt'] = a['createdAt'].isoformat()
+        
+        return jsonify(activities)
+    except Exception as e:
+        print(f"Error getting activity: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================================================
+# ML PREDICTION ENDPOINTS (existing)
+# ============================================================================
 
 def calculate_dashboard_stats(stored_results):
     """Calculate real dashboard statistics from stored results"""

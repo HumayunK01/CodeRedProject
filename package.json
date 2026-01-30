@@ -22,11 +22,13 @@
     "db:migrate:deploy": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma migrate deploy; Remove-Item '.env' -Force\"",
     "db:studio": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma studio; Remove-Item '.env' -Force\"",
     "db:seed": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma db seed; Remove-Item '.env' -Force\"",
+    "db:verify": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx tsx src/verify-prisma.ts; Remove-Item '.env' -Force\"",
     "postinstall": "powershell -Command \"Copy-Item 'apps/web/.env.local' 'apps/database/.env' -Force; Set-Location 'apps/database'; npx prisma generate; Remove-Item '.env' -Force\""
   },
   "devDependencies": {
-    "@prisma/client": "^6.16.3",
-    "prisma": "^6.16.3",
+    "@prisma/client": "^6.19.2",
+    "prisma": "^6.19.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3"
   },
   "engines": {

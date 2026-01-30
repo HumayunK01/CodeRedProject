@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PatientSex {
+  male
+  female
+  other
+  unknown
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum ReportType {
+  diagnosis
+  forecast
+  outbreak
+  surveillance
+  custom
+}
+
+enum ReportStatus {
+  draft
+  pending
+  published
+  archived
+}
+
+enum LogLevel {
+  debug
+  info
+  warn
+  error
+  fatal
+}
+
+model User {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+
+  diagnoses Diagnosis[]
+  forecasts Forecast[]
+  reports   Report[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model Diagnosis {
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  patientAge     Int?
+  patientSex     PatientSex?
+  location       String?
+  latitude       Decimal?
+  longitude      Decimal?
+  imageUrl       String?
+  result         String?
+  confidence     Decimal?
+  parasiteCount  Int?
+  species        String?
+  symptoms       Json?
+  modelVersion   String?
+  processingTime Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Forecast {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  location    String?
+  latitude    Decimal?
+  longitude   Decimal?
+  region      String?
+  country     String?
+  startDate   DateTime
+  endDate     DateTime
+  riskLevel   RiskLevel?
+  casesLow    Int?
+  casesHigh   Int?
+  casesMean   Decimal?
+  temperature Decimal?
+  rainfall    Decimal?
+  humidity    Decimal?
+  modelVersion String?
+  confidence   Decimal?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Report {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String
+  type      ReportType
+  content   Json?
+  status    ReportStatus @default(draft)
+  dateFrom  DateTime?
+  dateTo    DateTime?
+  location  String?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+}
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  level     LogLevel
+  service   String
+  message   String
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([level, createdAt])
+  @@index([service, createdAt])
+}

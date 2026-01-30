@@ -12,13 +12,16 @@ import { apiClient } from "@/lib/api";
 import { ForecastResult } from "@/lib/types";
 import { forecastSchema, ForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
+import { ForecastService } from "@/lib/db";
+import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { INDIA_REGIONS } from "@/lib/constants";
 import {
   TrendingUp,
   MapPin,
   Calendar,
   Loader2,
-  Info
+  Info,
+  Database
 } from "lucide-react";
 
 interface ForecastFormProps {
@@ -30,6 +33,7 @@ interface ForecastFormProps {
 
 export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) => {
   const { toast } = useToast();
+  const { clerkId, isSignedIn } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ForecastFormData>({
@@ -50,7 +54,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
     try {
       const result = await apiClient.forecastRegion(data);
 
-      // Store result in localStorage
+      // Store result in localStorage (for backward compatibility)
       const storedResult = {
         id: Date.now().toString(),
         type: 'forecast' as const,
@@ -61,12 +65,52 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
 
       StorageManager.saveResult(storedResult);
 
-      onResult(result);
+      // Save to database if user is signed in
+      if (isSignedIn && clerkId) {
+        try {
+          // Determine risk level from hotspot score
+          let riskLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
+          if (result.hotspot_score) {
+            if (result.hotspot_score >= 0.75) riskLevel = 'critical';
+            else if (result.hotspot_score >= 0.5) riskLevel = 'high';
+            else if (result.hotspot_score >= 0.25) riskLevel = 'medium';
+          }
 
-      toast({
-        title: "Forecast Generated",
-        description: `${data.horizon_weeks}-week prediction for ${data.region} completed`,
-      });
+          await ForecastService.createFromMLResult(
+            clerkId,
+            data.region,
+            data.horizon_weeks,
+            {
+              predictions: result.predictions,
+              hotspot_score: result.hotspot_score,
+              riskLevel,
+            }
+          );
+
+          toast({
+            title: "Forecast Generated",
+            description: (
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-green-500" />
+                <span>{data.horizon_weeks}-week prediction for {data.region} saved</span>
+              </div>
+            ),
+          });
+        } catch (dbError) {
+          console.error("Failed to save forecast to database:", dbError);
+          toast({
+            title: "Forecast Generated",
+            description: `${data.horizon_weeks}-week prediction for ${data.region} completed. Note: Failed to sync with cloud.`,
+          });
+        }
+      } else {
+        toast({
+          title: "Forecast Generated",
+          description: `${data.horizon_weeks}-week prediction for ${data.region} completed`,
+        });
+      }
+
+      onResult(result);
 
     } catch (error) {
       console.error('Forecast submission error:', error);
@@ -155,6 +199,14 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
             )}
           />
         </div>
+
+        {/* Signed in indicator */}
+        {isSignedIn && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+            <Database className="h-4 w-4 text-green-600" />
+            <span className="text-xs text-green-700 font-medium">Forecasts will be saved to your account</span>
+          </div>
+        )}
 
         {/* Info Card */}
         <div className="bg-primary/5 border border-primary/10 rounded-[20px] p-5">

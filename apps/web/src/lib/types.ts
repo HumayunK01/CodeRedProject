@@ -7,7 +7,7 @@ export type {
   Forecast,
   Report,
   SystemLog,
-} from "../../../database/generated";
+} from "@prisma/client";
 
 export interface DiagnosisResult {
   label: string;

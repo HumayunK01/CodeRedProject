@@ -15,6 +15,8 @@ import { apiClient } from "@/lib/api";
 import { DiagnosisResult } from "@/lib/types";
 import { symptomsSchema, SymptomsFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
+import { DiagnosisService } from "@/lib/db";
+import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { INDIA_REGIONS } from "@/lib/constants";
 import {
   Stethoscope,
@@ -30,7 +32,8 @@ import {
   ChevronRight,
   Info,
   ChevronDown,
-  Check
+  Check,
+  Database
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -54,6 +57,7 @@ const symptoms = [
 
 export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) => {
   const { toast } = useToast();
+  const { clerkId, isSignedIn } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -71,6 +75,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     onLoadingChange(true);
     try {
       const result = await apiClient.predictSymptoms(data);
+
+      // Store result in localStorage (for backward compatibility)
       const storedResult = {
         id: Date.now().toString(),
         type: 'diagnosis' as const,
@@ -79,8 +85,59 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
         result
       };
       StorageManager.saveResult(storedResult);
+
+      // Save to database if user is signed in
+      if (isSignedIn && clerkId) {
+        try {
+          // Convert symptoms to the format expected by DiagnosisService
+          const symptomsMap: Record<string, boolean> = {
+            fever: data.fever,
+            chills: data.chills,
+            headache: data.headache,
+            fatigue: data.fatigue,
+            muscle_aches: data.muscle_aches,
+            nausea: data.nausea,
+            diarrhea: data.diarrhea,
+            abdominal_pain: data.abdominal_pain,
+            cough: data.cough,
+            skin_rash: data.skin_rash,
+          };
+
+          await DiagnosisService.createFromMLResult(
+            clerkId,
+            "", // No image for symptom-based diagnosis
+            {
+              label: result.label,
+              confidence: result.confidence,
+            },
+            {
+              patientAge: data.age,
+              location: data.region,
+              symptoms: symptomsMap,
+            }
+          );
+
+          toast({
+            title: "Assessment Complete",
+            description: (
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-green-500" />
+                <span>Risk Level: {result.label} - Saved to your account</span>
+              </div>
+            ),
+          });
+        } catch (dbError) {
+          console.error("Failed to save diagnosis to database:", dbError);
+          toast({
+            title: "Assessment Complete",
+            description: `Risk Level: ${result.label}. Note: Failed to sync with cloud.`,
+          });
+        }
+      } else {
+        toast({ title: "Assessment Complete", description: `Risk Level: ${result.label}` });
+      }
+
       onResult(result);
-      toast({ title: "Assessment Complete", description: `Risk Level: ${result.label}` });
       form.reset();
     } catch (error) {
       toast({
@@ -161,13 +218,6 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    {/* 
-                      Fixes:
-                      1. onWheel/onTouchMove stopPropagation: Prevents 'scroll chaining' so the page doesn't scroll when scrolling the list.
-                      2. z-[9999]: Ensures it is definitely on top.
-                      3. Modal behavior: The scrolling issue is often due to the portal not locking body scroll, 
-                         but manually stopping visual scroll events is a robust fix for the dropdown experience.
-                    */}
                     <PopoverContent
                       className="w-[300px] p-0 rounded-xl bg-white/95 backdrop-blur-xl border-primary/10 shadow-2xl z-40"
                       onWheel={(e) => e.stopPropagation()}
@@ -263,6 +313,14 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             })}
           </div>
         </div>
+
+        {/* Signed in indicator */}
+        {isSignedIn && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+            <Database className="h-4 w-4 text-green-600" />
+            <span className="text-xs text-green-700 font-medium">Results will be saved to your account</span>
+          </div>
+        )}
 
         {/* Submit */}
         <Button

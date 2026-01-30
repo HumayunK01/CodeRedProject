@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkline } from "@/components/ui/sparkline";
 import { apiClient } from "@/lib/api";
+import { useCurrentUser } from "@/components/providers/DbUserProvider";
+import { DiagnosisService, ForecastService } from "@/lib/db";
 import {
   Microscope,
   TrendingUp,
@@ -20,6 +22,9 @@ import {
   Shield,
   Globe,
   BarChart3,
+  Database,
+  User,
+  Loader2
 } from "lucide-react";
 
 // --- Sub-components for Clean Code Architecture ---
@@ -70,7 +75,7 @@ const MetricCard = ({ stat }: { stat: any }) => {
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-primary/5">
-            <span className="text-[11px] text-foreground/60 font-semibold">RELIABILITY</span>
+            <span className="text-[11px] text-foreground/60 font-semibold">{stat.source === 'db' ? 'YOUR DATA' : 'RELIABILITY'}</span>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3 w-3 text-foreground/20 hover:text-primary cursor-help" />
@@ -139,14 +144,140 @@ const InfrastructureMetric = ({ metric }: { metric: any }) => (
   </div>
 );
 
+// User Stats Card - Shows database-synced user stats
+const UserStatsCard = () => {
+  const { userWithStats, isSignedIn, isLoading } = useCurrentUser();
+  const [dbStats, setDbStats] = useState<{
+    diagnosisCount: number;
+    forecastCount: number;
+    lastActivity: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchUserDbStats = async () => {
+      if (!userWithStats?.clerkId) return;
+
+      try {
+        const [diagStats, forecastStats] = await Promise.all([
+          DiagnosisService.getStatsByClerkId(userWithStats.clerkId),
+          ForecastService.getStatsByClerkId(userWithStats.clerkId),
+        ]);
+
+        const lastDiag = diagStats?.lastDiagnosis;
+        const lastForc = forecastStats?.lastForecast;
+        let lastActivity = null;
+
+        if (lastDiag && lastForc) {
+          lastActivity = new Date(lastDiag) > new Date(lastForc)
+            ? new Date(lastDiag).toLocaleDateString()
+            : new Date(lastForc).toLocaleDateString();
+        } else if (lastDiag) {
+          lastActivity = new Date(lastDiag).toLocaleDateString();
+        } else if (lastForc) {
+          lastActivity = new Date(lastForc).toLocaleDateString();
+        }
+
+        setDbStats({
+          diagnosisCount: diagStats?.total || 0,
+          forecastCount: forecastStats?.total || 0,
+          lastActivity,
+        });
+      } catch (error) {
+        console.error("Failed to fetch user DB stats:", error);
+      }
+    };
+
+    fetchUserDbStats();
+  }, [userWithStats?.clerkId]);
+
+  if (!isSignedIn) {
+    return (
+      <DashboardContainer className="bg-white/90 p-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
+            <User className="h-6 w-6 text-primary/60" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-primary">Sign in to sync your data</h3>
+            <p className="text-xs text-foreground/60 uppercase tracking-wide font-medium">Cloud Storage & Cross-Device Access</p>
+          </div>
+        </div>
+      </DashboardContainer>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardContainer className="bg-white/90 p-8 flex items-center justify-center gap-3 min-h-[160px]">
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <span className="text-sm font-medium text-primary/80">Syncing your data...</span>
+      </DashboardContainer>
+    );
+  }
+
+  return (
+    <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+      <SectionHeader
+        icon={Database}
+        title="Your Synced Data"
+        subtitle="Cloud Storage"
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Diagnoses */}
+        <div className="p-4 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center gap-2 group cursor-default">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+            <Microscope className="h-5 w-5 text-primary group-hover:text-white" />
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{dbStats?.diagnosisCount || userWithStats?._count?.diagnoses || 0}</p>
+            <p className="text-[10px] text-foreground/50 uppercase font-semibold tracking-widest mt-1">Diagnoses</p>
+          </div>
+        </div>
+
+        {/* Forecasts */}
+        <div className="p-4 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center gap-2 group cursor-default">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+            <TrendingUp className="h-5 w-5 text-primary group-hover:text-white" />
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{dbStats?.forecastCount || userWithStats?._count?.forecasts || 0}</p>
+            <p className="text-[10px] text-foreground/50 uppercase font-semibold tracking-widest mt-1">Forecasts</p>
+          </div>
+        </div>
+
+        {/* Reports */}
+        <div className="p-4 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center gap-2 group cursor-default">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+            <FileText className="h-5 w-5 text-primary group-hover:text-white" />
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{userWithStats?._count?.reports || 0}</p>
+            <p className="text-[10px] text-foreground/50 uppercase font-semibold tracking-widest mt-1">Reports</p>
+          </div>
+        </div>
+      </div>
+
+      {dbStats?.lastActivity && (
+        <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-primary/5">
+          <Clock className="h-3 w-3 text-foreground/40" />
+          <p className="text-xs text-foreground/50 font-medium tracking-wide">Last activity: {dbStats.lastActivity}</p>
+        </div>
+      )}
+    </DashboardContainer>
+  );
+};
+
 // --- Main Dashboard Page Component ---
 
 const Dashboard = () => {
+  const { clerkId, isSignedIn } = useCurrentUser();
+
   const [quickStats, setQuickStats] = useState([
-    { title: "Today's Diagnoses", value: 0, change: "+0%", trend: "stable", icon: Microscope, tooltip: "Tests completed today", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
-    { title: "Active Forecasts", value: 0, change: "+0", trend: "stable", icon: TrendingUp, tooltip: "Regional outbreaks forecasting", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
-    { title: "Risk Regions", value: 0, change: "+0", trend: "stable", icon: MapPin, tooltip: "High-risk regions identified", sparklineData: Array(5).fill({ value: 0 }), suffix: "" },
-    { title: "System Health", value: 0, change: "Unknown", trend: "stable", icon: Activity, tooltip: "System performance status", sparklineData: Array(5).fill({ value: 0 }), suffix: "%" }
+    { title: "Today's Diagnoses", value: 0, change: "+0%", trend: "stable", icon: Microscope, tooltip: "Tests completed today", sparklineData: Array(5).fill({ value: 0 }), suffix: "", source: "api" },
+    { title: "Active Forecasts", value: 0, change: "+0", trend: "stable", icon: TrendingUp, tooltip: "Regional outbreaks forecasting", sparklineData: Array(5).fill({ value: 0 }), suffix: "", source: "api" },
+    { title: "Risk Regions", value: 0, change: "+0", trend: "stable", icon: MapPin, tooltip: "High-risk regions identified", sparklineData: Array(5).fill({ value: 0 }), suffix: "", source: "api" },
+    { title: "System Health", value: 0, change: "Unknown", trend: "stable", icon: Activity, tooltip: "System performance status", sparklineData: Array(5).fill({ value: 0 }), suffix: "%", source: "api" }
   ]);
 
   const [systemMetrics, setSystemMetrics] = useState([
@@ -159,17 +290,63 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user-specific stats from database
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!isSignedIn || !clerkId) return;
+
+      try {
+        const [diagStats, forecastStats] = await Promise.all([
+          DiagnosisService.getStatsByClerkId(clerkId),
+          ForecastService.getStatsByClerkId(clerkId),
+        ]);
+
+        // Update quick stats with user data
+        setQuickStats(prev => prev.map(stat => {
+          if (stat.title === "Today's Diagnoses" && diagStats) {
+            return {
+              ...stat,
+              value: diagStats.total,
+              change: diagStats.positive > 0 ? `${diagStats.positive} positive` : "All clear",
+              sparklineData: [60, 80, 75, 90, diagStats.total * 10 || 85].map(v => ({ value: v })),
+              tooltip: `${diagStats.total} total diagnoses, ${diagStats.positive} positive`,
+              source: 'db'
+            };
+          }
+          if (stat.title === "Active Forecasts" && forecastStats) {
+            return {
+              ...stat,
+              value: forecastStats.active,
+              change: forecastStats.highRisk > 0 ? `${forecastStats.highRisk} high risk` : "Low risk",
+              sparklineData: [40, 50, 65, 55, forecastStats.active * 15 || 70].map(v => ({ value: v })),
+              tooltip: `${forecastStats.total} total, ${forecastStats.active} active forecasts`,
+              source: 'db'
+            };
+          }
+          return stat;
+        }));
+      } catch (error) {
+        console.error("Failed to fetch user stats:", error);
+      }
+    };
+
+    fetchUserStats();
+  }, [clerkId, isSignedIn]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const stats = await apiClient.getDashboardStats();
 
-        setQuickStats([
-          { title: "Today's Diagnoses", value: stats.today_diagnoses, change: "+12%", trend: "up", icon: Microscope, tooltip: "Tests completed today", sparklineData: [60, 80, 75, 90, 85].map(v => ({ value: v })), suffix: "" },
-          { title: "Active Forecasts", value: stats.active_forecasts, change: "+3", trend: "up", icon: TrendingUp, tooltip: "Active breakout models", sparklineData: [40, 50, 65, 55, 70].map(v => ({ value: v })), suffix: "" },
-          { title: "Risk Regions", value: stats.risk_regions, change: "-2", trend: "down", icon: MapPin, tooltip: "Monitored hotspots", sparklineData: [90, 80, 70, 75, 60].map(v => ({ value: v })), suffix: "" },
-          { title: "System Health", value: stats.system_health, change: "Excellent", trend: "stable", icon: Activity, tooltip: "Uptime and response quality", sparklineData: [99, 98, 99.5, 99, 99.2].map(v => ({ value: v })), suffix: "%" }
-        ]);
+        setQuickStats(prev => {
+          // Merge API stats with any existing DB stats
+          return [
+            prev[0].source === 'db' ? prev[0] : { title: "Today's Diagnoses", value: stats.today_diagnoses, change: "+12%", trend: "up", icon: Microscope, tooltip: "Tests completed today", sparklineData: [60, 80, 75, 90, 85].map(v => ({ value: v })), suffix: "", source: "api" },
+            prev[1].source === 'db' ? prev[1] : { title: "Active Forecasts", value: stats.active_forecasts, change: "+3", trend: "up", icon: TrendingUp, tooltip: "Active breakout models", sparklineData: [40, 50, 65, 55, 70].map(v => ({ value: v })), suffix: "", source: "api" },
+            { title: "Risk Regions", value: stats.risk_regions, change: "-2", trend: "down", icon: MapPin, tooltip: "Monitored hotspots", sparklineData: [90, 80, 70, 75, 60].map(v => ({ value: v })), suffix: "", source: "api" },
+            { title: "System Health", value: stats.system_health, change: "Excellent", trend: "stable", icon: Activity, tooltip: "Uptime and response quality", sparklineData: [99, 98, 99.5, 99, 99.2].map(v => ({ value: v })), suffix: "%", source: "api" }
+          ];
+        });
 
         setSystemMetrics([
           { title: "Model Accuracy", value: stats.model_accuracy, status: "excellent", icon: Brain },
@@ -207,6 +384,11 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* User Stats Card - Shows synced data */}
+      <section className="mx-2">
+        <UserStatsCard />
       </section>
 
       {/* Primary Metrics Section */}

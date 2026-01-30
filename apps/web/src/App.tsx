@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Preloader } from "@/components/ui/preloader";
+import { DbUserProvider } from "@/components/providers/DbUserProvider";
 
 // Pages
 import Home from "./pages/Home";
@@ -100,9 +101,11 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <MainLayout>
-              <AnimatedRoutes />
-            </MainLayout>
+            <DbUserProvider>
+              <MainLayout>
+                <AnimatedRoutes />
+              </MainLayout>
+            </DbUserProvider>
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>

@@ -7,6 +7,8 @@ import { apiClient } from "@/lib/api";
 import { DiagnosisResult } from "@/lib/types";
 import { imageUploadSchema } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
+import { DiagnosisService } from "@/lib/db";
+import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import {
   Upload,
   X,
@@ -14,7 +16,8 @@ import {
   AlertCircle,
   Loader2,
   Scan,
-  ImageIcon
+  ImageIcon,
+  Database
 } from "lucide-react";
 
 interface ImageUploaderProps {
@@ -24,11 +27,13 @@ interface ImageUploaderProps {
 
 export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps) => {
   const { toast } = useToast();
+  const { clerkId, isSignedIn } = useCurrentUser();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const handleFile = useCallback((file: File) => {
     try {
@@ -86,6 +91,8 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
     onLoadingChange(true);
     try {
       const result = await apiClient.predictImage(selectedFile);
+
+      // Store result in localStorage (for backward compatibility)
       const storedResult = {
         id: Date.now().toString(),
         type: 'diagnosis' as const,
@@ -94,11 +101,45 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
         result
       };
       StorageManager.saveResult(storedResult);
+
+      // Save to database if user is signed in
+      if (isSignedIn && clerkId) {
+        try {
+          await DiagnosisService.createFromMLResult(
+            clerkId,
+            preview || selectedFile.name, // Use base64 preview or filename as imageUrl
+            {
+              label: result.label,
+              confidence: result.confidence,
+            }
+          );
+
+
+          toast({
+            title: "Analysis Complete",
+            description: (
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-green-500" />
+                <span>Result saved: {result.label} ({(result.confidence * 100).toFixed(1)}% confidence)</span>
+              </div>
+            ),
+          });
+        } catch (dbError) {
+          console.error("Failed to save diagnosis to database:", dbError);
+          // Still show success but warn about DB
+          toast({
+            title: "Analysis Complete",
+            description: `Diagnosis: ${result.label} (${(result.confidence * 100).toFixed(1)}% confidence). Note: Failed to sync with cloud.`,
+          });
+        }
+      } else {
+        toast({
+          title: "Analysis Complete",
+          description: `Diagnosis: ${result.label} (${(result.confidence * 100).toFixed(1)}% confidence)`,
+        });
+      }
+
       onResult(result);
-      toast({
-        title: "Analysis Complete",
-        description: `Diagnosis: ${result.label} (${(result.confidence * 100).toFixed(1)}% confidence)`,
-      });
 
       // Reset the uploader for the next image
       clearFile();
@@ -196,6 +237,14 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
           >
             {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</> : <><ImageIcon className="mr-2 h-4 w-4" /> Run Image Analysis</>}
           </Button>
+        </div>
+      )}
+
+      {/* Signed in indicator */}
+      {isSignedIn && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+          <Database className="h-4 w-4 text-green-600" />
+          <span className="text-xs text-green-700 font-medium">Results will be saved to your account</span>
         </div>
       )}
 
