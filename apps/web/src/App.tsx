@@ -18,8 +18,6 @@ import Dashboard from "./pages/Dashboard";
 import Diagnosis from "./pages/Diagnosis";
 import Forecast from "./pages/Forecast";
 import Reports from "./pages/Reports";
-import About from "./pages/About";
-import Docs from "./pages/Docs";
 import Status from "./pages/Status";
 import Usecase from "./pages/Usecase";
 import NotFound from "./pages/NotFound";
@@ -47,8 +45,6 @@ const AnimatedRoutes = () => {
           <Route path="/diagnosis" element={<Diagnosis />} />
           <Route path="/forecast" element={<Forecast />} />
           <Route path="/reports" element={<Reports />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/docs" element={<Docs />} />
           <Route path="/status" element={<Status />} />
           <Route path="/usecase" element={<Usecase />} />
           <Route path="*" element={<NotFound />} />

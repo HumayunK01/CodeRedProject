@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, Activity, Settings, FileText, TrendingUp, Microscope, Zap, Brain, Play, Sparkles, Home } from "lucide-react";
+import { Menu, Activity, TrendingUp, Microscope, Home, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -11,14 +11,7 @@ import {
   SignUpButton,
   UserButton
 } from "@clerk/clerk-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Sheet,
   SheetContent,
@@ -148,37 +141,7 @@ export const Navbar = () => {
             />
           </SignedIn>
 
-          {/* Settings / More Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full w-10 h-10 bg-secondary/50 hover:bg-secondary text-primary border border-primary/5 hover:border-primary/20"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-primary/10 shadow-xl bg-white/95 backdrop-blur-md">
-              <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-primary/50 uppercase tracking-wider">
-                Resources
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate('/docs')} className="rounded-lg focus:bg-secondary cursor-pointer">
-                <FileText className="mr-2 h-4 w-4 text-primary" />
-                <span>Documentation</span>
-              </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="bg-primary/5 my-1" />
-
-              <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-primary/50 uppercase tracking-wider">
-                Company
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate('/about')} className="rounded-lg focus:bg-secondary cursor-pointer">
-                <Brain className="mr-2 h-4 w-4 text-primary" />
-                <span>About</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         {/* Mobile Menu Toggle (Visible on small screens) */}
@@ -226,32 +189,7 @@ export const Navbar = () => {
                     );
                   })}
 
-                  {/* Settings Link for Mobile */}
-                  <Link
-                    to="/about"
-                    className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${location.pathname === '/about'
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Brain className="w-5 h-5" />
-                      <span>About</span>
-                    </div>
-                  </Link>
 
-                  <Link
-                    to="/docs"
-                    className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${location.pathname === '/docs'
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5" />
-                      <span>Documentation</span>
-                    </div>
-                  </Link>
 
                 </div>
 

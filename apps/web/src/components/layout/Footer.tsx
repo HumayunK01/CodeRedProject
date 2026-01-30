@@ -7,8 +7,7 @@ import {
   Microscope,
   Mail,
   MapPin,
-  Github,
-  Linkedin,
+
   Heart,
   Shield,
   Brain,
@@ -29,20 +28,13 @@ const Footer = () => {
       { name: "Forecasting", href: "/forecast" },
       { name: "Analytics", href: "/reports" },
     ],
-    company: [
-      { name: "About", href: "/about" },
-      { name: "Contact", href: "/about#contact" },
-    ],
     legal: [
       { name: "Privacy", href: "/privacy" },
       { name: "Terms", href: "/terms" },
     ]
   };
 
-  const socialLinks = [
-    { name: "GitHub", href: "https://github.com/HumayunK01", icon: Github },
-    { name: "LinkedIn", href: "https://www.linkedin.com/in/devhumayun/", icon: Linkedin }
-  ];
+
 
   return (
     <footer className="mt-2 mx-2 mb-2 rounded-[24px] section-dark border border-white/10 shadow-sm overflow-hidden relative">
@@ -71,20 +63,7 @@ const Footer = () => {
                 We build tools for the decisions that actually count—replacing uncertainty with clear, clinical direction.
               </p>
 
-              <div className="flex items-center gap-4 pt-2">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white/60 hover:text-white transition-colors duration-200"
-                    aria-label={social.name}
-                  >
-                    <social.icon className="h-5 w-5" />
-                  </a>
-                ))}
-              </div>
+
             </motion.div>
           </div>
 
@@ -113,28 +92,7 @@ const Footer = () => {
               </ul>
             </motion.div>
 
-            {/* Company */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="space-y-4"
-            >
-              <h4 className="font-medium text-white text-sm tracking-wider uppercase opacity-80">Company</h4>
-              <ul className="space-y-3">
-                {footerLinks.company.map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      to={link.href}
-                      className="text-white/60 hover:text-white transition-colors duration-200 text-sm"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+
 
             {/* Legal */}
             <motion.div
