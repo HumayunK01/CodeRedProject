@@ -10,3 +10,4 @@ statsmodels
 tensorflow
 psycopg2-binary
 python-dotenv
+gunicorn
