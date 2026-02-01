@@ -3,5 +3,11 @@
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
     "installCommand": "npm install --legacy-peer-deps",
-    "framework": "vite"
+    "framework": "vite",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
 }
