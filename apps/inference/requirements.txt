@@ -8,6 +8,6 @@ pillow
 opencv-python
 statsmodels
 tensorflow
-psycopg2-binary
+psycopg[binary]
 python-dotenv
 gunicorn

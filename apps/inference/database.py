@@ -1,11 +1,11 @@
 """
 Database module for OutbreakLens Flask API
-Handles PostgreSQL connection and CRUD operations using psycopg2
+Handles PostgreSQL connection and CRUD operations using psycopg (psycopg3)
 """
 
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg
+from psycopg.rows import dict_row
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
@@ -18,10 +18,10 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
-    """Get a database connection with RealDictCursor for dict-like results"""
+    """Get a database connection with dict_row for dict-like results"""
     if not DATABASE_URL:
         raise Exception("DATABASE_URL not configured")
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 
 # ============================================================================
