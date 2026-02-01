@@ -83,6 +83,50 @@ def health_check():
 # DATABASE API ENDPOINTS
 # ============================================================================
 
+@app.route("/api/db-test", methods=["GET"])
+def test_db_connection():
+    """Test database connection - for debugging"""
+    import os
+    import traceback
+    
+    db_url = os.getenv("DATABASE_URL")
+    
+    result = {
+        "db_url_exists": db_url is not None,
+        "db_url_length": len(db_url) if db_url else 0,
+    }
+    
+    if not db_url:
+        result["status"] = "error"
+        result["message"] = "DATABASE_URL environment variable is not set"
+        return jsonify(result), 500
+    
+    # Mask the password in the URL for display
+    if "@" in db_url:
+        parts = db_url.split("@")
+        result["db_host"] = parts[1].split("/")[0] if len(parts) > 1 else "unknown"
+    
+    try:
+        import psycopg
+        result["psycopg_version"] = psycopg.__version__
+        
+        conn = psycopg.connect(db_url)
+        cur = conn.execute("SELECT 1 as test")
+        row = cur.fetchone()
+        conn.close()
+        
+        result["status"] = "ok"
+        result["message"] = "Database connection successful"
+        result["test_result"] = row[0] if row else None
+        return jsonify(result)
+        
+    except Exception as e:
+        result["status"] = "error"
+        result["message"] = str(e)
+        result["error_type"] = type(e).__name__
+        result["traceback"] = traceback.format_exc()
+        return jsonify(result), 500
+
 @app.route("/api/users/sync", methods=["POST"])
 def sync_user():
     """Sync a Clerk user with the database (create or update)"""
