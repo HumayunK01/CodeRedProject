@@ -1,7 +1,7 @@
 {
-    "name": "@outbreaklens/database",
+    "name": "@foresee/database",
     "version": "1.0.0",
-    "description": "Database services for OutbreakLens",
+    "description": "Database services for Foresee",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -20,8 +20,10 @@
         "dev": "tsc --watch",
         "generate": "prisma generate",
         "migrate": "prisma migrate dev",
+        "migrate:deploy": "prisma migrate deploy",
         "push": "prisma db push",
         "studio": "prisma studio",
+        "seed": "prisma db seed",
         "verify": "npx tsx src/verify-prisma.ts"
     },
     "dependencies": {
