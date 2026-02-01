@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway
+# Force Python detection instead of Node.js
+
+[phases.setup]
+nixPkgs = ["python311", "gcc"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "gunicorn flask_app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+
+[variables]
+PYTHON_VERSION = "3.11"

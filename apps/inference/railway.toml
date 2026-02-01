@@ -1,5 +1,6 @@
 [build]
 builder = "nixpacks"
+nixpacksConfigPath = "nixpacks.toml"
 
 [deploy]
 startCommand = "gunicorn flask_app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
@@ -7,7 +8,3 @@ healthcheckPath = "/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[env]
-PORT = 8000
-PYTHON_VERSION = "3.11"
