@@ -4,6 +4,7 @@ import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ForecastForm } from "@/components/forecast/ForecastForm";
 import { ForecastResults } from "@/components/forecast/ForecastResults";
+import { ClinicalAdvisory } from "@/components/ui/clinical-advisory";
 import { ForecastResult } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -142,13 +143,16 @@ const Forecast = () => {
         </div>
       </section>
 
+      {/* Clinical Advisory Disclaimer */}
+      < ClinicalAdvisory />
+
       {/* Main Layout Grid */}
-      <div className="mx-2 grid lg:grid-cols-12 gap-4 items-stretch relative px-1">
+      <div className="mx-2 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Forecast Parameters (Sidebar) */}
         <div className="lg:col-span-4 space-y-4 relative z-0">
-          <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4">
+          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8 lg:sticky lg:top-4">
             <SectionHeader
               icon={Settings}
               title="Configuration"
@@ -171,8 +175,8 @@ const Forecast = () => {
         </div>
 
         {/* Column 2: Forecast Results (Main Area) */}
-        <div className="lg:col-span-8 space-y-4 relative z-0">
-          <DashboardContainer className="bg-white/90 p-6 lg:p-8 h-full flex flex-col">
+        <div className="lg:col-span-8 space-y-4 relative z-0 lg:mt-0">
+          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8 h-full flex flex-col">
             <div className="space-y-1 mb-6 shrink-0">
               <SectionHeader
                 icon={TrendingUp}
@@ -195,7 +199,7 @@ const Forecast = () => {
           </DashboardContainer>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

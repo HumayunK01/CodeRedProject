@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DualModeDiagnosis } from "@/components/diagnosis/DualModeDiagnosis";
 import { DiagnosisResults } from "@/components/diagnosis/DiagnosisResults";
+import { ClinicalAdvisory } from "@/components/ui/clinical-advisory";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import { StorageManager } from "@/lib/storage";
 import { useAuth, SignInButton } from "@clerk/clerk-react";
@@ -226,13 +227,16 @@ const Diagnosis = () => {
         </div>
       </section>
 
+      {/* Clinical Advisory Disclaimer */}
+      < ClinicalAdvisory />
+
       {/* Main Layout Grid */}
-      <div className="mx-2 grid lg:grid-cols-12 gap-4 items-start relative px-1">
+      <div className="mx-2 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Assessment Form */}
         <div className="lg:col-span-8 space-y-4 relative z-0">
-          <DashboardContainer className="bg-white/90 p-6 lg:p-8">
+          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8">
             <SectionHeader
               icon={TestTube}
               title="Patient Assessment"
@@ -255,8 +259,8 @@ const Diagnosis = () => {
         </div>
 
         {/* Column 2: Results Sidebar */}
-        <div className="lg:col-span-4 h-full relative z-0">
-          <DashboardContainer className="bg-white/90 p-6 lg:p-8 sticky top-4 shadow-sm h-full flex flex-col">
+        <div className="lg:col-span-4 lg:h-full relative z-0 lg:mt-0">
+          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8 lg:sticky lg:top-4 shadow-sm h-full flex flex-col">
             <SectionHeader icon={Activity} title="Analysis Results" subtitle="Real-time Output" />
             <div className="flex-1">
               {isSignedIn ? (
@@ -271,7 +275,7 @@ const Diagnosis = () => {
           </DashboardContainer>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
