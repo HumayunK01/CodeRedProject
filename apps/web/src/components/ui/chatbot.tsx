@@ -7,7 +7,6 @@ import { chatbotService, ChatMessage } from '@/lib/chatbot';
 import {
   Send,
   Loader2,
-  Bot,
   RefreshCw
 } from 'lucide-react';
 import {
@@ -42,23 +41,15 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
 
   // Initialize chat with AI welcome message
   useEffect(() => {
-    const initChat = async () => {
-      try {
-        const welcome = await chatbotService.getWelcomeMessage();
-        setMessages([{
-          id: '1',
-          role: 'assistant',
-          content: welcome,
-          timestamp: new Date()
-        }]);
-      } catch (error) {
-        console.error('Failed to init chat:', error);
-      } finally {
-        setIsInitializing(false);
-      }
-    };
+    const welcome = "Hello! 👋 I'm your Foresee AI Assistant, here to help you with all things related to malaria.\n\nI can assist you with:\n• Understanding malaria symptoms and diagnosis\n• Learning about outbreak forecasting and prevention\n• Getting region-specific risk information\n• Navigating the Foresee platform\n\nWhat would you like to know?";
 
-    initChat();
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: welcome,
+      timestamp: new Date()
+    }]);
+    setIsInitializing(false);
   }, []);
 
   // Focus input when chat opens
@@ -130,24 +121,20 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
     }
   };
 
-  const startNewChat = async () => {
+  const startNewChat = () => {
     setMessages([]);
     setIsInitializing(true);
     setInputValue('');
 
-    try {
-      const welcome = await chatbotService.getWelcomeMessage();
-      setMessages([{
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: welcome,
-        timestamp: new Date()
-      }]);
-    } catch (error) {
-      console.error('Failed to restart chat:', error);
-    } finally {
-      setIsInitializing(false);
-    }
+    const welcome = "Hello! 👋 I'm your Foresee AI Assistant, here to help you with all things related to malaria.\n\nI can assist you with:\n• Understanding malaria symptoms and diagnosis\n• Learning about outbreak forecasting and prevention\n• Getting region-specific risk information\n• Navigating the Foresee platform\n\nWhat would you like to know?";
+
+    setMessages([{
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: welcome,
+      timestamp: new Date()
+    }]);
+    setIsInitializing(false);
   };
 
   return (
@@ -155,7 +142,7 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
       <ExpandableChat
         size="lg"
         position="bottom-right"
-        icon={<Bot className="h-6 w-6" />}
+        icon={<img src="/chatbubble.png" alt="Chat" className="h-[50px] w-[50px] object-contain drop-shadow-xl" />}
         isOpen={isOpen}
         onOpenChange={onToggle}
       >
@@ -167,7 +154,7 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
             variant="ghost"
             size="icon"
             onClick={startNewChat}
-            className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors hover:bg-primary/10"
+            className="hidden sm:flex h-6 w-6 text-muted-foreground hover:text-primary transition-colors hover:bg-primary/10"
             title="Start New Chat"
           >
             <RefreshCw className="size-3.5" />

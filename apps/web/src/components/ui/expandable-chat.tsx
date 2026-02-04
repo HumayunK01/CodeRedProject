@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { X, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -138,23 +138,38 @@ const ExpandableChatToggle: React.FC<ExpandableChatToggleProps> = ({
     isOpen,
     toggleChat,
     ...props
-}) => (
-    <Button
-        variant="default"
-        onClick={toggleChat}
-        className={cn(
-            "w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90",
-            className,
-        )}
-        {...props}
-    >
-        {isOpen ? (
-            <X className="h-6 w-6 text-primary-foreground" />
-        ) : (
-            icon || <MessageCircle className="h-6 w-6 text-primary-foreground" />
-        )}
-    </Button>
-);
+}) => {
+    return (
+        <div className="relative">
+            {/* Notification Dot */}
+            {!isOpen && (
+                <div className="absolute top-0.5 -right-0.5 z-10">
+                    <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border-2 border-white dark:border-background shadow-lg" />
+                </div>
+            )}
+
+            {/* Chat Button */}
+            <Button
+                variant="default"
+                onClick={toggleChat}
+                className={cn(
+                    "flex items-center justify-center transition-all duration-300",
+                    isOpen
+                        ? "w-14 h-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+                        : "w-auto h-auto rounded-none shadow-none bg-transparent hover:bg-transparent p-0 hover:scale-110",
+                    className,
+                )}
+                {...props}
+            >
+                {isOpen ? (
+                    <X className="h-6 w-6 text-primary-foreground" />
+                ) : (
+                    icon || <MessageCircle className="h-6 w-6 text-primary-foreground" />
+                )}
+            </Button>
+        </div>
+    );
+};
 
 ExpandableChatToggle.displayName = "ExpandableChatToggle";
 

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Brain, Activity, Phone } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { featureHeadline } from "@/data/landing-page";
 
 export const Features = () => {
@@ -13,7 +13,7 @@ export const Features = () => {
             <div className="container-saas relative z-10 flex flex-col items-center justify-center min-h-[300px] py-16">
                 <div className="flex flex-col gap-2 md:gap-4 items-center">
                     {/* Line 1 */}
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden py-4">
                         <motion.div
                             initial={{ y: "100%" }}
                             whileInView={{ y: 0 }}
@@ -23,16 +23,18 @@ export const Features = () => {
                         >
                             <p className="text-3xl md:text-5xl font-normal leading-tight text-white/90 tracking-tight flex flex-wrap items-center justify-center gap-3 md:gap-4">
                                 <span>{featureHeadline.part1}</span>
-                                <span className="inline-flex items-center justify-center w-10 h-10 md:w-16 md:h-16 rounded-full bg-white/5 border border-white/10 align-middle backdrop-blur-sm shadow-2xl">
-                                    <Brain className="w-5 h-5 md:w-8 md:h-8 text-accent" />
-                                </span>
+                                <img
+                                    src="/results.png"
+                                    alt="Brain"
+                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                />
                                 <span>{featureHeadline.part2}</span>
                             </p>
                         </motion.div>
                     </div>
 
                     {/* Line 2 */}
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden py-4">
                         <motion.div
                             initial={{ y: "100%" }}
                             whileInView={{ y: 0 }}
@@ -42,13 +44,17 @@ export const Features = () => {
                         >
                             <p className="text-3xl md:text-5xl font-normal leading-tight text-white/90 tracking-tight flex flex-wrap items-center justify-center gap-3 md:gap-4">
                                 <span>{featureHeadline.part3}</span>
-                                <span className="inline-flex items-center justify-center w-10 h-10 md:w-16 md:h-16 rounded-full bg-white/5 border border-white/10 align-middle backdrop-blur-sm shadow-2xl">
-                                    <Activity className="w-5 h-5 md:w-8 md:h-8 text-accent" />
-                                </span>
+                                <img
+                                    src="/Call.png"
+                                    alt="Call"
+                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                />
                                 <span>{featureHeadline.part4}</span>
-                                <span className="inline-flex items-center justify-center w-10 h-10 md:w-16 md:h-16 rounded-full bg-white/5 border border-white/10 align-middle backdrop-blur-sm shadow-2xl">
-                                    <Phone className="w-5 h-5 md:w-8 md:h-8 text-accent" />
-                                </span>
+                                <img
+                                    src="/thumbup.png"
+                                    alt="Thumb Up"
+                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                />
                             </p>
                         </motion.div>
                     </div>

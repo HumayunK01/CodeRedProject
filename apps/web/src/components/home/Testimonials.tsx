@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
 import { testimonials } from "@/data/landing-page";
 
 export const Testimonials = () => {
@@ -39,8 +38,15 @@ export const Testimonials = () => {
                                 className="w-[350px] md:w-[400px] flex-shrink-0 bg-white rounded-[24px] p-8 border border-border/40 shadow-sm hover:shadow-md transition-shadow duration-300"
                             >
                                 <div className="flex flex-col items-center text-center space-y-4">
-                                    <div className="text-2xl md:text-3xl text-primary leading-none font-serif tracking-widest pt-2">
-                                        *****
+                                    <div className="flex gap-1 pt-2">
+                                        {[...Array(5)].map((_, i) => (
+                                            <img
+                                                key={i}
+                                                src="/star.png"
+                                                alt="Star"
+                                                className="w-6 h-6 object-contain drop-shadow-sm"
+                                            />
+                                        ))}
                                     </div>
 
                                     <p className="text-base text-foreground/80 leading-relaxed font-normal">
