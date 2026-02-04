@@ -66,6 +66,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     defaultValues: {
       fever: false, chills: false, headache: false, fatigue: false, muscle_aches: false,
       nausea: false, diarrhea: false, abdominal_pain: false, cough: false, skin_rash: false,
+      sex: "Male",
       region: "Unknown"
     },
   });
@@ -167,7 +168,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+
+          <div className="grid md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="age"
@@ -187,6 +189,28 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                       />
                     </div>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Sex</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl">
+                        <SelectValue placeholder="Select sex" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

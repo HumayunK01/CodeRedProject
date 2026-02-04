@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+
+            /* @frame is a specialty xhtml2pdf instruction. 
+               Ignore "at-rule unknown" warnings in IDE editors. */
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 1.5cm;
+                margin-right: 1.5cm;
+                height: 2cm;
+            }
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+        }
+
+        .header-table {
+            width: 100%;
+            border-bottom: 2pt solid #1c5a52;
+            padding-bottom: 10pt;
+            margin-bottom: 20pt;
+        }
+
+        .logo-text {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #1c5a52;
+        }
+
+        .hospital-info {
+            text-align: right;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .report-title {
+            text-align: center;
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 20pt;
+            text-decoration: underline;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            background-color: #f3f4f6;
+            padding: 4pt;
+            margin-top: 15pt;
+            margin-bottom: 10pt;
+            border-left: 4pt solid #1c5a52;
+        }
+
+        .info-table {
+            width: 100%;
+            margin-bottom: 15pt;
+        }
+
+        .info-label {
+            font-weight: bold;
+            width: 30%;
+            color: #4b5563;
+        }
+
+        .results-table {
+            width: 100%;
+            border: 0.5pt solid #e5e7eb;
+        }
+
+        .results-table th {
+            background-color: #f9fafb;
+            padding: 8pt;
+            text-align: left;
+            border-bottom: 0.5pt solid #e5e7eb;
+        }
+
+        .results-table td {
+            padding: 8pt;
+            border-bottom: 0.5pt solid #e5e7eb;
+        }
+
+        .result-high {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .result-low {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .signature-section {
+            text-align: right;
+            margin-top: 40pt;
+        }
+
+        .signature-box {
+            display: inline-block;
+            text-align: center;
+            width: 150pt;
+            border-top: 1pt solid #333;
+            padding-top: 5pt;
+        }
+
+        #footerContent {
+            text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+        }
+
+        .disclaimer {
+            font-style: italic;
+            background-color: #f3f4f6;
+            padding: 5pt;
+            margin-top: 5pt;
+            text-align: justify;
+        }
+    </style>
+</head>
+
+<body>
+    <table class="header-table">
+        <tr>
+            <td><span class="logo-text">FORESEE</span></td>
+            <td class="hospital-info">
+                Report ID: #{{ report_id }}
+            </td>
+        </tr>
+    </table>
+
+    <div class="report-title">LABORATORY ANALYSIS REPORT</div>
+
+    <div class="section-title">Patient Information</div>
+    <table class="info-table">
+        <tr>
+            <td class="info-label">Patient Name:</td>
+            <td>{{ patient_name }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Age / Sex:</td>
+            <td>{{ patient_age }} / {{ patient_sex }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Date of Visit:</td>
+            <td>{{ visit_date }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Category:</td>
+            <td>Foresee AI Screening</td>
+        </tr>
+    </table>
+
+    {% if symptoms %}
+    <div class="section-title">Clinical Symptoms Reported</div>
+    <table class="info-table">
+        <tr>
+            <td style="padding: 8pt;">
+                {% set symptom_labels = {
+                'fever': 'Fever',
+                'chills': 'Chills',
+                'headache': 'Headache',
+                'fatigue': 'Fatigue',
+                'muscle_aches': 'Muscle Aches',
+                'nausea': 'Nausea',
+                'diarrhea': 'Diarrhea',
+                'abdominal_pain': 'Abdominal Pain',
+                'cough': 'Cough',
+                'skin_rash': 'Skin Rash'
+                } %}
+
+                {% set reported_symptoms = [] %}
+                {% for key, label in symptom_labels.items() %}
+                {% if symptoms.get(key) %}
+                {% set _ = reported_symptoms.append(label) %}
+                {% endif %}
+                {% endfor %}
+
+                {% if reported_symptoms %}
+                {{ reported_symptoms | join(', ') }}
+                {% else %}
+                No symptoms reported
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <div class="section-title">Diagnostic Results</div>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Test Parameter</th>
+                <th>Result</th>
+                <th>Confidence</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Malaria Parasite Screen</td>
+                <td
+                    class="{% if 'Parasitized' in result or 'High' in result %}result-high{% else %}result-low{% endif %}">
+                    {{ result }}
+                </td>
+                <td>{{ confidence }}%</td>
+                <td>{{ "Requires Attention" if 'Parasitized' in result or 'High' in result else "Normal" }}</td>
+            </tr>
+            {% if species %}
+            <tr>
+                <td>Parasite Species</td>
+                <td>{{ species }}</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            {% endif %}
+            {% if parasite_count %}
+            <tr>
+                <td>Parasite Density</td>
+                <td>{{ parasite_count }} /uL</td>
+                <td>-</td>
+                <td>{{ "Elevated" if parasite_count|int(0) > 500 else "Normal" }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="section-title">Clinical Interpretation</div>
+    <p style="margin-bottom: 20pt;">
+        {% if 'Parasitized' in result or 'High' in result %}
+        <strong>INTERPRETATION:</strong> The AI analysis indicates a high probability of malaria infection.
+        It is strongly advised to seek medical attention immediately. Clinical correlation with microscopy or RDT is
+        mandatory.
+        {% else %}
+        <strong>INTERPRETATION:</strong> The AI screening suggests a low probability of malaria.
+        Continue monitoring for symptoms and consult a doctor if condition persists.
+        {% endif %}
+    </p>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            Authorized Signature<br />
+            <span style="font-size: 8pt; color: #666;">Digitally Verified by Foresee AI</span>
+        </div>
+    </div>
+
+    <div id="footerContent">
+        Generated on: {{ generated_at }} &#8226; Page <pdf:pagenumber> of <pdf:pagecount>
+                <div class="disclaimer">
+                    <strong>DISCLAIMER:</strong> This report is for screening purposes only and is not a clinical
+                    diagnosis.
+                    All AI-generated results must be verified by a certified medical professional.
+                    Foresee Medical assumes no liability for decisions made based on this report.
+                </div>
+    </div>
+</body>
+
+</html>

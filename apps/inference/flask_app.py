@@ -9,6 +9,10 @@ import numpy as np
 from datetime import datetime, timedelta
 import os
 import json
+import uuid
+from flask import render_template, make_response
+from xhtml2pdf import pisa
+from io import BytesIO
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import tempfile
@@ -710,6 +714,73 @@ def predict_image():
         }
         
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/generate_report", methods=["POST"])
+def generate_report():
+    """Generates a PDF report for a given diagnosis"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        # Extract data with defaults
+        patient_name = data.get("patientName", "Unknown Patient") 
+        age = data.get("patientAge", "N/A")
+        sex = data.get("patientSex", "N/A")
+        result = data.get("result", "Unknown") 
+        confidence = data.get("confidence", 0)
+        species = data.get("species", None)
+        parasite_count = data.get("parasiteCount", None)
+        symptoms = data.get("symptoms", None)
+        
+        # Format confidence
+        if isinstance(confidence, float) and confidence <= 1.0:
+            confidence = round(confidence * 100, 1)
+
+        # Generate unique IDs and timestamps
+        report_id = str(uuid.uuid4())[:8].upper()
+        visit_date = datetime.now().strftime("%Y-%m-%d")
+        generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Render HTML template
+        rendered_html = render_template(
+            "report.html",
+            report_id=report_id,
+            patient_name=patient_name,
+            patient_age=age,
+            patient_sex=sex,
+            visit_date=visit_date,
+            result=result,
+            confidence=confidence,
+            species=species,
+            parasite_count=parasite_count,
+            symptoms=symptoms,
+            generated_at=generated_at
+        )
+
+        # Convert to PDF
+        pdf_buffer = BytesIO()
+        pisa_status = pisa.CreatePDF(
+            src=rendered_html,
+            dest=pdf_buffer
+        )
+
+        if pisa_status.err:
+            return jsonify({"error": "PDF generation failed"}), 500
+
+        pdf = pdf_buffer.getvalue()
+        pdf_buffer.close()
+
+        # Create response
+        response = make_response(pdf)
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = f"attachment; filename=Foresee_Report_{report_id}.pdf"
+        
+        return response
+
+    except Exception as e:
+        print(f"Error generating report: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

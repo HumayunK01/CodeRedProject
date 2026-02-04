@@ -14,6 +14,7 @@ export const symptomsSchema = z.object({
   cough: z.boolean(),
   skin_rash: z.boolean(),
   age: z.number().min(0, 'Age must be positive').max(120, 'Age must be realistic'),
+  sex: z.enum(['Male', 'Female', 'Other']),
   region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
 });
 

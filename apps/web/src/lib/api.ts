@@ -156,6 +156,27 @@ class ApiClient {
       throw new Error('Failed to fetch dashboard statistics. Please try again.');
     }
   }
+  async generateReport(data: any): Promise<Blob> {
+    try {
+      const response = await this.fetchWithTimeout(`${BASE_URL}/api/generate_report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Report generation failed: ${response.status} ${errorText}`);
+      }
+
+      return response.blob();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to generate report. Please try again.');
+    }
+  }
 }
 
 export const apiClient = new ApiClient();

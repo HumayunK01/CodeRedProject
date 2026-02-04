@@ -11,3 +11,4 @@ tensorflow
 psycopg[binary]
 python-dotenv
 gunicorn
+xhtml2pdf

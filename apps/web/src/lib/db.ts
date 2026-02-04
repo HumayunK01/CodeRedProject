@@ -5,17 +5,19 @@
  * for database operations. All CRUD operations go through the API endpoints.
  */
 
-// Re-export types only (these are safe for browser)
+// Re-export types from our manual type definitions
+// (We define these manually since the frontend doesn't use Prisma Client directly)
 export type {
   User,
   Diagnosis,
   Forecast,
   Report,
+  SystemLog,
   PatientSex,
   RiskLevel,
   ReportType,
   ReportStatus,
-} from "@prisma/client";
+} from "./prisma-types";
 
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_INFER_BASE_URL || "http://localhost:8000";

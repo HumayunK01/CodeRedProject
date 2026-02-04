@@ -1,13 +1,13 @@
 // Foresee Type Definitions
 
-// Export Prisma types for convenience
+// Re-export Prisma types from db.ts (which handles the @prisma/client import)
 export type {
   User,
   Diagnosis,
   Forecast,
   Report,
   SystemLog,
-} from "@prisma/client";
+} from "@/lib/db";
 
 export interface DiagnosisResult {
   label: string;
@@ -31,6 +31,7 @@ export interface SymptomsInput {
   cough: boolean;
   skin_rash: boolean;
   age: number;
+  sex: 'Male' | 'Female' | 'Other';
   region: string;
 }
 

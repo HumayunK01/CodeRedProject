@@ -4,6 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, XCircle, Info, Microscope, Activity } from "lucide-react";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
+import { DownloadReportButton } from "@/components/diagnosis/DownloadReportButton";
+import { useCurrentUser } from "@/components/providers/DbUserProvider";
 
 interface DiagnosisResultsProps {
   results: DiagnosisResult | null;
@@ -14,6 +16,12 @@ interface DiagnosisResultsProps {
 
 export const DiagnosisResults = ({ results, isLoading, patientData, imageData }: DiagnosisResultsProps) => {
   const isImageDiagnosis = imageData !== undefined && imageData.image !== undefined;
+  const { user } = useCurrentUser();
+
+  // Get patient name from Clerk user or use fallback
+  const patientName = user?.firstName && user?.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : user?.firstName || "Patient";
 
 
 
@@ -129,6 +137,32 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
               <span className="text-muted-foreground font-medium">Model Version:</span>
               <span className="text-primary font-bold">{isImageDiagnosis ? "v2.1.0 (Vision)" : "v3.1.2 (Stable)"}</span>
             </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-primary/5">
+            <DownloadReportButton
+              diagnosisData={{
+                ...results,
+                patientName: patientName,
+                patientAge: patientData?.age?.toString(),
+                patientSex: patientData?.sex,
+                result: results.label,
+                confidence: results.probability ?? results.confidence,
+                symptoms: patientData ? {
+                  fever: patientData.fever,
+                  chills: patientData.chills,
+                  headache: patientData.headache,
+                  fatigue: patientData.fatigue,
+                  muscle_aches: patientData.muscle_aches,
+                  nausea: patientData.nausea,
+                  diarrhea: patientData.diarrhea,
+                  abdominal_pain: patientData.abdominal_pain,
+                  cough: patientData.cough,
+                  skin_rash: patientData.skin_rash
+                } : undefined,
+              }}
+              className="w-full"
+            />
           </div>
 
 
