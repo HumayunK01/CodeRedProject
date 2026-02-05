@@ -26,7 +26,7 @@ export const Features = () => {
                                 <img
                                     src="/results.png"
                                     alt="Brain"
-                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                    className="w-8 h-8 md:w-14 md:h-14 object-contain drop-shadow-xl inline-block -my-2"
                                 />
                                 <span>{featureHeadline.part2}</span>
                             </p>
@@ -47,13 +47,13 @@ export const Features = () => {
                                 <img
                                     src="/Call.png"
                                     alt="Call"
-                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                    className="w-8 h-8 md:w-14 md:h-14 object-contain drop-shadow-xl inline-block -my-2"
                                 />
                                 <span>{featureHeadline.part4}</span>
                                 <img
                                     src="/thumbup.png"
                                     alt="Thumb Up"
-                                    className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-xl inline-block -my-3"
+                                    className="w-8 h-8 md:w-14 md:h-14 object-contain drop-shadow-xl inline-block -my-2"
                                 />
                             </p>
                         </motion.div>
