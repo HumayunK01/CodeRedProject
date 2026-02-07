@@ -127,7 +127,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
           <div className="bg-primary/5 rounded-xl p-3 space-y-2">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-medium">Model Architecture:</span>
-              <span className="text-primary font-bold">{isImageDiagnosis ? "Convolutional Neural Network (CNN)" : "Random Forest Classifier"}</span>
+              <span className="text-primary font-bold">{isImageDiagnosis ? "Convolutional Neural Network (CNN)" : "DHS Logistic Regression"}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-medium">Inference Engine:</span>
@@ -135,7 +135,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-medium">Model Version:</span>
-              <span className="text-primary font-bold">{isImageDiagnosis ? "v2.1.0 (Vision)" : "v3.1.2 (Stable)"}</span>
+              <span className="text-primary font-bold">{isImageDiagnosis ? "v2.1.0 (Vision)" : "v4.0.0 (DHS-India)"}</span>
             </div>
           </div>
 

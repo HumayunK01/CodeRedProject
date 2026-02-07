@@ -430,7 +430,7 @@ const Dashboard = () => {
         });
 
         setSystemMetrics([
-          { title: "Model Accuracy", value: stats.model_accuracy, status: "excellent", icon: Brain },
+          { title: "Model Accuracy", value: stats.model_accuracy, status: stats.model_accuracy.includes("%") ? "excellent" : "info", icon: Brain },
           { title: "Response Time", value: stats.response_time, status: "optimal", icon: Zap },
           { title: "Data Security", value: stats.data_security, status: "compliant", icon: Shield },
           { title: "Global Reach", value: stats.global_reach, status: "regions", icon: Globe }

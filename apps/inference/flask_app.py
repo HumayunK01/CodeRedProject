@@ -27,11 +27,11 @@ CORS(app)
 # Model variables
 malaria_model = None
 malaria_forecast_model = None
-tabular_model = None
-symptoms_feature_info = None
+symptoms_model = None
+SYMPTOM_MODEL_NAME = "DHS_LogisticRegression_India_AllPersons"
 
 def load_models():
-    global malaria_model, malaria_forecast_model, tabular_model, symptoms_feature_info
+    global malaria_model, malaria_forecast_model, symptoms_model
     try:
         # Load CNN model for image classification
         malaria_model = load_model("models/malaria_test_small.h5")
@@ -41,10 +41,8 @@ def load_models():
         malaria_forecast_model = joblib.load("models/malaria_forecast_arima.pkl")
         print("Forecast model loaded successfully!")
         
-        # Load tabular model for symptoms prediction
-        tabular_model = joblib.load("models/malaria_symptoms_model.joblib")
-        symptoms_feature_info = joblib.load("models/symptoms_feature_info.joblib")
-        print("Symptoms model loaded successfully!")
+        # DHS symptom model will be loaded separately when available
+        print("DHS symptom model: Not loaded (pending training)")
     except Exception as e:
         print("Error loading models:", e)
 
@@ -71,8 +69,7 @@ def health_check():
             "models_loaded": {
                 "cnn_model": malaria_model is not None,
                 "arima_model": malaria_forecast_model is not None,
-                "tabular_model": tabular_model is not None,
-                "symptoms_feature_info": symptoms_feature_info is not None
+                "symptoms_model": symptoms_model is not None
             }
         }
     except Exception as e:
@@ -439,7 +436,7 @@ def calculate_dashboard_stats(stored_results):
     system_health = 99.2
     
     # Model accuracy based on number of diagnoses
-    model_accuracy = "94.7%" if len(stored_results) > 0 else "0%"
+    model_accuracy = "Pending Validation" if len(stored_results) > 0 else "N/A"
     
     # Response time is simulated
     response_time = "<2s"
@@ -548,68 +545,32 @@ def dashboard_stats():
 
 @app.route("/predict/symptoms", methods=["POST"])
 def predict_symptoms():
-    """Predict malaria risk based on symptoms"""
-    try:
-        if tabular_model is None or symptoms_feature_info is None:
-            return jsonify({"error": "Models not loaded"}), 500
-        
-        symptoms_data = request.get_json()
-        if not symptoms_data:
-            return jsonify({"error": "No symptoms data provided"}), 400
-        
-        # Extract all symptoms from the request
-        fever = symptoms_data.get('fever', False)
-        chills = symptoms_data.get('chills', False)
-        headache = symptoms_data.get('headache', False)
-        fatigue = symptoms_data.get('fatigue', False)
-        muscle_aches = symptoms_data.get('muscle_aches', False)
-        nausea = symptoms_data.get('nausea', False)
-        diarrhea = symptoms_data.get('diarrhea', False)
-        abdominal_pain = symptoms_data.get('abdominal_pain', False)
-        cough = symptoms_data.get('cough', False)
-        skin_rash = symptoms_data.get('skin_rash', False)
-        age = symptoms_data.get('age')
-        region = symptoms_data.get('region', 'unknown')
-        
-        # Validate age is provided
-        if age is None:
-            return jsonify({"error": "Age is required"}), 400
-        
-        # Create feature vector for the model using the correct feature order
-        feature_columns = symptoms_feature_info['feature_columns']
-        features = []
-        for col in feature_columns:
-            if col == 'age':
-                features.append(age)
-            else:
-                # All other features are symptoms (boolean values)
-                features.append(1 if symptoms_data.get(col, False) else 0)
-        
-        # Convert to numpy array and reshape for prediction
-        X = np.array(features).reshape(1, -1)
-        
-        # Get prediction and probability
-        prediction = tabular_model.predict(X)[0]
-        probabilities = tabular_model.predict_proba(X)[0]
-        
-        # Get the probability of the predicted class
-        classes = tabular_model.classes_
-        pred_index = np.where(classes == prediction)[0][0]
-        probability = probabilities[pred_index]
-        
-        # Determine risk level based on the predicted class, not probability threshold
-        # The model directly predicts 'High', 'Medium', or 'Low'
-        label = f"{prediction} Risk"
-        
+    if symptoms_model is None:
         return {
-            "label": label,
-            "confidence": round(probability, 3),
-            "probability": round(probability, 3),
-            "threshold": 0.5
-        }
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            "error": "Model not ready",
+            "message": "DHS-based symptom model not loaded yet"
+        }, 503
+
+    data = request.get_json()
+
+    # Create DataFrame with exact DHS fields
+    import pandas as pd
+    df = pd.DataFrame([{
+        "fever": int(data.get("fever", False)),
+        "age": data.get("age"),
+        "sex": data.get("sex"),
+        "urban": int(data.get("urban", 1)),
+        "region": data.get("region")
+    }])
+
+    # Probability of Positive Result (class 1)
+    prob = symptoms_model.predict_proba(df)[0][1]
+
+    return {
+        "label": "Positive" if prob >= 0.5 else "Negative",
+        "confidence": round(float(prob), 3),
+        "model": SYMPTOM_MODEL_NAME
+    }
 
 @app.route("/forecast/region", methods=["POST"])
 def forecast_region():

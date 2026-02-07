@@ -65,7 +65,7 @@
 
 **Foresee** is an enterprise-grade healthcare platform that leverages advanced machine learning and epidemiological modeling to revolutionize malaria detection and outbreak prevention. Designed for healthcare professionals, research institutions, and endemic regions, Foresee provides:
 
-- **Real-time diagnostic capabilities** with 94%+ accuracy
+- **Real-time diagnostic capabilities** with 94.2% accuracy (CNN Image Model)
 - **Predictive outbreak modeling** with 4-week forecast horizons
 - **Intelligent AI assistance** for medical guidance
 - **Professional-grade reporting** with HIPAA-compliant documentation
@@ -78,7 +78,7 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 ### 🏆 Impact
 
 - **Diagnostic Speed**: Sub-2-second inference time
-- **Accuracy**: 94%+ diagnostic precision
+- **Accuracy**: 94.2% diagnostic precision (CNN Image Model)
 - **Coverage**: Multi-region outbreak forecasting
 - **Accessibility**: Progressive Web App (PWA) for offline capability
 
@@ -89,13 +89,14 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 ### 🔬 AI-Powered Diagnosis
 
 **Dual-Mode Detection System**
-- **Image Analysis**: Deep learning CNN models trained on 27,558+ blood smear images
-- **Symptom Assessment**: Multi-factor risk scoring with 15+ clinical parameters
+- **Image Analysis**: Deep learning CNN models trained on the NIH Malaria Dataset (27,558+ blood smear images)
+- **Symptom Assessment**: Pending training using Demographic and Health Survey (DHS) data (no metrics reported)
 - **Instant Results**: < 2 seconds inference time with confidence scoring
 - **Explainable AI**: Visual attention maps and feature importance analysis
 
 **Technical Specifications**
 - Model: Custom CNN architecture (TensorFlow/Keras)
+- Dataset: NIH Malaria Dataset
 - Input: 224x224 RGB blood smear images
 - Output: Binary classification (Parasitized/Uninfected) with probability scores
 - Validation: 94.2% accuracy on held-out test set
@@ -112,7 +113,7 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 - Horizon: 1-4 weeks ahead
 - Granularity: District/region level
 - Update Frequency: Weekly model retraining
-- Accuracy: 80%+ on 4-week forecasts
+- Accuracy: Validated on historical data
 
 ### 🤖 Intelligent AI Assistant
 
@@ -302,7 +303,7 @@ CodeRedProject/
 │       │   └── config.py            # Configuration
 │       ├── models/                  # Trained model files
 │       │   ├── cnn_model.h5
-│       │   ├── tabular_model.pkl
+│       │   ├── symptoms_model.pkl
 │       │   └── arima_model.pkl
 │       ├── flask_app.py             # Main Flask application
 │       ├── requirements.txt
@@ -416,7 +417,7 @@ VITE_ANALYTICS_ID=your_analytics_id
 
 Place model files in `apps/inference/models/`:
 - `cnn_model.h5` - Image classification model
-- `tabular_model.pkl` - Symptom-based model
+- `symptoms_model.pkl` - DHS-based symptom model
 - `arima_model.pkl` - Forecasting model
 
 #### 6. Initialize Database (Optional)
@@ -867,9 +868,8 @@ docker-compose up -d
 | | Recall | 94.6% |
 | | F1-Score | 94.2% |
 | | Inference Time | 1.8s |
-| **Tabular (Symptoms)** | Accuracy | 87.5% |
-| | ROC-AUC | 0.91 |
-| | Inference Time | 0.3s |
+| **DHS (Symptoms)** | Accuracy | Pending |
+| | Status | Awaiting Training |
 | **ARIMA (Forecast)** | MAE (4-week) | 12.3% |
 | | RMSE | 15.7% |
 | | Accuracy | 80.2% |

@@ -4,18 +4,18 @@ import { z } from 'zod';
 
 export const symptomsSchema = z.object({
   fever: z.boolean(),
-  chills: z.boolean(),
-  headache: z.boolean(),
-  fatigue: z.boolean(),
-  muscle_aches: z.boolean(),
-  nausea: z.boolean(),
-  diarrhea: z.boolean(),
-  abdominal_pain: z.boolean(),
-  cough: z.boolean(),
-  skin_rash: z.boolean(),
   age: z.number().min(0, 'Age must be positive').max(120, 'Age must be realistic'),
   sex: z.enum(['Male', 'Female', 'Other']),
   region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
+  chills: z.boolean().optional(),
+  headache: z.boolean().optional(),
+  fatigue: z.boolean().optional(),
+  muscle_aches: z.boolean().optional(),
+  nausea: z.boolean().optional(),
+  diarrhea: z.boolean().optional(),
+  abdominal_pain: z.boolean().optional(),
+  cough: z.boolean().optional(),
+  skin_rash: z.boolean().optional(),
 });
 
 export const forecastSchema = z.object({

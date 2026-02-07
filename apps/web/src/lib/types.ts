@@ -21,18 +21,19 @@ export interface DiagnosisResult {
 
 export interface SymptomsInput {
   fever: boolean;
-  chills: boolean;
-  headache: boolean;
-  fatigue: boolean;
-  muscle_aches: boolean;
-  nausea: boolean;
-  diarrhea: boolean;
-  abdominal_pain: boolean;
-  cough: boolean;
-  skin_rash: boolean;
   age: number;
   sex: 'Male' | 'Female' | 'Other';
   region: string;
+  chills?: boolean;
+  headache?: boolean;
+  fatigue?: boolean;
+  muscle_aches?: boolean;
+  nausea?: boolean;
+  diarrhea?: boolean;
+  abdominal_pain?: boolean;
+  cough?: boolean;
+  skin_rash?: boolean;
+  urban?: boolean;
 }
 
 export interface ForecastInput {
