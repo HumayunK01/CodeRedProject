@@ -9,12 +9,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
 def get_db_connection():
-    if not DATABASE_URL:
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
         raise Exception("DATABASE_URL not configured")
-    return psycopg.connect(DATABASE_URL, row_factory=dict_row, autocommit=True)
+    return psycopg.connect(db_url, row_factory=dict_row, autocommit=True)
 
 def upsert_user(clerk_id: str, email: str, first_name: Optional[str] = None, last_name: Optional[str] = None, image_url: Optional[str] = None) -> Dict[str, Any]:
     with get_db_connection() as conn:
