@@ -90,7 +90,7 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 
 **Dual-Mode Detection System**
 - **Image Analysis**: Deep learning CNN models trained on the NIH Malaria Dataset (27,558+ blood smear images)
-- **Symptom Assessment**: Pending training using Demographic and Health Survey (DHS) data (no metrics reported)
+- **Symptom Assessment**: Clinical rule-based assessment used as an interim solution pending DHS-based ML training.
 - **Instant Results**: < 2 seconds inference time with confidence scoring
 - **Explainable AI**: Visual attention maps and feature importance analysis
 
@@ -99,7 +99,7 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 - Dataset: NIH Malaria Dataset
 - Input: 224x224 RGB blood smear images
 - Output: Binary classification (Parasitized/Uninfected) with probability scores
-- Validation: 94.2% accuracy on held-out test set
+- Validation: 94.2% accuracy (CNN only); Symptom accuracy not applicable (rule-based).
 
 ### 📈 Outbreak Forecasting
 

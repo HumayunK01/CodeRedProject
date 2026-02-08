@@ -40,11 +40,11 @@ CORS(app)
 
 malaria_model = None
 malaria_forecast_model = None
-symptoms_model = None
-SYMPTOM_MODEL_NAME = "DHS_LogisticRegression_India_AllPersons"
+# Clinical Rule-Based Assessment Model (Interim)
+SYMPTOM_MODEL_NAME = "Clinical Rule-Based Assessment (Interim)"
 
 def load_models():
-    global malaria_model, malaria_forecast_model, symptoms_model
+    global malaria_model, malaria_forecast_model
     try:
         if os.path.exists("models/malaria_test_small.h5"):
             malaria_model = load_model("models/malaria_test_small.h5")
@@ -58,7 +58,7 @@ def load_models():
         else:
             print("⚠️ Forecast model file not found.")
 
-        print("ℹ️ DHS symptom model: Not loaded (pending training/integration)")
+        print("ℹ️ Symptom Assessment: Using Clinical Rule-Based Logic (Interim)")
 
     except Exception as e:
         print(f"❌ Error loading models: {e}")
@@ -96,7 +96,7 @@ def health_check():
             "models_loaded": {
                 "cnn_model": malaria_model is not None,
                 "arima_model": malaria_forecast_model is not None,
-                "symptoms_model": symptoms_model is not None
+                "symptoms_model": "Clinical Rule-Based (Active)"
             },
             "database_connected": DB_AVAILABLE
         })
@@ -490,30 +490,56 @@ def dashboard_stats():
 
 @app.route("/predict/symptoms", methods=["POST"])
 def predict_symptoms():
-    if symptoms_model is None:
-        return jsonify({
-            "error": "Model not ready",
-            "message": "DHS-based symptom model not loaded yet"
-        }), 503
-
+    """
+    Interim Clinical Rule-Based Symptom Assessment
+    Replaces ML model pending DHS data availability.
+    
+    Rules:
+    - If fever is False -> Low Risk (0.2)
+    - If fever is True:
+        - AND >= 2 other symptoms -> High Risk (0.8)
+        - AND < 2 other symptoms -> Medium Risk (0.5)
+    
+    Symptoms checked: chills, headache, fatigue, muscle_aches, 
+                     nausea, diarrhea, abdominal_pain, cough, skin_rash
+    """
     try:
         data = request.get_json()
-        import pandas as pd
-        df = pd.DataFrame([{
-            "fever": int(data.get("fever", False)),
-            "age": data.get("age"),
-            "sex": data.get("sex"),
-            "urban": int(data.get("urban", 1)),
-            "region": data.get("region")
-        }])
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
 
-        prob = symptoms_model.predict_proba(df)[0][1]
+        # Extract fever status (primary indicator)
+        fever = bool(data.get("fever", False))
+
+        # List of secondary symptoms to check
+        symptom_keys = [
+            "chills", "headache", "fatigue", "muscle_aches",
+            "nausea", "diarrhea", "abdominal_pain",
+            "cough", "skin_rash"
+        ]
+
+        # Count presence of other symptoms
+        symptom_count = sum(bool(data.get(symptom, False)) for symptom in symptom_keys)
+
+        # Apply Clinical Rules
+        if not fever:
+            risk = "Low"
+            confidence = 0.2
+        elif symptom_count >= 2:
+            risk = "High"
+            confidence = 0.8
+        else:
+            risk = "Medium"
+            confidence = 0.5
+
         return jsonify({
-            "label": "Positive" if prob >= 0.5 else "Negative",
-            "confidence": round(float(prob), 3),
-            "model": SYMPTOM_MODEL_NAME
+            "label": f"{risk} Risk",
+            "confidence": confidence,
+            "method": SYMPTOM_MODEL_NAME
         })
+
     except Exception as e:
+        print(f"Error in rule-based symptom prediction: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/forecast/region", methods=["POST"])
