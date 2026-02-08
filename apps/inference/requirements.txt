@@ -5,9 +5,9 @@ joblib
 pandas
 numpy
 pillow
-opencv-python
+opencv-python-headless
 statsmodels
-tensorflow
+tensorflow-cpu
 psycopg[binary]
 python-dotenv
 gunicorn
