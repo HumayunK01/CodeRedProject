@@ -48,4 +48,4 @@ ENV PYTHONUNBUFFERED=1
 
 # Run gunicorn
 # Use shell form to allow variable expansion of $PORT
-CMD gunicorn flask_app:app --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120
+CMD gunicorn flask_app:app --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --log-level debug --access-logfile - --error-logfile -
