@@ -1,0 +1,2 @@
+[phases.setup]
+nixPkgs = ["cairo", "pkg-config", "libjpeg", "zlib"]
