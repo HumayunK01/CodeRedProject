@@ -36,7 +36,8 @@ except ImportError as e:
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+# Allow CORS for all domains for now to troubleshoot production issue
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 malaria_model = None
 malaria_forecast_model = None
