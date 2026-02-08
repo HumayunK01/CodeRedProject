@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 def get_db_connection():
     if not DATABASE_URL:
         raise Exception("DATABASE_URL not configured")
-    return psycopg.connect(DATABASE_URL, row_factory=dict_row)
+    return psycopg.connect(DATABASE_URL, row_factory=dict_row, autocommit=True)
 
 def upsert_user(clerk_id: str, email: str, first_name: Optional[str] = None, last_name: Optional[str] = None, image_url: Optional[str] = None) -> Dict[str, Any]:
     with get_db_connection() as conn:
