@@ -28,9 +28,12 @@ WORKDIR /app
 
 # Install runtime system dependencies only
 # libcairo2 is needed for runtime (pycairo)
+# ca-certificates is needed for SSL database connections (Neon)
 RUN apt-get update && apt-get install -y \
     libcairo2 \
     libjpeg62-turbo \
+    ca-certificates \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder
