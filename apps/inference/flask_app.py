@@ -29,15 +29,25 @@ try:
         get_user_activity
     )
     DB_AVAILABLE = True
-except ImportError as e:
-    print(f"Warning: Database module could not be imported. DB features will fail. Error: {e}")
+    print("✅ Database module loaded successfully")
+except Exception as e:
+    print(f"❌ Warning: Database module could not be imported. DB features will fail. Error: {e}")
+    traceback.print_exc()
     DB_AVAILABLE = False
 
 load_dotenv()
 
 app = Flask(__name__)
-# Allow CORS for all domains for now to troubleshoot production issue
+# Allow CORS for all domains config
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Manual CORS injection to ensure headers are present even on errors
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 malaria_model = None
 malaria_forecast_model = None
