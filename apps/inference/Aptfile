@@ -1,0 +1,6 @@
+libcairo2-dev
+pkg-config
+libjpeg-dev
+zlib1g-dev
+libffi-dev
+python3-dev
