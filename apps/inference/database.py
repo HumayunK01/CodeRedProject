@@ -1,55 +1,30 @@
-"""
-Database module for OutbreakLens Flask API
-Handles PostgreSQL connection and CRUD operations using psycopg (psycopg3)
-"""
-
 import os
+import uuid
+import json
+from datetime import datetime
+from typing import Optional, Dict, Any, List
 import psycopg
 from psycopg.rows import dict_row
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
-import uuid
 
-# Load environment variables
 load_dotenv()
 
-# Database connection URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
-    """Get a database connection with dict_row for dict-like results"""
     if not DATABASE_URL:
         raise Exception("DATABASE_URL not configured")
     return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
-
-# ============================================================================
-# USER OPERATIONS
-# ============================================================================
-
-def upsert_user(
-    clerk_id: str,
-    email: str,
-    first_name: Optional[str] = None,
-    last_name: Optional[str] = None,
-    image_url: Optional[str] = None
-) -> Dict[str, Any]:
-    """Create or update a user based on Clerk ID"""
-    conn = get_db_connection()
-    try:
+def upsert_user(clerk_id: str, email: str, first_name: Optional[str] = None, last_name: Optional[str] = None, image_url: Optional[str] = None) -> Dict[str, Any]:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
-            # Check if user exists
-            cur.execute(
-                'SELECT * FROM "User" WHERE "clerkId" = %s',
-                (clerk_id,)
-            )
+            cur.execute('SELECT * FROM "User" WHERE "clerkId" = %s', (clerk_id,))
             existing_user = cur.fetchone()
             
-            now = datetime.utcnow()
+            now = datetime.now()
             
             if existing_user:
-                # Update existing user
                 cur.execute(
                     '''
                     UPDATE "User" 
@@ -60,7 +35,6 @@ def upsert_user(
                     (email, first_name, last_name, image_url, now, clerk_id)
                 )
             else:
-                # Create new user
                 user_id = str(uuid.uuid4())
                 cur.execute(
                     '''
@@ -71,35 +45,17 @@ def upsert_user(
                     (user_id, clerk_id, email, first_name, last_name, image_url, now, now)
                 )
             
-            user = cur.fetchone()
-            conn.commit()
-            return dict(user) if user else None
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
-
+            return dict(cur.fetchone())
 
 def get_user_by_clerk_id(clerk_id: str) -> Optional[Dict[str, Any]]:
-    """Get a user by Clerk ID"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                'SELECT * FROM "User" WHERE "clerkId" = %s',
-                (clerk_id,)
-            )
+            cur.execute('SELECT * FROM "User" WHERE "clerkId" = %s', (clerk_id,))
             user = cur.fetchone()
             return dict(user) if user else None
-    finally:
-        conn.close()
-
 
 def get_user_with_stats(clerk_id: str) -> Optional[Dict[str, Any]]:
-    """Get a user with diagnosis/forecast counts"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
@@ -123,13 +79,6 @@ def get_user_with_stats(clerk_id: str) -> Optional[Dict[str, Any]]:
                 }
                 return user_dict
             return None
-    finally:
-        conn.close()
-
-
-# ============================================================================
-# DIAGNOSIS OPERATIONS
-# ============================================================================
 
 def create_diagnosis(
     user_id: str,
@@ -147,15 +96,10 @@ def create_diagnosis(
     processing_time: Optional[float] = None,
     model_version: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Create a new diagnosis record"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             diagnosis_id = str(uuid.uuid4())
-            now = datetime.utcnow()
-            
-            # Convert symptoms dict to JSON string if provided
-            import json
+            now = datetime.now()
             symptoms_json = json.dumps(symptoms) if symptoms else None
             
             cur.execute(
@@ -176,21 +120,10 @@ def create_diagnosis(
                     now, now
                 )
             )
-            
-            diagnosis = cur.fetchone()
-            conn.commit()
-            return dict(diagnosis) if diagnosis else None
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
-
+            return dict(cur.fetchone())
 
 def get_diagnoses_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
-    """Get diagnoses for a specific user"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
@@ -202,14 +135,9 @@ def get_diagnoses_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]
                 (user_id, limit)
             )
             return [dict(row) for row in cur.fetchall()]
-    finally:
-        conn.close()
-
 
 def get_diagnosis_stats_by_user(user_id: str) -> Dict[str, Any]:
-    """Get diagnosis statistics for a user"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
@@ -230,13 +158,6 @@ def get_diagnosis_stats_by_user(user_id: str) -> Dict[str, Any]:
                 'negative': result['negative'] or 0,
                 'lastDiagnosis': result['last_diagnosis'].isoformat() if result['last_diagnosis'] else None
             }
-    finally:
-        conn.close()
-
-
-# ============================================================================
-# FORECAST OPERATIONS
-# ============================================================================
 
 def create_forecast(
     user_id: str,
@@ -254,15 +175,12 @@ def create_forecast(
     rainfall: Optional[float] = None,
     humidity: Optional[float] = None
 ) -> Dict[str, Any]:
-    """Create a new forecast record"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             forecast_id = str(uuid.uuid4())
-            now = datetime.utcnow()
+            now = datetime.now()
             end_date = now + timedelta(weeks=horizon_weeks)
             
-            # Calculate case statistics from predictions
             cases = [p['cases'] for p in predictions]
             cases_low = min(cases) if cases else None
             cases_high = max(cases) if cases else None
@@ -286,21 +204,10 @@ def create_forecast(
                     temperature, rainfall, humidity, now, now
                 )
             )
-            
-            forecast = cur.fetchone()
-            conn.commit()
-            return dict(forecast) if forecast else None
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
-
+            return dict(cur.fetchone())
 
 def get_forecasts_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
-    """Get forecasts for a specific user"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
@@ -312,16 +219,11 @@ def get_forecasts_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]
                 (user_id, limit)
             )
             return [dict(row) for row in cur.fetchall()]
-    finally:
-        conn.close()
-
 
 def get_forecast_stats_by_user(user_id: str) -> Dict[str, Any]:
-    """Get forecast statistics for a user"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
-            now = datetime.utcnow()
+            now = datetime.now()
             cur.execute(
                 '''
                 SELECT 
@@ -341,20 +243,10 @@ def get_forecast_stats_by_user(user_id: str) -> Dict[str, Any]:
                 'highRisk': result['high_risk'] or 0,
                 'lastForecast': result['last_forecast'].isoformat() if result['last_forecast'] else None
             }
-    finally:
-        conn.close()
-
-
-# ============================================================================
-# COMBINED STATISTICS
-# ============================================================================
 
 def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
-    """Get recent activity (diagnoses and forecasts) for a user"""
-    conn = get_db_connection()
-    try:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
-            # Get recent diagnoses
             cur.execute(
                 '''
                 SELECT 'diagnosis' as type, id, result, confidence, "createdAt"
@@ -367,7 +259,6 @@ def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
             )
             diagnoses = [dict(row) for row in cur.fetchall()]
             
-            # Get recent forecasts
             cur.execute(
                 '''
                 SELECT 'forecast' as type, id, region, "riskLevel", "createdAt"
@@ -380,10 +271,7 @@ def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
             )
             forecasts = [dict(row) for row in cur.fetchall()]
             
-            # Combine and sort by date
             activities = diagnoses + forecasts
             activities.sort(key=lambda x: x['createdAt'], reverse=True)
             
             return activities[:limit]
-    finally:
-        conn.close()
