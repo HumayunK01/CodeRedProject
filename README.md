@@ -987,16 +987,18 @@ We welcome contributions from the community! Please read our [Contributing Guide
       <a href="https://linkedin.com/in/devhumayun">LinkedIn</a>
     </td>
     <td align="center" width="33%">
+    <img src="https://github.com/ZohaAnsari04.png" width="100px" style="border-radius: 50%"><br>
       <strong>Ansari Zoha</strong><br>
       <em>Frontend & UI/UX</em><br>
       <sub>React development, design system, user experience</sub><br>
-      <a href="https://github.com/zohaansari">GitHub</a>
+      <a href="https://github.com/ZohaAnsari04">GitHub</a>
     </td>
     <td align="center" width="33%">
+    <img src="https://github.com/addy1805.png" width="100px" style="border-radius: 50%"><br>
       <strong>Ansari Adnan</strong><br>
       <em>Data Science</em><br>
       <sub>Dataset curation, model validation, analytics</sub><br>
-      <a href="https://github.com/adnanansari">GitHub</a>
+      <a href="https://github.com/addy1805">GitHub</a>
     </td>
   </tr>
 </table>
