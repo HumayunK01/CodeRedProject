@@ -182,15 +182,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
                 confidence: results.probability ?? results.confidence,
                 symptoms: patientData ? {
                   fever: patientData.fever,
-                  chills: patientData.chills,
-                  headache: patientData.headache,
-                  fatigue: patientData.fatigue,
-                  muscle_aches: patientData.muscle_aches,
-                  nausea: patientData.nausea,
-                  diarrhea: patientData.diarrhea,
-                  abdominal_pain: patientData.abdominal_pain,
-                  cough: patientData.cough,
-                  skin_rash: patientData.skin_rash
+                  slept_under_net: patientData.slept_under_net,
                 } : undefined,
               }}
               className="w-full"
