@@ -7,15 +7,8 @@ export const symptomsSchema = z.object({
   age: z.number().min(0, 'Age must be positive').max(120, 'Age must be realistic'),
   sex: z.enum(['Male', 'Female', 'Other']),
   region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
-  chills: z.boolean().optional(),
-  headache: z.boolean().optional(),
-  fatigue: z.boolean().optional(),
-  muscle_aches: z.boolean().optional(),
-  nausea: z.boolean().optional(),
-  diarrhea: z.boolean().optional(),
-  abdominal_pain: z.boolean().optional(),
-  cough: z.boolean().optional(),
-  skin_rash: z.boolean().optional(),
+  residence_type: z.enum(['Urban', 'Rural']),
+  slept_under_net: z.boolean(),
 });
 
 export const forecastSchema = z.object({
@@ -34,7 +27,9 @@ export const imageUploadSchema = z.object({
 
 export const diagnosisResultSchema = z.object({
   label: z.string(),
-  confidence: z.number().min(0).max(1),
+  confidence: z.number().nullable().optional(),
+  method: z.string(),
+  model_version: z.string().optional(),
   probability: z.number().min(0).max(1).optional(),
   threshold: z.number().min(0).max(1).optional(),
   explanations: z.object({

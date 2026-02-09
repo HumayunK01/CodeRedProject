@@ -11,7 +11,10 @@ export type {
 
 export interface DiagnosisResult {
   label: string;
-  confidence: number;
+  confidence: number | null;
+  risk_score?: number; // Added
+  method: string;
+  model_version: string;
   probability?: number;
   threshold?: number;
   explanations?: {
@@ -20,20 +23,19 @@ export interface DiagnosisResult {
 }
 
 export interface SymptomsInput {
-  fever: boolean;
-  age: number;
-  sex: 'Male' | 'Female' | 'Other';
-  region: string;
-  chills?: boolean;
-  headache?: boolean;
-  fatigue?: boolean;
-  muscle_aches?: boolean;
-  nausea?: boolean;
-  diarrhea?: boolean;
-  abdominal_pain?: boolean;
-  cough?: boolean;
-  skin_rash?: boolean;
-  urban?: boolean;
+  // ML Features
+  fever: boolean | number;
+  age_months: number;
+  state: string;
+  residence_type: string;
+  slept_under_net: boolean | number;
+  anemia_level?: number | null;
+  interview_month?: number;
+
+  // UI/Legacy fields
+  age?: number;
+  sex?: string;
+  region?: string;
 }
 
 export interface ForecastInput {

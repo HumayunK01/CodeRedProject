@@ -12,7 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
-import { DiagnosisResult } from "@/lib/types";
+import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import { symptomsSchema, SymptomsFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
 import { DiagnosisService } from "@/lib/db";
@@ -24,16 +24,13 @@ import {
   MapPin,
   Loader2,
   Thermometer,
-  Droplets,
   Activity,
-  Clock,
-  Wind,
-  Heart,
   ChevronRight,
   Info,
   ChevronDown,
   Check,
-  Database
+  Database,
+  Shield
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -41,19 +38,6 @@ interface SymptomsFormProps {
   onResult: (result: DiagnosisResult) => void;
   onLoadingChange: (loading: boolean) => void;
 }
-
-const symptoms = [
-  { key: "fever", label: "Fever", description: "> 38°C / 100.4°F", icon: Thermometer },
-  { key: "chills", label: "Chills/Shivering", description: "Cold sensations", icon: Wind },
-  { key: "headache", label: "Severe Headache", description: "Persistent pain", icon: Activity },
-  { key: "fatigue", label: "Extreme Fatigue", description: "Lethargy", icon: Clock },
-  { key: "muscle_aches", label: "Muscle/Joint Pain", description: "Body aches", icon: Activity },
-  { key: "nausea", label: "Nausea/Vomiting", description: "Stomach upset", icon: Droplets },
-  { key: "diarrhea", label: "Diarrhea", description: "Loose stools", icon: Droplets },
-  { key: "abdominal_pain", label: "Abdominal Pain", description: "Cramping", icon: Heart },
-  { key: "cough", label: "Dry Cough", description: "Persistent", icon: Wind },
-  { key: "skin_rash", label: "Skin Rash", description: "Unusual spots", icon: Droplets }
-] as const;
 
 export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) => {
   const { toast } = useToast();
@@ -64,10 +48,12 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
   const form = useForm<SymptomsFormData>({
     resolver: zodResolver(symptomsSchema),
     defaultValues: {
-      fever: false, chills: false, headache: false, fatigue: false, muscle_aches: false,
-      nausea: false, diarrhea: false, abdominal_pain: false, cough: false, skin_rash: false,
+      fever: false,
       sex: "Male",
-      region: "Unknown"
+      region: "Unknown",
+      residence_type: "Rural",
+      slept_under_net: false,
+      age: 0
     },
   });
 
@@ -75,14 +61,26 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     setIsSubmitting(true);
     onLoadingChange(true);
     try {
-      const result = await apiClient.predictSymptoms(data);
+      // Transform to Backend Contract
+      const apiPayload: SymptomsInput = {
+        ...data,
+        fever: data.fever ? 1 : 0,
+        age_months: Math.max(1, Math.round(data.age * 12)), // Ensure at least 1 month if age 0? Or just *12
+        state: data.region,
+        residence_type: data.residence_type,
+        slept_under_net: data.slept_under_net ? 1 : 0,
+        anemia_level: null, // Not collected in form, send null
+        interview_month: new Date().getMonth() + 1
+      };
+
+      const result = await apiClient.predictSymptoms(apiPayload);
 
       // Store result in localStorage (for backward compatibility)
       const storedResult = {
         id: Date.now().toString(),
         type: 'diagnosis' as const,
         timestamp: new Date().toISOString(),
-        input: data,
+        input: apiPayload,
         result
       };
       StorageManager.saveResult(storedResult);
@@ -93,15 +91,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
           // Convert symptoms to the format expected by DiagnosisService
           const symptomsMap: Record<string, boolean> = {
             fever: data.fever,
-            chills: data.chills,
-            headache: data.headache,
-            fatigue: data.fatigue,
-            muscle_aches: data.muscle_aches,
-            nausea: data.nausea,
-            diarrhea: data.diarrhea,
-            abdominal_pain: data.abdominal_pain,
-            cough: data.cough,
-            skin_rash: data.skin_rash,
+            slept_under_net: data.slept_under_net,
           };
 
           await DiagnosisService.createFromMLResult(
@@ -109,12 +99,13 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             "", // No image for symptom-based diagnosis
             {
               label: result.label,
-              confidence: result.confidence,
+              confidence: result.confidence || 0, // Fallback if null
             },
             {
               patientAge: data.age,
               location: data.region,
               symptoms: symptomsMap,
+              model_version: result.model_version
             }
           );
 
@@ -123,7 +114,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             description: (
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-green-500" />
-                <span>Risk Level: {result.label} - Saved to your account</span>
+                <span>Result: {result.label} - Saved</span>
               </div>
             ),
           });
@@ -131,11 +122,11 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
           console.error("Failed to save diagnosis to database:", dbError);
           toast({
             title: "Assessment Complete",
-            description: `Risk Level: ${result.label}. Note: Failed to sync with cloud.`,
+            description: `Result: ${result.label}. Note: Failed to sync with cloud.`,
           });
         }
       } else {
-        toast({ title: "Assessment Complete", description: `Risk Level: ${result.label}` });
+        toast({ title: "Assessment Complete", description: `Result: ${result.label}` });
       }
 
       onResult(result);
@@ -164,12 +155,12 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             </div>
             <div>
               <h4 className="text-base font-bold text-primary uppercase tracking-wide">Patient Demographics</h4>
-              <p className="text-xs text-foreground/50 font-medium">This information helps us tailor the assessment more accurately.</p>
+              <p className="text-xs text-foreground/50 font-medium">This information is critical for the ML risk model.</p>
             </div>
           </div>
 
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="age"
@@ -220,7 +211,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
               name="region"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">Region</FormLabel>
+                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">Region/State</FormLabel>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -283,58 +274,116 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="residence_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Residence Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Rural">Rural</SelectItem>
+                      <SelectItem value="Urban">Urban</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Risk Factors */}
+          <div className="pt-2 border-t border-dashed border-primary/10">
+            <FormField
+              control={form.control}
+              name="slept_under_net"
+              render={({ field }) => (
+                <FormItem className="space-y-0">
+                  <FormControl>
+                    <label className={`
+                         flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group mt-2
+                         ${field.value ? 'bg-primary/5 border-primary/30' : 'bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10'}
+                       `}>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/20"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">Slept under Mosquito Net?</span>
+                        <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">Important prevention factor</span>
+                      </div>
+                      <div className={`
+                             w-8 h-8 rounded-full flex items-center justify-center transition-colors
+                             ${field.value ? 'bg-primary text-white' : 'bg-primary/5 text-primary/40 group-hover:text-primary'}
+                           `}>
+                        <Shield className="h-4 w-4" />
+                      </div>
+                    </label>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
         </div>
 
-        {/* Symptoms Section */}
+        {/* Malaria Risk Indicators Section */}
         <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Activity className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Symptoms</h4>
-              <p className="text-xs text-foreground/50 font-medium mt-1">Select all symptoms the patient is currently experiencing.</p>
+              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Malaria Risk Indicators (DHS-Based)</h4>
+              <p className="text-xs text-foreground/50 font-medium mt-1">This assessment uses nationally validated risk indicators rather than self-reported symptoms.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {symptoms.map((symptom) => {
-              const Icon = symptom.icon;
-              return (
-                <FormField
-                  key={symptom.key}
-                  control={form.control}
-                  name={symptom.key}
-                  render={({ field }) => (
-                    <FormItem className="space-y-0">
-                      <FormControl>
-                        <label className={`
-                                  flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group
-                                  ${field.value ? 'bg-primary/5 border-primary/30' : 'bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10'}
-                               `}>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/20"
-                          />
-                          <div className="flex-1">
-                            <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">{symptom.label}</span>
-                            <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">{symptom.description}</span>
-                          </div>
-                          <div className={`
-                                     w-8 h-8 rounded-full flex items-center justify-center transition-colors
-                                     ${field.value ? 'bg-primary text-white' : 'bg-primary/5 text-primary/40 group-hover:text-primary'}
-                                  `}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                        </label>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              );
-            })}
+          <div className="grid grid-cols-1 gap-3">
+            <FormField
+              control={form.control}
+              name="fever"
+              render={({ field }) => (
+                <FormItem className="space-y-0">
+                  <FormControl>
+                    <label className={`
+                                flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group
+                                ${field.value ? 'bg-primary/5 border-primary/30' : 'bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10'}
+                             `}>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/20"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">Fever (Last 2 Weeks)</span>
+                        <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">Primary DHS Indicator</span>
+                      </div>
+                      <div className={`
+                                   w-8 h-8 rounded-full flex items-center justify-center transition-colors
+                                   ${field.value ? 'bg-primary text-white' : 'bg-primary/5 text-primary/40 group-hover:text-primary'}
+                                `}>
+                        <Thermometer className="h-4 w-4" />
+                      </div>
+                    </label>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <p className="text-[11px] text-foreground/50 italic mt-2 px-1">
+              * Fever is the primary clinical indicator used in population-level malaria risk models.
+            </p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-dashed border-primary/10">
+            <p className="text-[11px] text-center text-foreground/40 font-medium">
+              This tool estimates malaria risk based on epidemiological patterns, not a full clinical diagnosis.
+            </p>
           </div>
         </div>
 

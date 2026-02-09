@@ -130,6 +130,7 @@ export const DiagnosisService = {
       patientSex?: string;
       location?: string;
       symptoms?: Record<string, boolean>;
+      model_version?: string;
     }
   ) => {
     try {
