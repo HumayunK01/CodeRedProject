@@ -146,7 +146,7 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 - **System Metrics**: API health, model performance, usage statistics
 - **Data Visualization**: Interactive charts (Recharts)
 - **Performance Tracking**: Response times, accuracy metrics, error rates
-- **User Analytics**: Diagnosis trends, regional patterns, forecast accuracy
+- **User Analytics**: Assessment trends, regional patterns, forecast accuracy
 
 ---
 
@@ -303,9 +303,9 @@ CodeRedProject/
 │       │   ├── utils/               # Helper functions
 │       │   └── config.py            # Configuration
 │       ├── models/                  # Trained model files
-│       │   ├── cnn_model.h5
-│       │   ├── symptoms_model.pkl
-│       │   └── arima_model.pkl
+│       │   ├── malaria_test_small.h5
+│       │   ├── malaria_symptoms_dhs.pkl
+│       │   └── malaria_forecast_arima.pkl
 │       ├── flask_app.py             # Main Flask application
 │       ├── requirements.txt
 │       └── runtime.txt
@@ -417,9 +417,9 @@ VITE_ANALYTICS_ID=your_analytics_id
 **Option B**: Train your own models (see [Model Training Guide](docs/model-training.md))
 
 Place model files in `apps/inference/models/`:
-- `cnn_model.h5` - Image classification model
-- `symptoms_model.pkl` - DHS-based symptom model
-- `arima_model.pkl` - Forecasting model
+- `malaria_test_small.h5` - Image classification model
+- `malaria_symptoms_dhs.pkl` - DHS-based risk screening model
+- `malaria_forecast_arima.pkl` - Forecasting model
 
 #### 6. Initialize Database (Optional)
 
@@ -851,13 +851,14 @@ docker-compose up -d
 
 | Model | Metric | Value |
 |-------|--------|-------|
-| **CNN (Image)** | Accuracy | 94.2% |
+| **CNN (Diagnostic)** | Accuracy | 94.2% |
 | | Precision | 93.8% |
 | | Recall | 94.6% |
 | | F1-Score | 94.2% |
 | | Inference Time | 1.8s |
-| **DHS (Symptoms)** | Accuracy | Pending |
-| | Status | Awaiting Training |
+| **DHS (Risk Model)** | Approach | Random Forest Classifier |
+| | Output | 3-Level Risk Stratification |
+| | Status | Active (v1.0) |
 | **ARIMA (Forecast)** | MAE (4-week) | 12.3% |
 | | RMSE | 15.7% |
 | | Accuracy | 80.2% |
@@ -1073,7 +1074,7 @@ We host weekly community calls:
 ## 🗺️ Roadmap
 
 ### Current Version (v1.1.0)
-- ✅ AI-powered diagnosis (image + symptoms)
+- ✅ AI-powered diagnosis (image) & risk screening (symptoms)
 - ✅ Regional outbreak forecasting
 - ✅ AI chatbot assistant
 - ✅ Professional PDF reports
