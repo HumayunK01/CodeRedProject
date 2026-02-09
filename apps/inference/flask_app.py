@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import numpy as np
+
+# Suppress TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing import image
 from xhtml2pdf import pisa
