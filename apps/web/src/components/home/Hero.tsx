@@ -62,7 +62,7 @@ export const Hero = () => {
                                 <Button asChild size="lg" className="rounded-full px-8 py-6 text-lg btn-medical group shadow-medical-lg w-full sm:w-auto">
                                     <Link to="/diagnosis">
                                         <Microscope className="mr-2 h-5 w-5" />
-                                        Start Diagnosis
+                                        Start Assessment
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
                                 </Button>

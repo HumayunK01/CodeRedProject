@@ -216,10 +216,10 @@ const Diagnosis = () => {
           <div className="relative z-10 max-w-6xl mx-auto text-center space-y-4">
 
             <h1 className="text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
-              Diagnosis
+              Assessment
             </h1>
             <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
-              Answer a few questions or upload a sample image to receive a clear malaria risk assessment.
+              Start your two-stage malaria risk screening or diagnostic confirmation.
             </p>
 
 
@@ -239,13 +239,13 @@ const Diagnosis = () => {
           <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8">
             <SectionHeader
               icon={TestTube}
-              title="Patient Assessment"
-              subtitle="Choose how you’d like to provide information"
+              title="Risk Screening & Diagnosis"
+              subtitle="Two-Stage Assessment Protocol"
             />
 
             <div className="mb-6">
               <p className="text-sm text-foreground/60 leading-relaxed max-w-3xl">
-                Quickly evaluate potential malaria risk by providing patient details or uploading a microscopy sample.
+                Begin with Stage 1 Risk Screening or proceed to Stage 2 Diagnostic Confirmation.
               </p>
             </div>
 

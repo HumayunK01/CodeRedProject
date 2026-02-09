@@ -39,6 +39,11 @@ interface SymptomsFormProps {
   onLoadingChange: (loading: boolean) => void;
 }
 
+/**
+ * Stage 1: Epidemiological Risk Screening Form
+ * Collects DHS-aligned indicators (Fever, Region, etc.) for ML risk stratification.
+ * This is NOT a diagnostic tool.
+ */
 export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) => {
   const { toast } = useToast();
   const { clerkId, isSignedIn } = useCurrentUser();
@@ -126,7 +131,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
           });
         }
       } else {
-        toast({ title: "Assessment Complete", description: `Result: ${result.label}` });
+        toast({ title: "Risk Assessment Complete", description: `Result: ${result.label}` });
       }
 
       onResult(result);
@@ -134,7 +139,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     } catch (error) {
       toast({
         title: "Assessment Failed",
-        description: error instanceof Error ? error.message : "Failed to assess symptoms.",
+        description: error instanceof Error ? error.message : "Failed to generate risk assessment.",
         variant: "destructive"
       });
     } finally {

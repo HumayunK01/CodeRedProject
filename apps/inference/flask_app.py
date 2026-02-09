@@ -53,9 +53,9 @@ def after_request(response):
 
 malaria_model = None
 malaria_forecast_model = None
-symptoms_model = None  # ML Model for Symptoms
+symptoms_model = None  # DHS-based Risk Screening Model
 # Fallback/Default Name
-SYMPTOM_MODEL_NAME = "Clinical Rule-Based Assessment (Interim)"
+SYMPTOM_MODEL_NAME = "Malaria Risk Screening (DHS-Based)"
 
 def load_models():
     """Load ML models from disk"""
@@ -124,9 +124,9 @@ def health_check():
             "message": "OutbreakLens ML Inference API is operational",
             "timestamp": datetime.now().isoformat(),
             "models_loaded": {
-                "cnn_model": malaria_model is not None,
-                "arima_model": malaria_forecast_model is not None,
-                "symptoms_model": SYMPTOM_MODEL_NAME
+                "cnn_diagnostic_model": malaria_model is not None,
+                "arima_forecast_model": malaria_forecast_model is not None,
+                "dhs_risk_model": SYMPTOM_MODEL_NAME
             },
             "database_connected": DB_AVAILABLE
         })

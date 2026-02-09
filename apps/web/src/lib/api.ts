@@ -52,6 +52,10 @@ class ApiClient {
     }
   }
 
+  /**
+   * Stage 1: DHS-Based Risk Stratification
+   * Estimates screening risk based on epidemiological factors.
+   */
   async predictSymptoms(symptoms: SymptomsInput): Promise<DiagnosisResult> {
     try {
       const response = await this.fetchWithTimeout(`${BASE_URL}/predict/symptoms`, {
@@ -62,7 +66,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorMessage = 'Symptoms prediction failed';
+        let errorMessage = 'Risk assessment failed';
         try {
           const error: ApiError = JSON.parse(errorText);
           errorMessage = error.error?.message || errorMessage;
@@ -78,7 +82,7 @@ class ApiClient {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to predict symptoms. Please try again.');
+      throw new Error('Failed to generate risk assessment. Please try again.');
     }
   }
 

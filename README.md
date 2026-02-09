@@ -63,13 +63,12 @@
 
 ## 🌟 Overview
 
-**Foresee** is an enterprise-grade healthcare platform that leverages advanced machine learning and epidemiological modeling to revolutionize malaria detection and outbreak prevention. Designed for healthcare professionals, research institutions, and endemic regions, Foresee provides:
+**Foresee** is a **Two-stage AI-powered malaria detection and risk assessment system** that leverages advanced machine learning and epidemiological modeling to revolutionize malaria control. Designed for healthcare professionals, research institutions, and endemic regions, Foresee provides a clinically modeled workflow:
 
-- **Real-time diagnostic capabilities** with 94.2% accuracy (CNN Image Model)
-- **Predictive outbreak modeling** with 4-week forecast horizons
-- **Intelligent AI assistance** for medical guidance
-- **Professional-grade reporting** with HIPAA-compliant documentation
-- **Geospatial analytics** for outbreak tracking and risk assessment
+1.  **Stage 1: Epidemiological Risk Screening** (DHS-based ML) – Rapid triage using demographic and environmental indicators.
+2.  **Stage 2: Diagnostic Confirmation** (Blood Smear CNN) – Microscopic analysis for parasite detection.
+
+*Note: Risk assessment outputs are for decision support and triage only.*
 
 ### 🎯 Mission
 
@@ -77,29 +76,31 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 
 ### 🏆 Impact
 
-- **Diagnostic Speed**: Sub-2-second inference time
-- **Accuracy**: 94.2% diagnostic precision (CNN Image Model)
-- **Coverage**: Multi-region outbreak forecasting
-- **Accessibility**: Progressive Web App (PWA) for offline capability
+-   **Diagnostic Speed**: Sub-2-second inference time
+- **Real-time diagnostic screening** (CNN Image Model)
+- **Epidemiological Risk Stratification** (DHS-based ML)
+- **Predictive outbreak modeling** with 4-week forecast horizonsg
+-   **Accessibility**: Progressive Web App (PWA) for offline capability
 
 ---
 
 ## ✨ Key Features
 
-### 🔬 AI-Powered Diagnosis
+### 🔬 Two-Stage Detection System
 
-**Dual-Mode Detection System**
-- **Image Analysis**: Deep learning CNN models trained on the NIH Malaria Dataset (27,558+ blood smear images)
-- **Symptom Assessment**: Clinical rule-based assessment used as an interim solution pending DHS-based ML training.
-- **Instant Results**: < 2 seconds inference time with confidence scoring
-- **Explainable AI**: Visual attention maps and feature importance analysis
+**Stage 1: Risk Assessment (DHS-Based ML)**
+-   **Method**: Random Forest Classifier trained on DHS (Demographic and Health Surveys) data.
+-   **Input**: Key indicators (Fever, Region, Residence Type, Net Usage).
+-   **Output**: Risk Level (Low/Medium/High) with **Risk Score**.
+-   **Purpose**: Population-level screening and patient triage.
 
-**Technical Specifications**
-- Model: Custom CNN architecture (TensorFlow/Keras)
-- Dataset: NIH Malaria Dataset
-- Input: 224x224 RGB blood smear images
-- Output: Binary classification (Parasitized/Uninfected) with probability scores
-- Validation: 94.2% accuracy (CNN only); Symptom accuracy not applicable (rule-based).
+**Stage 2: Diagnostic Detection (Blood Smear CNN)**
+-   **Method**: Deep Learning CNN trained on NIH Malaria Dataset (27,558+ images).
+-   **Input**: 224x224 RGB blood smear microscopy images.
+-   **Output**: Parasite Detected / Not Detected with **Confidence** score.
+-   **Validation**: 94.2% accuracy on test set.
+
+**System Workflow**: User → Risk Screening → (If High Risk) → Image-based Confirmation
 
 ### 📈 Outbreak Forecasting
 
@@ -550,7 +551,8 @@ fetch('http://localhost:8000/predict/image', {
 }
 ```
 
-#### 3. Symptom-Based Diagnosis
+#### 3. Malaria Risk Stratification Endpoint (DHS-Based)
+*Screening Tool Only*
 
 ```http
 POST /predict/symptoms
@@ -561,18 +563,10 @@ Content-Type: application/json
 ```json
 {
   "fever": true,
-  "chills": true,
-  "headache": true,
-  "nausea": false,
-  "vomiting": false,
-  "diarrhea": false,
-  "muscle_pain": true,
-  "fatigue": true,
-  "age": 35,
-  "gender": "male",
-  "region": "sub-saharan-africa",
-  "travel_history": true,
-  "previous_malaria": false
+  "slept_under_net": true,
+  "age_months": 36,
+  "region": "West Africa",
+  "residence_type": "Rural"
 }
 ```
 
@@ -580,17 +574,11 @@ Content-Type: application/json
 ```json
 {
   "label": "High Risk",
-  "confidence": 0.8723,
-  "probability": 0.8723,
-  "risk_score": 87.23,
-  "threshold": 0.7,
-  "recommendation": "Immediate medical consultation recommended",
-  "factors": [
-    "fever_present",
-    "chills_present",
-    "endemic_region",
-    "travel_history"
-  ]
+  "risk_score": 0.87,
+  "confidence": 0.87, /* Legacy */
+  "method": "DHS-based ML Risk Model",
+  "recommendation": "Refer for microscopy confirmation",
+  "model_version": "v1.0"
 }
 ```
 
@@ -1010,6 +998,14 @@ We welcome contributions from the community! Please read our [Contributing Guide
 - **Dataset**: NIH Malaria Dataset (27,558 images)
 - **Inspiration**: WHO Global Malaria Programme
 - **Community**: Open-source contributors and healthcare professionals
+
+---
+
+## ⚠️ Limitations
+
+1.  **Risk Assessment Only**: The DHS-based screening tool estimates epidemiological risk based on demographic and environmental factors. It **does not** detect parasites and should not be used as a standalone diagnostic status.
+2.  **Microscopy Requirements**: The image classification model (CNN) requires high-quality, 100x magnification blood smear images for accurate detection. Poor lighting or resolution may affect results.
+3.  **Regional Bias**: Forecasting models are currently optimized for specific endemic regions and may require retraining for new geographical contexts.
 
 ---
 

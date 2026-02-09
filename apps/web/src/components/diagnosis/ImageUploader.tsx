@@ -25,6 +25,11 @@ interface ImageUploaderProps {
   onLoadingChange: (loading: boolean) => void;
 }
 
+/**
+ * Stage 2: Diagnostic Confirmation Form
+ * Uploads blood smear images for CNN-based parasite detection.
+ * This is the primary diagnostic tool.
+ */
 export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps) => {
   const { toast } = useToast();
   const { clerkId, isSignedIn } = useCurrentUser();

@@ -119,7 +119,8 @@ export const UserService = {
 
 export const DiagnosisService = {
   /**
-   * Create a new diagnosis from ML result
+   * Create a new diagnosis/assessment record from ML result.
+   * Note: 'confidence' parameter stores either the CNN confidence or the DHS risk score.
    */
   createFromMLResult: async (
     clerkId: string,
