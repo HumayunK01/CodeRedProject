@@ -23,7 +23,7 @@ export function ClinicalAdvisory() {
 
                     {/* Icon Section */}
                     <div className="shrink-0 relative">
-                        <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping duration-[3000ms]" />
+                        <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping" style={{ animationDuration: "3000ms" }} />
                         <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-b from-amber-100 to-white shadow-sm ring-1 ring-amber-200/60 dark:from-amber-900/40 dark:to-black dark:ring-amber-500/20">
                             <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400" strokeWidth={2} />
                         </div>
