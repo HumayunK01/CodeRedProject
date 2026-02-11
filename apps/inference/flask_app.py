@@ -606,6 +606,7 @@ def dashboard_stats():
                     # Calculate "Today's Diagnoses"
                     today = datetime.now().date()
                     today_diagnoses = 0
+                    today_positive = 0  # Initialize counter for positive cases
                     for d in recent_diagnoses:
                         # Handle both datetime object and string (if serialized)
                         created_at = d.get('createdAt')
