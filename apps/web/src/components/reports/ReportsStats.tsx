@@ -23,7 +23,7 @@ export const ReportsStats = ({ results, isSignedIn }: ReportsStatsProps) => {
             title: "This Month",
             value: results.filter(r => dayjs(r.timestamp).isAfter(dayjs().subtract(1, 'month'))).length,
             icon: Calendar,
-            color: "text-accent"
+            color: "text-primary"
         },
         {
             title: "Diagnosis Results",

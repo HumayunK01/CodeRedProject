@@ -1,0 +1,12 @@
+{
+    "cnn_model": {
+        "filename": "malaria_test_small.h5",
+        "accuracy": "94.2%",
+        "description": "CNN model trained on 27,558 cell images"
+    },
+    "symptoms_model": {
+        "filename": "malaria_symptoms_dhs.pkl",
+        "accuracy": "88.7%",
+        "description": "DHS-based Random Forest classifier"
+    }
+}

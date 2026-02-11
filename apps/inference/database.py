@@ -273,4 +273,6 @@ def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
             activities = diagnoses + forecasts
             activities.sort(key=lambda x: x['createdAt'], reverse=True)
             
+            
+            
             return activities[:limit]

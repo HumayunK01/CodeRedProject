@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { apiClient } from "@/lib/api";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
-import { DiagnosisService, ForecastService } from "@/lib/db";
 import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import {
@@ -52,83 +51,83 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user-specific stats from database
-  useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!isSignedIn || !clerkId) return;
-
-      try {
-        const [diagStats, forecastStats] = await Promise.all([
-          DiagnosisService.getStatsByClerkId(clerkId),
-          ForecastService.getStatsByClerkId(clerkId),
-        ]);
-
-        // Update quick stats with user data
-        setQuickStats(prev => prev.map(stat => {
-          if (stat.title === "Today's Diagnoses" && diagStats) {
-            return {
-              ...stat,
-              value: diagStats.total,
-              change: diagStats.positive > 0 ? `${diagStats.positive} positive` : "All clear",
-              sparklineData: [60, 80, 75, 90, diagStats.total * 10 || 85].map(v => ({ value: v })),
-              tooltip: `${diagStats.total} total diagnoses, ${diagStats.positive} positive`,
-              source: 'db'
-            };
-          }
-          if (stat.title === "Active Forecasts" && forecastStats) {
-            return {
-              ...stat,
-              value: forecastStats.active,
-              change: forecastStats.highRisk > 0 ? `${forecastStats.highRisk} high risk` : "Low risk",
-              sparklineData: [40, 50, 65, 55, forecastStats.active * 15 || 70].map(v => ({ value: v })),
-              tooltip: `${forecastStats.total} total, ${forecastStats.active} active forecasts`,
-              source: 'db'
-            };
-          }
-          return stat;
-        }));
-      } catch (error) {
-        console.error("Failed to fetch user stats:", error);
-      }
-    };
-
-    fetchUserStats();
-  }, [clerkId, isSignedIn]);
-
+  // Fetch unified dashboard stats from API (which handles DB querying)
   useEffect(() => {
     const fetchDashboardData = async () => {
       // Only fetch if signed in
       if (!isSignedIn) return;
 
       try {
-        const stats = await apiClient.getDashboardStats();
+        setLoading(true);
+        // Pass clerkId to get real database stats
+        const stats: any = await apiClient.getDashboardStats(clerkId || undefined);
 
-        setQuickStats(prev => {
-          // Merge API stats with any existing DB stats
-          return [
-            prev[0].source === 'db' ? prev[0] : { title: "Today's Diagnoses", value: stats.today_diagnoses, change: "+12%", trend: "up", icon: Microscope, tooltip: "Tests completed today", sparklineData: [60, 80, 75, 90, 85].map(v => ({ value: v })), suffix: "", source: "api" },
-            prev[1].source === 'db' ? prev[1] : { title: "Active Forecasts", value: stats.active_forecasts, change: "+3", trend: "up", icon: TrendingUp, tooltip: "Active breakout models", sparklineData: [40, 50, 65, 55, 70].map(v => ({ value: v })), suffix: "", source: "api" },
-            { title: "Risk Regions", value: stats.risk_regions, change: "-2", trend: "down", icon: MapPin, tooltip: "Monitored hotspots", sparklineData: [90, 80, 70, 75, 60].map(v => ({ value: v })), suffix: "", source: "api" },
-            { title: "System Health", value: stats.system_health, change: "Excellent", trend: "stable", icon: Activity, tooltip: "Uptime and response quality", sparklineData: [99, 98, 99.5, 99, 99.2].map(v => ({ value: v })), suffix: "%", source: "api" }
-          ];
-        });
+        setQuickStats([
+          {
+            title: "Today's Diagnoses",
+            value: stats.today_diagnoses,
+            change: stats.today_positive > 0 ? `${stats.today_positive} positive` : "All clear",
+            trend: "stable",
+            icon: Microscope,
+            tooltip: "Tests completed today",
+            sparklineData: [60, 80, 75, 90, 85].map(v => ({ value: v })),
+            suffix: "",
+            source: "api"
+          },
+          {
+            title: "Active Forecasts",
+            value: stats.active_forecasts,
+            change: stats.high_risk_forecasts > 0 ? `${stats.high_risk_forecasts} high risk` : "Low risk",
+            trend: "stable",
+            icon: TrendingUp,
+            tooltip: "Active breakout models",
+            sparklineData: [40, 50, 65, 55, 70].map(v => ({ value: v })),
+            suffix: "",
+            source: "api"
+          },
+          {
+            title: "Risk Regions",
+            value: stats.risk_regions,
+            change: "Monitored",
+            trend: "stable",
+            icon: MapPin,
+            tooltip: "High-risk regions identified",
+            sparklineData: [90, 80, 70, 75, 60].map(v => ({ value: v })),
+            suffix: "",
+            source: "api"
+          },
+          {
+            title: "System Health",
+            value: stats.system_health,
+            change: "Stable",
+            trend: "stable",
+            icon: Activity,
+            tooltip: "System performance status",
+            sparklineData: [99, 98, 99.5, 99, 99.2].map(v => ({ value: v })),
+            suffix: "%",
+            source: "api"
+          }
+        ]);
 
         setSystemMetrics([
-          { title: "Model Accuracy", value: stats.model_accuracy, status: stats.model_accuracy.includes("%") ? "excellent" : "info", icon: Brain },
+          { title: "Model Accuracy", value: stats.model_accuracy, status: "excellent", icon: Brain },
           { title: "Response Time", value: stats.response_time, status: "optimal", icon: Zap },
           { title: "Data Security", value: stats.data_security, status: "compliant", icon: Shield },
           { title: "Global Reach", value: stats.global_reach, status: "regions", icon: Globe }
         ]);
 
         setRecentActivity(stats.recent_activity);
-        setLoading(false);
       } catch (error) {
         console.error('Data Fetch Error:', error);
+      } finally {
         setLoading(false);
       }
     };
-    fetchDashboardData();
-  }, [isSignedIn]);
+
+    if (isLoaded) {
+      fetchDashboardData();
+    }
+  }, [isSignedIn, clerkId, isLoaded]);
 
   if (!isLoaded) return null;
 
@@ -227,6 +226,8 @@ const Dashboard = () => {
               </div>
             </DashboardContainer>
           </section>
+
+
 
           {/* Analytical History */}
           <DashboardContainer className="bg-white/90 p-6 lg:p-8">

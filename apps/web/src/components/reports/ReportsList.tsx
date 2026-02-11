@@ -25,7 +25,7 @@ export const ReportsList = ({
 }: ReportsListProps) => {
 
     const [currentPage, setCurrentPage] = useState(1);
-    const resultsPerPage = 8;
+    const resultsPerPage = 6;
     const totalPages = Math.ceil(results.length / resultsPerPage);
 
     // Reset page when results change (e.g. filter)

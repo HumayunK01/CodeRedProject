@@ -70,12 +70,16 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                 : `Forecast – ${(result.result as any).region || 'Regional'} (${(result.result as any).predictions?.length || 4}-week outlook)`
                             }
                         </h4>
-                        <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
-                            {result.type === 'diagnosis'
-                                ? `Symptoms: ${(result.input as any).symptoms?.join(', ') || 'N/A'}`
-                                : `Period: ${(result.result as any).predictions?.length || 0} weeks projection`
-                            }
-                        </p>
+                        {result.type === 'diagnosis' && (result.input as any).symptoms?.length > 0 && (
+                            <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
+                                Symptoms: {(result.input as any).symptoms.join(', ')}
+                            </p>
+                        )}
+                        {result.type === 'forecast' && (
+                            <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
+                                Period: {(result.result as any).predictions?.length || 0} weeks projection
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -104,50 +108,60 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                     className="mt-4 pt-4 border-t border-primary/10"
                 >
                     <div className="grid md:grid-cols-2 gap-4">
-                        {/* Input Data Section */}
-                        <div className="space-y-2">
-                            <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Input Data</h5>
-                            <div className="space-y-3">
-                                {result.type === 'diagnosis' ? (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="bg-white/50 p-2 rounded-lg border border-white/60">
-                                                <span className="text-[10px] uppercase text-muted-foreground font-bold">Age</span>
-                                                <p className="font-medium text-sm">{(result.input as any).age || 'N/A'} Years</p>
-                                            </div>
-                                            <div className="bg-white/50 p-2 rounded-lg border border-white/60">
-                                                <span className="text-[10px] uppercase text-muted-foreground font-bold">Region</span>
-                                                <p className="font-medium text-sm">{(result.input as any).region || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        {(result.input as any).symptoms?.length > 0 && (
-                                            <div className="bg-white/50 p-2 rounded-lg border border-white/60">
-                                                <span className="text-[10px] uppercase text-muted-foreground font-bold block mb-2">Reported Symptoms</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {(result.input as any).symptoms.map((s: string, i: number) => (
-                                                        <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/80 border-primary/10 text-foreground/80">
-                                                            {s}
-                                                        </Badge>
-                                                    ))}
+                        {/* Input Data Section - Only show if there's actual data */}
+                        {(result.type === 'forecast' ||
+                            (result.type === 'diagnosis' && ((result.input as any).age || (result.input as any).region || (result.input as any).symptoms?.length > 0))) && (
+                                <div className="space-y-2">
+                                    <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Input Data</h5>
+                                    <div className="space-y-3">
+                                        {result.type === 'diagnosis' ? (
+                                            <>
+                                                {/* Only show Age and Region if they have actual values (not for image-based diagnosis) */}
+                                                {((result.input as any).age || (result.input as any).region) && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {(result.input as any).age && (
+                                                            <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                                                <span className="text-[10px] uppercase text-muted-foreground font-bold">Age</span>
+                                                                <p className="font-medium text-sm">{(result.input as any).age} Years</p>
+                                                            </div>
+                                                        )}
+                                                        {(result.input as any).region && (
+                                                            <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                                                <span className="text-[10px] uppercase text-muted-foreground font-bold">Region</span>
+                                                                <p className="font-medium text-sm">{(result.input as any).region}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {(result.input as any).symptoms?.length > 0 && (
+                                                    <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                                        <span className="text-[10px] uppercase text-muted-foreground font-bold block mb-2">Reported Symptoms</span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {(result.input as any).symptoms.map((s: string, i: number) => (
+                                                                <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/80 border-primary/10 text-foreground/80">
+                                                                    {s}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            // Forecast Input
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                                    <span className="text-[10px] uppercase text-muted-foreground font-bold">Target Region</span>
+                                                    <p className="font-medium text-sm">{(result.input as any).region}</p>
+                                                </div>
+                                                <div className="bg-white/50 p-2 rounded-lg border border-white/60">
+                                                    <span className="text-[10px] uppercase text-muted-foreground font-bold">Horizon</span>
+                                                    <p className="font-medium text-sm">{(result.input as any).horizon_weeks} Weeks</p>
                                                 </div>
                                             </div>
                                         )}
-                                    </>
-                                ) : (
-                                    // Forecast Input
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div className="bg-white/50 p-2 rounded-lg border border-white/60">
-                                            <span className="text-[10px] uppercase text-muted-foreground font-bold">Target Region</span>
-                                            <p className="font-medium text-sm">{(result.input as any).region}</p>
-                                        </div>
-                                        <div className="bg-white/50 p-2 rounded-lg border border-white/60">
-                                            <span className="text-[10px] uppercase text-muted-foreground font-bold">Horizon</span>
-                                            <p className="font-medium text-sm">{(result.input as any).horizon_weeks} Weeks</p>
-                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
+                            )}
 
                         {/* Analysis Results Section */}
                         <div className="space-y-2">

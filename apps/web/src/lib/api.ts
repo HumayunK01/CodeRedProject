@@ -138,7 +138,7 @@ class ApiClient {
     }
   }
 
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(clerkId?: string): Promise<DashboardStats> {
     try {
       // Get stored results to send to backend for real statistics
       const storedResults = StorageManager.getAllResults();
@@ -146,7 +146,12 @@ class ApiClient {
       // Encode stored results as URL parameter
       const encodedResults = encodeURIComponent(JSON.stringify(storedResults));
 
-      const response = await this.fetchWithTimeout(`${BASE_URL}/dashboard/stats?stored_results=${encodedResults}`);
+      let url = `${BASE_URL}/dashboard/stats?stored_results=${encodedResults}`;
+      if (clerkId) {
+        url += `&clerkId=${encodeURIComponent(clerkId)}`;
+      }
+
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch dashboard stats: ${response.status}`);

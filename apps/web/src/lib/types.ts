@@ -73,7 +73,9 @@ export interface StoredResult {
 
 export interface DashboardStats {
   today_diagnoses: number;
+  today_positive?: number;
   active_forecasts: number;
+  high_risk_forecasts?: number;
   risk_regions: number;
   system_health: number;
   model_accuracy: string;
