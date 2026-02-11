@@ -25,6 +25,69 @@ import {
 import { ChatInput } from "@/components/ui/chat-input";
 import { ChatMessageList } from "@/components/ui/chat-message-list";
 
+// Helper component to render message content with table support
+const MessageContent = ({ content }: { content: string }) => {
+  // Check if content contains a table (markdown table format)
+  const hasTable = content.includes('|') && content.includes('---');
+
+  if (!hasTable) {
+    return <div className="whitespace-pre-wrap text-sm">{content}</div>;
+  }
+
+  // Split content into parts (text before table, table, text after table)
+  const parts = content.split(/(\|[^\n]+\|(?:\n\|[-:| ]+\|)?(?:\n\|[^\n]+\|)*)/g);
+
+  return (
+    <div className="text-sm space-y-3">
+      {parts.map((part, index) => {
+        // Check if this part is a table
+        if (part.includes('|') && part.includes('---')) {
+          const lines = part.trim().split('\n').filter(line => line.trim());
+          if (lines.length < 2) return <div key={index} className="whitespace-pre-wrap">{part}</div>;
+
+          // Parse table
+          const headers = lines[0].split('|').map(h => h.trim()).filter(h => h);
+          const rows = lines.slice(2).map(line =>
+            line.split('|').map(cell => cell.trim()).filter(cell => cell)
+          );
+
+          return (
+            <div key={index} className="overflow-x-auto my-3">
+              <table className="min-w-full border-collapse border border-border/50 rounded-md overflow-hidden text-xs">
+                <thead>
+                  <tr className="bg-muted/50">
+                    {headers.map((header, i) => (
+                      <th key={i} className="border border-border/50 px-3 py-2 text-left font-semibold">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-muted/30 transition-colors">
+                      {row.map((cell, cellIndex) => (
+                        <td key={cellIndex} className="border border-border/50 px-3 py-2">
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        // Regular text
+        return part.trim() ? (
+          <div key={index} className="whitespace-pre-wrap">{part}</div>
+        ) : null;
+      })}
+    </div>
+  );
+};
+
 interface ChatbotProps {
   className?: string;
   isOpen?: boolean;
@@ -197,10 +260,8 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
                         : "bg-white dark:bg-muted shadow-sm border border-border/50"
                     }
                   >
-                    {/* Render message content with basic formatting */}
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
-                    </div>
+                    {/* Render message content with table support */}
+                    <MessageContent content={message.content} />
                   </ChatBubbleMessage>
 
                   <div className={cn(

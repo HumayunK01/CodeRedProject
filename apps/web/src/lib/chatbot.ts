@@ -62,11 +62,13 @@ export class ChatbotService {
   private static instance: ChatbotService;
   private apiKey: string;
   private baseURL = 'https://openrouter.ai/api/v1';
-  // Using the free DeepSeek R1T2 Chimera model
-  private defaultModel = 'tngtech/deepseek-r1t2-chimera:free';
+  // Model can be configured via VITE_CHATBOT_MODEL environment variable
+  private defaultModel: string;
 
   constructor() {
     this.apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || '';
+    // Load model from environment variable or use default
+    this.defaultModel = import.meta.env.VITE_CHATBOT_MODEL || 'openrouter/aurora-alpha';
   }
 
   static getInstance(): ChatbotService {
