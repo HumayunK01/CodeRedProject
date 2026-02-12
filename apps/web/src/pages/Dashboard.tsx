@@ -245,7 +245,7 @@ const Dashboard = () => {
             />
             <div className="bg-white/40 rounded-[16px] border border-white shadow-inner-sm overflow-hidden divide-y divide-primary/5">
               {isSignedIn
-                ? recentActivity.map((activity: any, i) => <ActivityLogItem key={i} activity={activity} />)
+                ? recentActivity.slice(0, 3).map((activity: any, i) => <ActivityLogItem key={i} activity={activity} />)
                 : Array(3).fill(0).map((_, i) => <ActivityLogItemSkeleton key={i} />)
               }
             </div>
