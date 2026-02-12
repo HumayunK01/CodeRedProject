@@ -101,14 +101,14 @@ export const testimonials = [
 export const steps = [
     {
         step: "1",
-        title: "Describe Symptoms",
-        description: "Simply answer a few quick questions about how you or your patient is feeling.",
+        title: "Risk Screening",
+        description: "Enter basic health and lifestyle details to quickly check your malaria risk level.",
         icon: Activity
     },
     {
         step: "2",
-        title: "Instant Analysis",
-        description: "Our smart system checks the details against medical data instantly.",
+        title: "Confirmation",
+        description: "Upload a blood sample image to check for malaria infection using our AI system.",
         icon: Brain
     },
     {
