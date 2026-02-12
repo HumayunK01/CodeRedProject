@@ -162,12 +162,21 @@
     </table>
 
     {% if symptoms %}
-    <div class="section-title">Clinical Symptoms Reported</div>
+    <div class="section-title">Clinical Risk Factors & Symptoms</div>
     <table class="info-table">
         <tr>
             <td style="padding: 8pt;">
+                <strong>Clinical Indicators:</strong><br />
+                <ul style="margin-top: 2pt; padding-left: 15pt; margin-bottom: 5pt;">
+                    {% if symptoms.get('fever') %}<li style="margin-bottom: 2pt;">Fever (Last 2 weeks)</li>{% endif %}
+                    {% if symptoms.get('anemia_level') and symptoms.get('anemia_level') != 'None' %}<li
+                        style="margin-bottom: 2pt;">Anemia Level: <strong>{{ symptoms.get('anemia_level') }}</strong>
+                    </li>{% endif %}
+                    {% if symptoms.get('slept_under_net') %}<li style="margin-bottom: 2pt;">Protective Measure: Slept
+                        under bed net</li>{% endif %}
+                </ul>
+
                 {% set symptom_labels = {
-                'fever': 'Fever',
                 'chills': 'Chills',
                 'headache': 'Headache',
                 'fatigue': 'Fatigue',
@@ -179,17 +188,17 @@
                 'skin_rash': 'Skin Rash'
                 } %}
 
-                {% set reported_symptoms = [] %}
+                {% set additional_symptoms = [] %}
                 {% for key, label in symptom_labels.items() %}
                 {% if symptoms.get(key) %}
-                {% set _ = reported_symptoms.append(label) %}
+                {% set _ = additional_symptoms.append(label) %}
                 {% endif %}
                 {% endfor %}
 
-                {% if reported_symptoms %}
-                {{ reported_symptoms | join(', ') }}
-                {% else %}
-                No symptoms reported
+                {% if additional_symptoms %}
+                <div style="margin-top: 10pt;">
+                    <strong>Other Reported Symptoms:</strong> {{ additional_symptoms | join(', ') }}
+                </div>
                 {% endif %}
             </td>
         </tr>

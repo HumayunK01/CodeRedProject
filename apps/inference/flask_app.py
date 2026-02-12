@@ -871,22 +871,38 @@ def predict_symptoms():
         symptom_count = sum(bool(data.get(symptom, False)) for symptom in symptom_keys)
 
         # Apply Clinical Rules
-        if not fever:
+        # Check Anemia Level (1=Severe, 2=Moderate) -> High Risk Factor
+        anemia_level = data.get("anemia_level", 4)
+        is_anemic = False
+        try:
+             # If anemia level is 1 or 2, consider it a significant risk factor
+             if int(anemia_level) <= 2:
+                 is_anemic = True
+        except:
+             pass
+
+        if not fever and not is_anemic:
             risk = "Low"
             risk_score = 0.15
-        elif symptom_count >= 2:
+        elif symptom_count >= 2 or (fever and is_anemic):
+            # High risk if multiple symptoms OR (Fever + Anemia)
             risk = "High"
             risk_score = 0.85
+        elif is_anemic:
+             # Severe/Moderate Anemia alone is significant
+            risk = "Medium"
+            risk_score = 0.65
         else:
+            # Fever alone without other symptoms
             risk = "Medium"
             risk_score = 0.50
-
+        
         return jsonify({
             "label": f"{risk} Risk",
             "risk_score": risk_score,
             "confidence": risk_score, # Backward compatibility
             "method": "Clinical Rule-Based Assessment (Interim - Fallback)",
-            "model_version": "v0.9 (Fallback)"
+            "model_version": "v1.0 (Fallback)"
         })
 
     except Exception as e:
@@ -1003,6 +1019,14 @@ def generate_report():
             "visit_date": datetime.now().strftime("%Y-%m-%d"),
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
+        
+        # Map Anemia Level if present in symptoms
+        if context["symptoms"] and "anemia_level" in context["symptoms"]:
+            anemia_map = {1: "Severe", 2: "Moderate", 3: "Mild", 4: "None"}
+            level = context["symptoms"]["anemia_level"]
+            # Handle if it's already a string or a number
+            if isinstance(level, int) or (isinstance(level, str) and level.isdigit()):
+                context["symptoms"]["anemia_level"] = anemia_map.get(int(level), str(level))
         
         if isinstance(context["confidence"], float) and context["confidence"] <= 1.0:
             context["confidence"] = round(context["confidence"] * 100, 1)

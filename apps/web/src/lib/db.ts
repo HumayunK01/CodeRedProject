@@ -130,7 +130,7 @@ export const DiagnosisService = {
       patientAge?: number;
       patientSex?: string;
       location?: string;
-      symptoms?: Record<string, boolean>;
+      symptoms?: Record<string, boolean | number | string>;
       model_version?: string;
     }
   ) => {

@@ -240,6 +240,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
               symptoms: patientData ? {
                 fever: patientData.fever,
                 slept_under_net: patientData.slept_under_net,
+                anemia_level: patientData.anemia_level,
               } : undefined,
             }}
             className="w-full"

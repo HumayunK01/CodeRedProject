@@ -30,7 +30,8 @@ import {
   ChevronDown,
   Check,
   Database,
-  Shield
+  Shield,
+  Droplets
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -58,7 +59,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
       region: "Unknown",
       residence_type: "Rural",
       slept_under_net: false,
-      age: 0
+      age: 0,
+      anemia_level: "None"
     },
   });
 
@@ -74,7 +76,13 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
         state: data.region,
         residence_type: data.residence_type,
         slept_under_net: data.slept_under_net ? 1 : 0,
-        anemia_level: null, // Not collected in form, send null
+        // DHS Standard Recode for Anemia (hc57): 1=Severe, 2=Moderate, 3=Mild, 4=Not Anemic
+        anemia_level: {
+          'Severe': 1,
+          'Moderate': 2,
+          'Mild': 3,
+          'None': 4
+        }[data.anemia_level],
         interview_month: new Date().getMonth() + 1
       };
 
@@ -94,9 +102,10 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
       if (isSignedIn && clerkId) {
         try {
           // Convert symptoms to the format expected by DiagnosisService
-          const symptomsMap: Record<string, boolean> = {
+          const symptomsMap: Record<string, boolean | string> = {
             fever: data.fever,
             slept_under_net: data.slept_under_net,
+            anemia_level: data.anemia_level,
           };
 
           await DiagnosisService.createFromMLResult(
@@ -380,9 +389,48 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                 </FormItem>
               )}
             />
-            <p className="text-[11px] text-foreground/50 italic mt-2 px-1">
+            <p className="text-[11px] text-foreground/50 italic mt-2 px-1 mb-4">
               * Fever is the primary clinical indicator used in the risk index calculation.
             </p>
+
+            <FormField
+              control={form.control}
+              name="anemia_level"
+              render={({ field }) => (
+                <FormItem className="space-y-0">
+                  <FormControl>
+                    <div className={`
+                                flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 group
+                                bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10
+                             `}>
+                      <div className={`
+                                   w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-primary/5 text-primary/40 group-hover:text-primary
+                                `}>
+                        <Droplets className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">Anemia Level</span>
+                        <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">Hemoglobin Status</span>
+                      </div>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 w-[140px] bg-white/50 border-primary/10 focus:border-primary/30 rounded-lg text-xs">
+                            <SelectValue placeholder="Select Level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="None">None (Normal)</SelectItem>
+                          <SelectItem value="Mild">Mild</SelectItem>
+                          <SelectItem value="Moderate">Moderate</SelectItem>
+                          <SelectItem value="Severe">Severe</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <div className="mt-4 pt-4 border-t border-dashed border-primary/10">

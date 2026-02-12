@@ -14,6 +14,18 @@ interface ResultCardProps {
 }
 
 export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCardProps) => {
+    // Helper to normalize symptoms from Array or Object (DB format)
+    const rawSymptoms = result.type === 'diagnosis' ? (result.input as any).symptoms : null;
+    const symptomsList = Array.isArray(rawSymptoms)
+        ? rawSymptoms
+        : (typeof rawSymptoms === 'object' && rawSymptoms !== null)
+            ? Object.entries(rawSymptoms)
+                .filter(([_, v]) => v && v !== 'None' && v !== 0 && v !== false)
+                .map(([k, v]) => {
+                    const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    return v === true ? label : `${label}: ${v}`;
+                })
+            : [];
 
     const getResultIcon = (type: string) => {
         return type === 'diagnosis' ? Microscope : TrendingUp;
@@ -70,9 +82,9 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                 : `Forecast – ${(result.result as any).region || 'Regional'} (${(result.result as any).predictions?.length || 4}-week outlook)`
                             }
                         </h4>
-                        {result.type === 'diagnosis' && (result.input as any).symptoms?.length > 0 && (
+                        {result.type === 'diagnosis' && symptomsList.length > 0 && (
                             <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
-                                Symptoms: {(result.input as any).symptoms.join(', ')}
+                                Symptoms: {symptomsList.join(', ')}
                             </p>
                         )}
                         {result.type === 'forecast' && (
@@ -133,11 +145,11 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                                         )}
                                                     </div>
                                                 )}
-                                                {(result.input as any).symptoms?.length > 0 && (
+                                                {symptomsList.length > 0 && (
                                                     <div className="bg-white/50 p-2 rounded-lg border border-white/60">
                                                         <span className="text-[10px] uppercase text-muted-foreground font-bold block mb-2">Reported Symptoms</span>
                                                         <div className="flex flex-wrap gap-1">
-                                                            {(result.input as any).symptoms.map((s: string, i: number) => (
+                                                            {symptomsList.map((s: string, i: number) => (
                                                                 <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/80 border-primary/10 text-foreground/80">
                                                                     {s}
                                                                 </Badge>

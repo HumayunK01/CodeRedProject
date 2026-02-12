@@ -9,6 +9,7 @@ export const symptomsSchema = z.object({
   region: z.string().min(1, 'Region is required').max(100, 'Region name too long'),
   residence_type: z.enum(['Urban', 'Rural']),
   slept_under_net: z.boolean(),
+  anemia_level: z.enum(['None', 'Mild', 'Moderate', 'Severe']),
 });
 
 export const forecastSchema = z.object({
