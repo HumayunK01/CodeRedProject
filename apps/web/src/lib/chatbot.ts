@@ -1,4 +1,5 @@
 // AI Chatbot service using OpenRouter API
+import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 
 export interface ChatMessage {
   id: string;
@@ -152,12 +153,17 @@ export class ChatbotService {
     }
   }
 
-  private cleanMarkdownResponse(content: string): string {
-    return content
+  private cleanMarkdownResponse(content: string, options: { preserveBold?: boolean } = {}): string {
+    let cleaned = content
       // Remove markdown headers (### text)
-      .replace(/^###\s+/gm, '')
-      // Remove bold formatting (**text**)
-      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/^###\s+/gm, '');
+
+    // Only remove bold if not preserved
+    if (!options.preserveBold) {
+      cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1');
+    }
+
+    return cleaned
       // Remove italic formatting (*text*)
       .replace(/\*(.*?)\*/g, '$1')
       // Remove inline code (`code`)
@@ -280,6 +286,93 @@ export class ChatbotService {
       console.error('Failed to fetch welcome message:', error);
       return this.getRandomMockWelcome();
     }
+  }
+
+  async getNextStepsGuidance(
+    result: DiagnosisResult,
+    patientData?: SymptomsInput,
+    isImageDiagnosis: boolean = false
+  ): Promise<string> {
+    const isApiKeyValid = this.apiKey && this.apiKey.startsWith('sk-or-v1');
+
+    if (!isApiKeyValid) {
+      return this.getMockGuidance(result.label);
+    }
+
+    try {
+      const patientContext = patientData
+        ? `Patient Age: ${patientData.age || patientData.age_months + ' months'}. Symptoms: Fever=${patientData.fever ? 'Yes' : 'No'}, Bed Net=${patientData.slept_under_net ? 'Yes' : 'No'}.`
+        : "Patient data not provided.";
+
+      const prompt = `
+        A user has just performed a ${isImageDiagnosis ? 'Microscopy Analysis' : 'Risk Screening'} on the Foresee platform.
+        
+        **Results:**
+        - Outcome: ${result.label}
+        - Confidence: ${(Number(result.probability || result.confidence || 0) * 100).toFixed(1)}%
+        - Method: ${result.method}
+        - Context: ${patientContext}
+
+        As Dr. Foresee, provide 3-4 short, specific, and actionable bullet points on what they should do next.
+        Start immediately with the bullet points. Do not say "Here is the guidance".
+        Tone: Professional, calm, and directive.
+        
+        If High Risk or Positive: Emphasize immediate medical attention.
+        If Low Risk or Negative: Emphasize continued prevention and monitoring.
+      `;
+
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Foresee - AI Malaria Assistant',
+        },
+        body: JSON.stringify({
+          model: this.defaultModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are Dr. Foresee, a specialized malaria consultant. Provide concise medical guidance based on assessment results. Keep it under 100 words.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.5,
+          max_tokens: 250,
+          stream: false
+        })
+      });
+
+      if (!response.ok) throw new Error('API request failed');
+      const data = await response.json();
+
+      if (!data.choices?.[0]?.message?.content) throw new Error('Invalid format');
+
+      // Preserve bold formatting for guidance to make it readable
+      return this.cleanMarkdownResponse(data.choices[0].message.content, { preserveBold: true });
+
+    } catch (error) {
+      console.error('Failed to fetch guidance:', error);
+      return this.getMockGuidance(result.label);
+    }
+  }
+
+  private getMockGuidance(label: string): string {
+    const lowerLabel = label.toLowerCase();
+
+    if (lowerLabel.includes('high') || lowerLabel.includes('positive')) {
+      return "• **Seek Immediate Care**: Visit the nearest healthcare facility for confirmation testing.\n• **Monitor Symptoms**: Keep track of fever spikes and other symptoms.\n• **Hydration**: Drink plenty of fluids and rest until seen by a doctor.";
+    }
+
+    if (lowerLabel.includes('medium')) {
+      return "• **Consult a Doctor**: Schedule an appointment to rule out infection.\n• **Watch for Changes**: If symptoms worsen, seek emergency care.\n• **Preventive Measures**: Continue using bed nets and repellents.";
+    }
+
+    return "• **Continue Prevention**: Use bed nets and insect repellent daily.\n• **Stay Alert**: Monitor for any new symptoms like fever or chills.\n• **Routine Checkups**: Maintain regular health visits.";
   }
 
   private getRandomMockWelcome(): string {

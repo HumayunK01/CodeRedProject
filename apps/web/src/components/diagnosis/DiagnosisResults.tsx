@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, XCircle, Info, Microscope, Activity } from "lucide-react";
+import { AlertCircle, CheckCircle, XCircle, Info, Microscope, Activity, Stethoscope, Sparkles } from "lucide-react";
 import { DiagnosisResult, SymptomsInput } from "@/lib/types";
 import { DownloadReportButton } from "@/components/diagnosis/DownloadReportButton";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { chatbotService } from "@/lib/chatbot";
 
 interface DiagnosisResultsProps {
   results: DiagnosisResult | null;
@@ -18,13 +19,34 @@ interface DiagnosisResultsProps {
 export const DiagnosisResults = ({ results, isLoading, patientData, imageData }: DiagnosisResultsProps) => {
   const isImageDiagnosis = imageData !== undefined && imageData.image !== undefined;
   const { user } = useCurrentUser();
+  const [guidance, setGuidance] = useState<string | null>(null);
+  const [isGuidanceLoading, setIsGuidanceLoading] = useState(false);
 
   // Get patient name from Clerk user or use fallback
   const patientName = user?.firstName && user?.lastName
     ? `${user.firstName} ${user.lastName}`
     : user?.firstName || "Patient";
 
+  // Fetch AI guidance when results change
+  useEffect(() => {
+    if (results) {
+      const fetchGuidance = async () => {
+        setIsGuidanceLoading(true);
+        try {
+          const advice = await chatbotService.getNextStepsGuidance(results, patientData, isImageDiagnosis);
+          setGuidance(advice);
+        } catch (error) {
+          console.error("Failed to load guidance", error);
+        } finally {
+          setIsGuidanceLoading(false);
+        }
+      };
 
+      fetchGuidance();
+    } else {
+      setGuidance(null);
+    }
+  }, [results, patientData, isImageDiagnosis]);
 
   if (isLoading) {
     return (
@@ -44,6 +66,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
             <Skeleton className="h-20 rounded-[16px] bg-primary/5" />
             <Skeleton className="h-20 rounded-[16px] bg-primary/5" />
           </div>
+          <Skeleton className="h-40 w-full rounded-[20px] bg-primary/5" />
         </div>
       </div>
     );
@@ -130,7 +153,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
         </div>
 
         {/* Interpretation */}
-        <div className="bg-white/40 border border-white/60 p-5 rounded-[20px] flex-1">
+        <div className="bg-white/40 border border-white/60 p-5 rounded-[20px] mb-4">
           <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
             <Info className="h-4 w-4" /> Assessment Interpretation
           </h4>
@@ -170,26 +193,57 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
               </span>
             </div>
           </div>
+        </div>
 
-          <div className="mt-4 pt-4 border-t border-primary/5">
-            <DownloadReportButton
-              diagnosisData={{
-                ...results,
-                patientName: patientName,
-                patientAge: patientData?.age?.toString(),
-                patientSex: patientData?.sex,
-                result: results.label,
-                confidence: results.probability ?? results.confidence,
-                symptoms: patientData ? {
-                  fever: patientData.fever,
-                  slept_under_net: patientData.slept_under_net,
-                } : undefined,
-              }}
-              className="w-full"
-            />
-          </div>
+        {/* AI Guidance Section */}
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-5 rounded-[20px] mb-4 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-8 -mt-8" />
 
+          <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2 relative z-10">
+            <Sparkles className="h-4 w-4" />
+            Dr. Foresee's Guidance
+          </h4>
 
+          {isGuidanceLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-3/4 bg-primary/10" />
+              <Skeleton className="h-4 w-full bg-primary/10" />
+              <Skeleton className="h-4 w-5/6 bg-primary/10" />
+            </div>
+          ) : guidance ? (
+            <div className="text-sm text-foreground/80 leading-relaxed font-medium relative z-10">
+              {guidance.split('\n').map((line, i) => (
+                <div key={i} className="min-h-[1.5em]">
+                  {line.split('**').map((part, j) =>
+                    j % 2 === 1 ? (
+                      <strong key={j} className="text-primary font-bold">{part}</strong>
+                    ) : (
+                      <span key={j}>{part}</span>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-auto">
+          <DownloadReportButton
+            diagnosisData={{
+              ...results,
+              patientName: patientName,
+              patientAge: patientData?.age?.toString(),
+              patientSex: patientData?.sex,
+              result: results.label,
+              confidence: results.probability ?? results.confidence,
+              symptoms: patientData ? {
+                fever: patientData.fever,
+                slept_under_net: patientData.slept_under_net,
+              } : undefined,
+            }}
+            className="w-full"
+          />
         </div>
 
       </div>
