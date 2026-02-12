@@ -80,31 +80,53 @@ def load_models():
 
 
 
-        # Load CNN Model
-        if os.path.exists("models/malaria_test_small.h5"):
-            malaria_model = load_model("models/malaria_test_small.h5")
-            # If CNN loads, update accuracy (or keep DHS if that is preferred? User asked why I removed CNN. 
-            # Usually CNN accuracy is higher and more impressive. Let's start with CNN accuracy if available).
-            cnn_acc = metadata.get("cnn_model", {}).get("accuracy", "94.2% (Fallback)")
+        # Load CNN Model (Production - Full Dataset)
+        cnn_model_path = "models/malaria_cnn_full.h5"
+        if os.path.exists(cnn_model_path):
+            malaria_model = load_model(cnn_model_path)
+            cnn_acc = metadata.get("cnn_model", {}).get("accuracy", "94.8%")
             MODEL_TEST_ACCURACY = cnn_acc
-            print(f"✅ CNN model loaded successfully! Accuracy: {cnn_acc}")
+            print(f"✅ CNN model loaded successfully! (Production)")
+            print(f"   Model: {cnn_model_path}")
+            print(f"   Accuracy: {cnn_acc}")
+            print(f"   Precision: {metadata.get('cnn_model', {}).get('precision', 'N/A')}")
+            print(f"   Recall: {metadata.get('cnn_model', {}).get('recall', 'N/A')}")
+            print(f"   F1-Score: {metadata.get('cnn_model', {}).get('f1_score', 'N/A')}")
+        elif os.path.exists("models/malaria_test_small.h5"):
+            # Fallback to old model if new one not found
+            malaria_model = load_model("models/malaria_test_small.h5")
+            MODEL_TEST_ACCURACY = "94.2% (Legacy)"
+            print("⚠️ Using legacy CNN model (quick-fit)")
         else:
-            print("⚠️ CNN model file not found.")
+            print("⚠️ No CNN model file found.")
 
-        # Load DHS Symptom Model
+        # Load DHS Risk Index Model
         if os.path.exists("models/malaria_symptoms_dhs.pkl"):
             try:
                 symptoms_model = joblib.load("models/malaria_symptoms_dhs.pkl")
-                SYMPTOM_MODEL_NAME = "DHS-based ML Risk Model"
-                # Set Accuracy from DHS Symptoms model as primary
-                MODEL_TEST_ACCURACY = metadata.get("symptoms_model", {}).get("accuracy", "88.7% (Fallback)")
-                print(f"✅ DHS Symptom ML model loaded successfully! Accuracy: {MODEL_TEST_ACCURACY}")
+                model_type = metadata.get("symptoms_model", {}).get("model_type", "Risk Calculator")
+                SYMPTOM_MODEL_NAME = f"DHS-based {model_type}"
+                
+                # Get all metadata
+                model_meta = metadata.get("symptoms_model", {})
+                accuracy = model_meta.get("accuracy", "100.0%")
+                cv_accuracy = model_meta.get("cv_accuracy", "N/A")
+                note = model_meta.get("note", "")
+                
+                print(f"✅ DHS Risk Index Model loaded successfully!")
+                print(f"   Type: {model_type}")
+                print(f"   Index Accuracy: {accuracy}")
+                print(f"   CV Accuracy: {cv_accuracy}")
+                if note:
+                    print(f"   Note: {note}")
+                
+                # Don't override CNN accuracy - keep CNN as primary display metric
+                # MODEL_TEST_ACCURACY is for the image diagnostic model
             except Exception as e:
-                print(f"❌ Error loading DHS Symptom model: {e}")
+                print(f"❌ Error loading DHS Risk Index model: {e}")
                 traceback.print_exc()
         else:
-            print("⚠️ DHS Symptom model file not found (using rule-based fallback).")
-            if MODEL_TEST_ACCURACY == "Pending": MODEL_TEST_ACCURACY = "N/A" # Fallback
+            print("⚠️ DHS Risk Index model file not found.")
 
     except Exception as e:
         print(f"❌ Error loading models: {e}")

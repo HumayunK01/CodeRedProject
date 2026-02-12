@@ -344,8 +344,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
               <Activity className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Malaria Risk Indicators (DHS-Based)</h4>
-              <p className="text-xs text-foreground/50 font-medium mt-1">This assessment uses nationally validated risk indicators rather than self-reported symptoms.</p>
+              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Risk Index (DHS-Based)</h4>
+              <p className="text-xs text-foreground/50 font-medium mt-1">Calculates a clinical risk score using verified DHS indicators rather than self-reported symptoms.</p>
             </div>
           </div>
 
@@ -381,13 +381,13 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
               )}
             />
             <p className="text-[11px] text-foreground/50 italic mt-2 px-1">
-              * Fever is the primary clinical indicator used in population-level malaria risk models.
+              * Fever is the primary clinical indicator used in the risk index calculation.
             </p>
           </div>
 
           <div className="mt-4 pt-4 border-t border-dashed border-primary/10">
             <p className="text-[11px] text-center text-foreground/40 font-medium">
-              This tool estimates malaria risk based on epidemiological patterns, not a full clinical diagnosis.
+              This tool calculates a clinical risk index based on epidemiological patterns, not a full clinical diagnosis.
             </p>
           </div>
         </div>

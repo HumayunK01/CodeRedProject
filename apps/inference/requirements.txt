@@ -12,3 +12,5 @@ psycopg[binary]
 python-dotenv
 gunicorn
 xhtml2pdf
+matplotlib
+seaborn

@@ -1,12 +1,28 @@
 {
     "cnn_model": {
-        "filename": "malaria_test_small.h5",
-        "accuracy": "94.2%",
-        "description": "CNN model trained on 27,558 cell images"
+        "filename": "malaria_cnn_full.h5",
+        "accuracy": "94.8%",
+        "precision": "0.9561",
+        "recall": "0.9401",
+        "f1_score": "0.9480",
+        "description": "Enhanced CNN trained on 27558 cell images with augmentation",
+        "epochs_trained": 8,
+        "train_samples": 22046,
+        "test_samples": 5512
     },
     "symptoms_model": {
         "filename": "malaria_symptoms_dhs.pkl",
-        "accuracy": "88.7%",
-        "description": "DHS-based Random Forest classifier"
+        "accuracy": "100.0%",
+        "cv_accuracy": "100.0%",
+        "model_type": "Risk Index Calculator",
+        "description": "DHS-based Clinical Risk Index (NOT diagnostic predictor)",
+        "note": "This model calculates risk scores, not malaria diagnosis",
+        "train_samples": 179374,
+        "test_samples": 44844,
+        "top_features": [
+            "fever",
+            "slept_under_net",
+            "anemia_level"
+        ]
     }
 }

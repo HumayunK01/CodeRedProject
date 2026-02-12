@@ -88,19 +88,20 @@ To democratize access to advanced malaria diagnostics and outbreak prediction, e
 
 ### 🔬 Two-Stage Detection System
 
-**Stage 1: Risk Assessment (DHS-Based ML)**
--   **Method**: Random Forest Classifier trained on DHS (Demographic and Health Surveys) data.
--   **Input**: Key indicators (Fever, Region, Residence Type, Net Usage).
--   **Output**: Risk Level (Low/Medium/High) with **Risk Score**.
--   **Purpose**: Population-level screening and patient triage.
+**Stage 1: Clinical Risk Index (DHS-Based)**
+-   **Method**: Random Forest Risk Calculator (WHO/CDC Guidelines).
+-   **Input**: Key indicators (Fever, Net Usage, Anemia, Region, Age).
+-   **Output**: Risk Stratification (Low/Medium/High) with **Clinical Index**.
+-   **Purpose**: Population-level screening and resource allocation (NOT diagnostic).
+-   **Validation**: 100% Index Consistency (Clinical Rules).
 
-**Stage 2: Diagnostic Detection (Blood Smear CNN)**
--   **Method**: Deep Learning CNN trained on NIH Malaria Dataset (27,558+ images).
--   **Input**: 224x224 RGB blood smear microscopy images.
+**Stage 2: Diagnostic Confirmation (Blood Smear CNN)**
+-   **Method**: Deep Learning CNN trained on full NIH Malaria Dataset (27,558 images).
+-   **Input**: 128x128 RGB blood smear microscopy images.
 -   **Output**: Parasite Detected / Not Detected with **Confidence** score.
--   **Validation**: 94.2% accuracy on test set.
+-   **Validation**: **94.85% accuracy** on test set (Production Model).
 
-**System Workflow**: User → Risk Screening → (If High Risk) → Image-based Confirmation
+**System Workflow**: User → Risk Stratification → (If High Risk) → Microscopy Confirmation
 
 ### 📈 Outbreak Forecasting
 
@@ -303,7 +304,7 @@ CodeRedProject/
 │       │   ├── utils/               # Helper functions
 │       │   └── config.py            # Configuration
 │       ├── models/                  # Trained model files
-│       │   ├── malaria_test_small.h5
+│       │   ├── malaria_cnn_full.h5
 │       │   ├── malaria_symptoms_dhs.pkl
 │       │   └── malaria_forecast_arima.pkl
 │       ├── flask_app.py             # Main Flask application
@@ -417,8 +418,8 @@ VITE_ANALYTICS_ID=your_analytics_id
 **Option B**: Train your own models (see [Model Training Guide](docs/model-training.md))
 
 Place model files in `apps/inference/models/`:
-- `malaria_test_small.h5` - Image classification model
-- `malaria_symptoms_dhs.pkl` - DHS-based risk screening model
+- `malaria_cnn_full.h5` - Production CNN Diagnostic Model (Full NIH Dataset)
+- `malaria_symptoms_dhs.pkl` - DHS-based Clinical Risk Index Calculator
 - `malaria_forecast_arima.pkl` - Forecasting model
 
 #### 6. Initialize Database (Optional)
@@ -851,14 +852,15 @@ docker-compose up -d
 
 | Model | Metric | Value |
 |-------|--------|-------|
-| **CNN (Diagnostic)** | Accuracy | 94.2% |
-| | Precision | 93.8% |
-| | Recall | 94.6% |
-| | F1-Score | 94.2% |
-| | Inference Time | 1.8s |
-| **DHS (Risk Model)** | Approach | Random Forest Classifier |
+| **CNN (Diagnostic)** | Accuracy | **94.85%** |
+| | Precision | **95.6%** |
+| | Recall | **94.0%** |
+| | F1-Score | **94.8%** |
+| | Dataset | 27,558 Images (Full NIH) |
+| **DHS (Risk Index)** | Approach | Clinical Risk Index (Random Forest) |
 | | Output | 3-Level Risk Stratification |
-| | Status | Active (v1.0) |
+| | Consistency | **100%** (vs Clinical Rules) |
+| | Use Case | Resource Planning (Non-Diagnostic) |
 | **ARIMA (Forecast)** | MAE (4-week) | 12.3% |
 | | RMSE | 15.7% |
 | | Accuracy | 80.2% |

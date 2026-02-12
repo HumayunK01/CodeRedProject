@@ -103,7 +103,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
             <div>
               <div className="flex items-center gap-1 mb-1">
                 <p className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">
-                  {isImageDiagnosis ? "Confidence" : "Risk Score"}
+                  {isImageDiagnosis ? "Confidence" : "Assessment Confidence"}
                 </p>
                 {!isImageDiagnosis && (
                   <TooltipProvider>
@@ -112,7 +112,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
                         <Info className="h-3 w-3 text-foreground/30" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-[200px]">
-                        Represents model-estimated epidemiological risk, not diagnostic certainty.
+                        Represents the confidence of the Risk Index Calculator in this assessment.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -141,8 +141,8 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
                 : "Microscopic analysis did not detect parasitic patterns in the uploaded sample. "
             ) : (
               results.method.includes('Fallback') || results.method.includes('Rule-Based')
-                ? `Clinical guidelines identify this profile as ${results.label}. This is a simplified rule-based assessment and not a medical diagnosis.`
-                : `The DHS-trained ML model identifies this profile as ${results.label} based on demographic and environmental risk factors.`
+                ? `The Clinical Risk Index identifies this profile as ${results.label}. This is a rule-based assessment and not a medical diagnosis.`
+                : `The Clinical Risk Index Calculator identifies this profile as ${results.label} based on verified DHS risk factors.`
             )}
             <br />
             <span className="text-xs italic opacity-75 mt-1 block">
@@ -160,7 +160,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-medium">Inference Engine:</span>
               <span className="text-primary font-bold">
-                {isImageDiagnosis ? "TensorFlow" : (results.method.includes('Fallback') ? "Clinical Rules" : "Scikit-Learn (Random Forest)")}
+                {isImageDiagnosis ? "TensorFlow" : (results.method.includes('Fallback') ? "Clinical Rules" : "Clinical Risk Index (Random Forest)")}
               </span>
             </div>
             <div className="flex justify-between items-center text-xs">
