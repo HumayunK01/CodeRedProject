@@ -1028,8 +1028,8 @@ def generate_report():
             if isinstance(level, int) or (isinstance(level, str) and level.isdigit()):
                 context["symptoms"]["anemia_level"] = anemia_map.get(int(level), str(level))
         
-        if isinstance(context["confidence"], float) and context["confidence"] <= 1.0:
-            context["confidence"] = round(context["confidence"] * 100, 1)
+        if isinstance(context["confidence"], (float, int)) and context["confidence"] <= 1.0:
+            context["confidence"] = round(float(context["confidence"]) * 100, 1)
 
         rendered_html = render_template("report.html", **context)
 
