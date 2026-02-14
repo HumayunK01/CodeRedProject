@@ -37,3 +37,16 @@ dist-ssr
 # Prisma generated client
 /generated/
 apps/database/generated/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+tf_gpu/
