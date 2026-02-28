@@ -8,6 +8,8 @@ import {
   Image,
   FileText
 } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DualModeDiagnosisProps {
   onResult: (result: DiagnosisResult) => void;
@@ -15,6 +17,8 @@ interface DualModeDiagnosisProps {
 }
 
 export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnosisProps) => {
+  const { user } = useUser();
+  const isDoctor = user?.publicMetadata?.role === "doctor";
   const [activeTab, setActiveTab] = useState("symptoms");
 
   const handleResult = (result: DiagnosisResult) => {
@@ -35,25 +39,43 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
           </div>
 
           <TabsList className="bg-primary/5 border border-primary/10 p-1 h-12 rounded-full relative flex items-center">
-            {["symptoms", "image"].map((tab) => (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className="relative z-10 flex-1 rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 
-                   data-[state=active]:text-white text-primary/60 hover:text-primary h-full flex items-center justify-center gap-2
-                   data-[state=active]:bg-transparent"
-              >
-                {activeTab === tab && (
-                  <motion.div
-                    layoutId="active-pill"
-                    className="absolute inset-0 bg-primary rounded-full -z-10 shadow-md"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                {tab === "symptoms" ? <FileText className="h-3.5 w-3.5" /> : <Image className="h-3.5 w-3.5" />}
-                {tab === "symptoms" ? "Risk Screening" : "Diagnostic Confirmation"}
-              </TabsTrigger>
-            ))}
+            {["symptoms", "image"].map((tab) => {
+              if (tab === "image" && !isDoctor) {
+                return (
+                  <Tooltip key={tab}>
+                    <TooltipTrigger asChild>
+                      <div className="relative z-10 flex-1 rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-wide text-primary/40 h-full flex items-center justify-center gap-2 cursor-not-allowed">
+                        <Image className="h-3.5 w-3.5 opacity-50" />
+                        Diagnostic Confirmation
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Restricted to verified medical professionals.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return (
+                <TabsTrigger
+                  key={tab}
+                  value={tab}
+                  className="relative z-10 flex-1 rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 
+                     data-[state=active]:text-white text-primary/60 hover:text-primary h-full flex items-center justify-center gap-2
+                     data-[state=active]:bg-transparent"
+                >
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="active-pill"
+                      className="absolute inset-0 bg-primary rounded-full -z-10 shadow-md"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  {tab === "symptoms" ? <FileText className="h-3.5 w-3.5" /> : <Image className="h-3.5 w-3.5" />}
+                  {tab === "symptoms" ? "Risk Screening" : "Diagnostic Confirmation"}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </div>
 
