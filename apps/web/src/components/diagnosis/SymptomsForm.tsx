@@ -55,12 +55,12 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     resolver: zodResolver(symptomsSchema),
     defaultValues: {
       fever: false,
-      sex: "Male",
+      sex: "" as "Male" | "Female" | "Other",
       region: "Unknown",
-      residence_type: "Rural",
+      residence_type: "" as "Rural" | "Urban",
       slept_under_net: false,
-      age: 0,
-      anemia_level: "None"
+      age: "" as unknown as number,
+      anemia_level: "" as "None" | "Mild" | "Moderate" | "Severe",
     },
   });
 
@@ -161,19 +161,12 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-        {/* Patient Info Section */}
+        {/* Single unified form card */}
         <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6 space-y-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <User className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Patient Demographics</h4>
-              <p className="text-xs text-foreground/50 font-medium">This information is critical for the ML risk model.</p>
-            </div>
-          </div>
 
 
+
+          {/* Demographics grid */}
           <div className="grid md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -206,7 +199,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                   <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Sex</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl">
+                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl data-[placeholder]:text-muted-foreground">
                         <SelectValue placeholder="Select sex" />
                       </SelectTrigger>
                     </FormControl>
@@ -296,7 +289,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                   <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Residence Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl">
+                      <SelectTrigger className="h-11 bg-white/50 border-primary/10 focus:border-primary/30 rounded-xl data-[placeholder]:text-muted-foreground">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                     </FormControl>
@@ -311,8 +304,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
             />
           </div>
 
-          {/* Risk Factors */}
-          <div className="pt-2 border-t border-dashed border-primary/10">
+          {/* Toggle questions — seamless continuation */}
+          <div className="border-t border-dashed border-primary/10 pt-4 grid grid-cols-1 gap-3">
             <FormField
               control={form.control}
               name="slept_under_net"
@@ -320,7 +313,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                 <FormItem className="space-y-0">
                   <FormControl>
                     <label className={`
-                         flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group mt-2
+                         flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group
                          ${field.value ? 'bg-primary/5 border-primary/30' : 'bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10'}
                        `}>
                       <Checkbox
@@ -343,22 +336,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                 </FormItem>
               )}
             />
-          </div>
-        </div>
 
-        {/* Malaria Risk Indicators Section */}
-        <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-[20px] p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <Activity className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-base font-bold text-primary uppercase tracking-wide">Clinical Risk Index (DHS-Based)</h4>
-              <p className="text-xs text-foreground/50 font-medium mt-1">Calculates a clinical risk score using verified DHS indicators rather than self-reported symptoms.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
             <FormField
               control={form.control}
               name="fever"
@@ -376,7 +354,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                       />
                       <div className="flex-1">
                         <span className="text-sm font-bold text-foreground/80 block group-hover:text-primary transition-colors">Fever (Last 2 Weeks)</span>
-                        <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">Primary DHS Indicator</span>
+                        <span className="text-[10px] text-foreground/50 uppercase tracking-wider font-medium">Primary risk indicator</span>
                       </div>
                       <div className={`
                                    w-8 h-8 rounded-full flex items-center justify-center transition-colors
@@ -389,9 +367,6 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                 </FormItem>
               )}
             />
-            <p className="text-[11px] text-foreground/50 italic mt-2 px-1 mb-4">
-              * Fever is the primary clinical indicator used in the risk index calculation.
-            </p>
 
             <FormField
               control={form.control}
@@ -399,13 +374,8 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
               render={({ field }) => (
                 <FormItem className="space-y-0">
                   <FormControl>
-                    <div className={`
-                                flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 group
-                                bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10
-                             `}>
-                      <div className={`
-                                   w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-primary/5 text-primary/40 group-hover:text-primary
-                                `}>
+                    <div className="flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 group bg-white/30 border-transparent hover:bg-white/50 hover:border-primary/10">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-primary/5 text-primary/40 group-hover:text-primary">
                         <Droplets className="h-4 w-4" />
                       </div>
                       <div className="flex-1">
@@ -414,7 +384,7 @@ export const SymptomsForm = ({ onResult, onLoadingChange }: SymptomsFormProps) =
                       </div>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-9 w-[140px] bg-white/50 border-primary/10 focus:border-primary/30 rounded-lg text-xs">
+                          <SelectTrigger className="h-9 w-[140px] bg-white/50 border-primary/10 focus:border-primary/30 rounded-lg text-xs data-[placeholder]:text-muted-foreground">
                             <SelectValue placeholder="Select Level" />
                           </SelectTrigger>
                         </FormControl>

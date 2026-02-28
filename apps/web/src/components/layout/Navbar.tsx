@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, Activity, TrendingUp, Microscope, Home, FileText } from "lucide-react";
+import { Menu, Activity, TrendingUp, Microscope, Home, FileText, Stethoscope, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -9,7 +9,8 @@ import {
   SignedOut,
   SignInButton,
   SignUpButton,
-  UserButton
+  UserButton,
+  useUser
 } from "@clerk/clerk-react";
 
 import {
@@ -23,6 +24,8 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useUser();
+  const isDoctor = user?.publicMetadata?.role === "doctor";
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -144,13 +147,27 @@ export const Navbar = () => {
           </SignedOut>
 
           <SignedIn>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8 sm:w-10 sm:h-10 border-2 border-white shadow-sm"
-                }
-              }}
-            />
+            <div className="flex items-center gap-3">
+              {/* Role Badge — styled to match the navbar design language */}
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                  {isDoctor
+                    ? <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                    : <User className="w-3.5 h-3.5 text-primary" />
+                  }
+                </div>
+                <span className="text-sm font-semibold tracking-wide text-primary">
+                  {isDoctor ? "Doctor" : "Patient"}
+                </span>
+              </div>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8 sm:w-10 sm:h-10 border-2 border-white shadow-sm"
+                  }
+                }}
+              />
+            </div>
           </SignedIn>
 
 
@@ -227,9 +244,18 @@ export const Navbar = () => {
                               }
                             }}
                           />
-                          <div className="flex flex-col">
+                          <div className="flex flex-col gap-0.5">
                             <span className="text-sm font-semibold text-foreground">My Account</span>
-                            <span className="text-xs text-muted-foreground">Manage profile</span>
+                            <div className="flex items-center gap-1">
+                              {isDoctor
+                                ? <Stethoscope className="w-3 h-3 text-primary" />
+                                : <User className="w-3 h-3 text-foreground/40" />
+                              }
+                              <span className={`text-xs font-semibold ${isDoctor ? "text-primary" : "text-foreground/40"
+                                }`}>
+                                {isDoctor ? "Doctor" : "Patient"}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </SignedIn>

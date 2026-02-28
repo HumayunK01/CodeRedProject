@@ -120,37 +120,25 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
           </div>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 gap-3 mb-4">
-          <div className="bg-white/40 border border-white/60 p-4 rounded-[20px] flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-1 mb-1">
-                <p className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">
-                  {isImageDiagnosis ? "Confidence" : "Assessment Confidence"}
+        {/* Metrics Grid — only shown for image/CNN diagnosis */}
+        {isImageDiagnosis && (
+          <div className="grid grid-cols-1 gap-3 mb-4">
+            <div className="bg-white/40 border border-white/60 p-4 rounded-[20px] flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider mb-1">
+                  Confidence
                 </p>
-                {!isImageDiagnosis && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-3 w-3 text-foreground/30" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[200px]">
-                        Represents the confidence of the Risk Index Calculator in this assessment.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+                <p className="text-2xl font-bold text-primary">{scorePercentage}%</p>
               </div>
-              <p className="text-2xl font-bold text-primary">{scorePercentage}%</p>
-            </div>
-            <div className="w-12 h-12 relative flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path className="text-primary/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                <path className="text-primary" strokeDasharray={`${scorePercentage}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-              </svg>
+              <div className="w-12 h-12 relative flex items-center justify-center">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  <path className="text-primary/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                  <path className="text-primary" strokeDasharray={`${scorePercentage}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Interpretation */}
         <div className="bg-white/40 border border-white/60 p-5 rounded-[20px] mb-4">
@@ -173,26 +161,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
             </span>
           </p>
 
-          <div className="bg-primary/5 rounded-xl p-3 space-y-2">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-medium">Methodology:</span>
-              <span className="text-primary font-bold truncate max-w-[200px]" title={isImageDiagnosis ? "Deep Learning (CNN)" : results.method}>
-                {isImageDiagnosis ? "Deep Learning (CNN)" : results.method}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-medium">Inference Engine:</span>
-              <span className="text-primary font-bold">
-                {isImageDiagnosis ? "TensorFlow" : (results.method.includes('Fallback') ? "Clinical Rules" : "Clinical Risk Index (Random Forest)")}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-medium">Model Version:</span>
-              <span className="text-primary font-bold">
-                {isImageDiagnosis ? "v2.1.0 (Vision)" : (results.model_version || "v1.0")}
-              </span>
-            </div>
-          </div>
+
         </div>
 
         {/* AI Guidance Section */}

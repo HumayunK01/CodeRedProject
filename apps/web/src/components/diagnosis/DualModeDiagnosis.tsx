@@ -4,12 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from "@/components/diagnosis/ImageUploader";
 import { SymptomsForm } from "@/components/diagnosis/SymptomsForm";
 import { DiagnosisResult } from "@/lib/types";
-import {
-  Image,
-  FileText
-} from "lucide-react";
+import { Image, FileText } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DualModeDiagnosisProps {
   onResult: (result: DiagnosisResult) => void;
@@ -35,28 +31,17 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <div className="space-y-1">
             <h3 className="text-lg font-medium text-primary">Begin Assessment</h3>
-            <p className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">Start with Risk Screening, then verify with Diagnostics if needed.</p>
+            <p className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">
+              {isDoctor
+                ? "Start with Risk Screening, then verify with Diagnostics if needed."
+                : "Complete the risk screening form below."}
+            </p>
           </div>
 
-          <TabsList className="bg-primary/5 border border-primary/10 p-1 h-12 rounded-full relative flex items-center">
-            {["symptoms", "image"].map((tab) => {
-              if (tab === "image" && !isDoctor) {
-                return (
-                  <Tooltip key={tab}>
-                    <TooltipTrigger asChild>
-                      <div className="relative z-10 flex-1 rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-wide text-primary/40 h-full flex items-center justify-center gap-2 cursor-not-allowed">
-                        <Image className="h-3.5 w-3.5 opacity-50" />
-                        Diagnostic Confirmation
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Restricted to verified medical professionals.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
-
-              return (
+          {/* Only render the TabsList/switcher if the user is a doctor */}
+          {isDoctor && (
+            <TabsList className="bg-primary/5 border border-primary/10 p-1 h-12 rounded-full relative flex items-center">
+              {["symptoms", "image"].map((tab) => (
                 <TabsTrigger
                   key={tab}
                   value={tab}
@@ -74,11 +59,12 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
                   {tab === "symptoms" ? <FileText className="h-3.5 w-3.5" /> : <Image className="h-3.5 w-3.5" />}
                   {tab === "symptoms" ? "Risk Screening" : "Diagnostic Confirmation"}
                 </TabsTrigger>
-              );
-            })}
-          </TabsList>
+              ))}
+            </TabsList>
+          )}
         </div>
 
+        {/* Symptoms tab — visible to everyone */}
         <TabsContent value="symptoms" className="mt-0 outline-none">
           <AnimatePresence mode="wait">
             {activeTab === "symptoms" && (
@@ -98,24 +84,27 @@ export const DualModeDiagnosis = ({ onResult, onLoadingChange }: DualModeDiagnos
           </AnimatePresence>
         </TabsContent>
 
-        <TabsContent value="image" className="mt-0 outline-none">
-          <AnimatePresence mode="wait">
-            {activeTab === "image" && (
-              <motion.div
-                key="image"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ImageUploader
-                  onResult={handleResult}
-                  onLoadingChange={handleLoadingChange}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </TabsContent>
+        {/* Image tab — only rendered for doctors */}
+        {isDoctor && (
+          <TabsContent value="image" className="mt-0 outline-none">
+            <AnimatePresence mode="wait">
+              {activeTab === "image" && (
+                <motion.div
+                  key="image"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ImageUploader
+                    onResult={handleResult}
+                    onLoadingChange={handleLoadingChange}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
