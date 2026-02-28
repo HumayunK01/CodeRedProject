@@ -192,8 +192,160 @@ def serialize_datetime(obj):
             serialize_datetime(item)
     return obj
 
+# ─────────────────────────────────────────
+#  Admin Helpers
+# ─────────────────────────────────────────
+
+import urllib.request
+import urllib.error
+
+CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "").strip()
+CLERK_API_BASE   = "https://api.clerk.com/v1"
+print(f"[admin] CLERK_SECRET_KEY loaded: {CLERK_SECRET_KEY[:12]}...{CLERK_SECRET_KEY[-4:] if CLERK_SECRET_KEY else 'EMPTY'}")
+
+# ── Startup connectivity test ──────────────────────────────────
+def _test_clerk_connection():
+    if not CLERK_SECRET_KEY or CLERK_SECRET_KEY.startswith("sk_test_your"):
+        print("⚠️  [admin] CLERK_SECRET_KEY is not set — admin endpoints will not work")
+        return
+    try:
+        import urllib.request as _ur
+        req = _ur.Request(
+            f"{CLERK_API_BASE}/users?limit=1",
+            headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
+        )
+        with _ur.urlopen(req) as r:
+            print(f"✅ [admin] Clerk API connected — HTTP {r.status}")
+    except Exception as e:
+        print(f"❌ [admin] Clerk API connection FAILED: {e}")
+
+_test_clerk_connection()
+
+def _clerk_request(method: str, path: str, body: dict | None = None):
+    """Make an authenticated request to the Clerk Management API."""
+    url = f"{CLERK_API_BASE}{path}"
+    data = json.dumps(body).encode() if body else None
+    headers = {
+        "Authorization": f"Bearer {CLERK_SECRET_KEY}",
+        "User-Agent": "Foresee-Flask/1.0",
+    }
+    if data:
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode()), resp.status
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", errors="replace")
+        try:
+            return json.loads(raw), e.code
+        except Exception:
+            return {"error": raw[:200]}, e.code
+
+
+def _get_caller_role(request) -> str | None:
+    """Get the caller's role by decoding their Clerk user ID from the JWT,
+    then fetching their publicMetadata from the Clerk Management API."""
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None, "no_bearer_token"
+    token = auth.split(" ", 1)[1]
+    try:
+        import base64
+        parts = token.split(".")
+        if len(parts) < 3:
+            return None, f"invalid_jwt_parts:{len(parts)}"
+        payload_b64 = parts[1]
+        payload_b64 += "=" * (-len(payload_b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        user_id = payload.get("sub")
+        print(f"[admin] JWT sub={user_id!r}, CLERK_SECRET_KEY set={bool(CLERK_SECRET_KEY)}")
+        if not user_id:
+            return None, "no_sub_in_jwt"
+        if not CLERK_SECRET_KEY:
+            return None, "clerk_key_not_set"
+        # Fetch fresh publicMetadata from Clerk
+        data, status = _clerk_request("GET", f"/users/{user_id}")
+        print(f"[admin] Clerk GET /users/{user_id} → HTTP {status}")
+        if status != 200:
+            return None, f"clerk_api_error:{status}:{data.get('errors', data)}"
+        role = (data.get("public_metadata") or {}).get("role")
+        print(f"[admin] public_metadata={data.get('public_metadata')!r} → role={role!r}")
+        return role, "ok"
+    except Exception as e:
+        print(f"[admin] _get_caller_role exception: {e}")
+        return None, f"exception:{e}"
+
+
+@app.route("/admin/users", methods=["GET", "OPTIONS"])
+def admin_get_users():
+    """List all Clerk users with their roles. Admin only."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    caller_role, reason = _get_caller_role(request)
+    print(f"[admin] /admin/users → role={caller_role!r}, reason={reason!r}")
+    if caller_role != "admin":
+        return jsonify({"error": "Forbidden", "resolved_role": caller_role, "reason": reason}), 403
+
+    if not CLERK_SECRET_KEY:
+        return jsonify({"error": "CLERK_SECRET_KEY not configured on server"}), 500
+
+    data, status = _clerk_request("GET", "/users?limit=100&order_by=-created_at")
+    if status != 200:
+        return jsonify({"error": "Failed to fetch users from Clerk", "detail": data}), 502
+
+    users = []
+    for u in data:
+        users.append({
+            "id": u["id"],
+            "firstName": u.get("first_name") or "",
+            "lastName": u.get("last_name") or "",
+            "email": (u.get("email_addresses") or [{}])[0].get("email_address", ""),
+            "imageUrl": u.get("image_url", ""),
+            "role": (u.get("public_metadata") or {}).get("role", "patient"),
+            "createdAt": u.get("created_at"),
+        })
+
+    return jsonify(users), 200
+
+
+@app.route("/admin/set-role", methods=["POST", "OPTIONS"])
+def admin_set_role():
+    """Update a user's role via Clerk publicMetadata. Admin only."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    caller_role, reason = _get_caller_role(request)
+    if caller_role != "admin":
+        return jsonify({"error": "Forbidden", "reason": reason}), 403
+
+    if not CLERK_SECRET_KEY:
+        return jsonify({"error": "CLERK_SECRET_KEY not configured on server"}), 500
+
+    body = request.get_json(force=True)
+    user_id = body.get("userId")
+    new_role = body.get("role")   # "doctor" | "patient" | "admin"
+
+    if not user_id or not new_role:
+        return jsonify({"error": "userId and role are required"}), 400
+
+    if new_role not in ("doctor", "patient", "admin"):
+        return jsonify({"error": "Invalid role"}), 400
+
+    # Patch publicMetadata via Clerk Management API
+    patch_body = {"public_metadata": {"role": new_role}}
+    data, status = _clerk_request("PATCH", f"/users/{user_id}/metadata", patch_body)
+
+    if status != 200:
+        return jsonify({"error": "Failed to update role", "detail": data}), 502
+
+    return jsonify({"success": True, "userId": user_id, "role": new_role}), 200
+
+
 @app.route("/")
 def home():
+
     return jsonify({
         "name": "OutbreakLens ML Inference API",
         "version": "1.0.0",

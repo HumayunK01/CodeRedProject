@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, Activity, TrendingUp, Microscope, Home, FileText, Stethoscope, User } from "lucide-react";
+import { Menu, Activity, TrendingUp, Microscope, Home, FileText, Stethoscope, User, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useUser();
   const isDoctor = user?.publicMetadata?.role === "doctor";
-
+  const isAdmin = user?.publicMetadata?.role === "admin";
   const [isMobile, setIsMobile] = useState(false);
 
   // Handle scroll effect
@@ -72,6 +72,7 @@ export const Navbar = () => {
     { name: "Diagnosis", path: "/diagnosis", icon: Microscope },
     { name: "Forecast", path: "/forecast", icon: TrendingUp },
     { name: "Reports", path: "/reports", icon: FileText },
+    ...(isAdmin ? [{ name: "Admin", path: "/admin", icon: ShieldCheck }] : []),
   ];
 
   return (
