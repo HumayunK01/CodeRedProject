@@ -17,6 +17,7 @@ import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing import image
+import cv2
 from xhtml2pdf import pisa
 
 # Try to import database functions, handle if not available
@@ -57,6 +58,8 @@ def after_request(response):
 malaria_model = None # Kept as placeholder to avoid NameErrors if referenced elsewhere, but unused
 malaria_forecast_model = None # Kept as placeholder
 symptoms_model = None  # DHS-based Risk Screening Model
+gatekeeper_model = None # Autoencoder for OOD detection
+gatekeeper_threshold = 0.05 # Default fallback threshold
 
 # Fallback/Default Name
 SYMPTOM_MODEL_NAME = "Malaria Risk Screening (DHS-Based)"
@@ -64,6 +67,7 @@ SYMPTOM_MODEL_NAME = "Malaria Risk Screening (DHS-Based)"
 def load_models():
     """Load ML models from disk"""
     global malaria_model, malaria_forecast_model, symptoms_model, SYMPTOM_MODEL_NAME, MODEL_TEST_ACCURACY
+    global gatekeeper_model, gatekeeper_threshold
     try:
 
         # Load Metadata
@@ -79,6 +83,17 @@ def load_models():
 
 
 
+
+        # Load Gatekeeper Model
+        gatekeeper_path = "models/gatekeeper_autoencoder.h5"
+        if os.path.exists(gatekeeper_path):
+            try:
+                gatekeeper_model = load_model(gatekeeper_path, compile=False)
+                gk_meta = metadata.get("gatekeeper_model", {})
+                gatekeeper_threshold = gk_meta.get("mse_threshold", 0.05)
+                print(f"✅ Gatekeeper Autoencoder loaded! (Threshold: {gatekeeper_threshold:.4f})")
+            except Exception as e:
+                print(f"⚠️ Error loading gatekeeper: {e}")
 
         # Load CNN Model (Production - Full Dataset)
         cnn_model_path = "models/malaria_cnn_full.h5"
@@ -1137,6 +1152,56 @@ def predict_image():
             img_array = img_array / 255.0 
             img_array = np.expand_dims(img_array, axis=0)
             
+            # --- GATEKEEPER CHECK (OOD Detection) ---
+            if gatekeeper_model is not None:
+                # Resize specifically for gatekeeper if it differs from malaria model size
+                gk_img = image.load_img(temp_path, target_size=(64, 64))
+                gk_array = image.img_to_array(gk_img) / 255.0
+                gk_array = np.expand_dims(gk_array, axis=0)
+                
+                # Reconstruct image
+                reconstructed = gatekeeper_model.predict(gk_array, verbose=0)
+                mse = np.mean(np.square(gk_array - reconstructed))
+                
+                print(f"[Gatekeeper] Image MSE: {mse:.5f} (Threshold: {gatekeeper_threshold:.5f})")
+                
+                if mse > gatekeeper_threshold:
+                    return jsonify({
+                        "label": "Invalid Image",
+                        "confidence": 0.0,
+                        "probability": 0.0,
+                        "threshold": 0.5,
+                        "error": "This image does not appear to be a standard Giemsa-stained thin blood smear. Please upload a valid microscopic image."
+                    }), 400
+            
+            # --- OPENCV IMAGE VALIDATION (Too many cells / Not a crop) ---
+            try:
+                cv_img = cv2.imread(temp_path)
+                if cv_img is not None:
+                    # Check for large amounts of independent cells
+                    gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
+                    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+                    edges = cv2.Canny(blurred, 50, 150)
+                    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    
+                    # A single cell from the NIH dataset should have very few external contours depending on dye spots.
+                    # We just filter out tiny artifacts
+                    valid_contours = [c for c in contours if cv2.contourArea(c) > 50]
+                    
+                    print(f"[OpenCV Validator] Found {len(valid_contours)} cell-like contours in the image.")
+                    
+                    if len(valid_contours) > 15:
+                        return jsonify({
+                            "label": "Invalid Image",
+                            "confidence": 0.0,
+                            "probability": 0.0,
+                            "threshold": 0.5,
+                            "error": "This appears to be a full blood smear with dozens of cells. Please upload an image of a SINGLE, cropped cell for accurate diagnosis."
+                        }), 400
+            except Exception as cv_e:
+                print(f"[OpenCV Error] {cv_e}")
+            
+            # --- MALARIA CLASSIFICATION ---
             prediction = malaria_model.predict(img_array)
             score = float(prediction[0][0])
             label = "Parasitized" if score > 0.5 else "Uninfected"

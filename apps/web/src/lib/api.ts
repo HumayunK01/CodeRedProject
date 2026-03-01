@@ -39,8 +39,14 @@ class ApiClient {
       });
 
       if (!response.ok) {
-        const error: ApiError = await response.json();
-        throw new Error(error.error?.message || 'Image prediction failed');
+        let errorMessage = 'Image prediction failed';
+        try {
+            const error = await response.json();
+            errorMessage = error.error || error.message || errorMessage;
+        } catch (e) {
+            // failed to parse json
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();

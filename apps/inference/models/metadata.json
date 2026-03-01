@@ -24,5 +24,14 @@
             "slept_under_net",
             "anemia_level"
         ]
+    },
+    "gatekeeper_model": {
+        "filename": "gatekeeper_autoencoder.h5",
+        "mse_threshold": 0.035,
+        "description": "Out-of-Distribution Autoencoder to reject random internet images",
+        "img_size": [
+            64,
+            64
+        ]
     }
 }
