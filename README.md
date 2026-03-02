@@ -8,37 +8,13 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
-[![React](https://img.shields.io/badge/react-18.0+-61dafb.svg)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.0+-3178c6.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/react-18.2-61dafb.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.0-3178c6.svg)](https://www.typescriptlang.org/)
+[![Flask](https://img.shields.io/badge/flask-3.0-black.svg)](https://flask.palletsprojects.com/)
+[![TensorFlow](https://img.shields.io/badge/tensorflow-2.15-ff6f00.svg)](https://tensorflow.org/)
 
-**Diagnose Today, Predict Tomorrow**
+**Diagnose Today. Predict Tomorrow.**
 
-[Live Demo](https://foresee.app) • [Documentation](https://docs.foresee.app) • [Report Bug](https://github.com/HumayunK01/CodeRedProject/issues) • [Request Feature](https://github.com/HumayunK01/CodeRedProject/discussions)
-
-</div>
-
----
-
-## 📸 Application Preview
-
-<div align="center">
-  <img src="apps/web/public/preview.jpg" alt="Foresee Dashboard - Main Interface" width="800" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-  <p><em>Main Dashboard - Real-time analytics and system monitoring</em></p>
-</div>
-
-<div align="center">
-  <table>
-    <tr>
-      <td width="50%" align="center">
-        <img src="apps/web/public/preview1.jpg" alt="Diagnosis Interface" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-        <p><em>Fully Responsive Website</em></p>
-      </td>
-      <td width="50%" align="center">
-        <img src="apps/web/public/preview2 (1).jpg" alt="Forecasting Dashboard" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-        <p><em>Mobile First Design</em></p>
-      </td>
-    </tr>
-  </table>
 </div>
 
 ---
@@ -46,920 +22,1020 @@
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
-- [Key Features](#-key-features)
+- [Two-Stage Clinical Workflow](#-two-stage-clinical-workflow)
+- [Machine Learning Models](#-machine-learning-models)
+- [System Architecture](#-system-architecture)
 - [Technology Stack](#-technology-stack)
-- [Architecture](#-architecture)
-- [Getting Started](#-getting-started)
-- [API Documentation](#-api-documentation)
-- [Deployment](#-deployment)
+- [API Reference](#-api-reference)
+- [Security Architecture](#-security-architecture)
+- [Database Schema](#-database-schema)
+- [Frontend Application](#-frontend-application)
+- [Role-Based Access Control](#-role-based-access-control)
+- [Out-of-Distribution (OOD) Detection](#-out-of-distribution-ood-detection)
+- [Outbreak Forecasting Engine](#-outbreak-forecasting-engine)
+- [AI Medical Assistant](#-ai-medical-assistant)
 - [Performance Metrics](#-performance-metrics)
-- [Security & Compliance](#-security--compliance)
-- [Contributing](#-contributing)
+- [Project Structure](#-project-structure)
+- [Limitations & Disclaimer](#-limitations--disclaimer)
 - [Team](#-team)
 - [License](#-license)
-- [Support](#-support)
 
 ---
 
 ## 🌟 Overview
 
-**Foresee** is a **Two-stage AI-powered malaria detection and risk assessment system** that leverages advanced machine learning and epidemiological modeling to revolutionize malaria control. Designed for healthcare professionals, research institutions, and endemic regions, Foresee provides a clinically modeled workflow:
+**Foresee** is a full-stack, production-grade AI/ML platform for malaria diagnostics and epidemiological risk assessment. It implements a clinically modelled two-stage detection workflow, combining deep learning-based microscopy image analysis with a machine-learning-based epidemiological risk screener derived from Demographic and Health Survey (DHS) methodology.
 
-1.  **Stage 1: Epidemiological Risk Screening** (DHS-based ML) – Rapid triage using demographic and environmental indicators.
-2.  **Stage 2: Diagnostic Confirmation** (Blood Smear CNN) – Microscopic analysis for parasite detection.
+The platform is purpose-built for endemic regions where skilled microscopists are scarce and rapid triage is critical. It provides healthcare professionals (doctors), administrators, and patients with a role-differentiated interface under a unified web application.
 
-*Note: Risk assessment outputs are for decision support and triage only.*
+### Core Capabilities at a Glance
 
-### 🎯 Mission
-
-To democratize access to advanced malaria diagnostics and outbreak prediction, enabling healthcare providers in resource-constrained settings to make data-driven decisions that save lives.
-
-### 🏆 Impact
-
--   **Diagnostic Speed**: Sub-2-second inference time
-- **Real-time diagnostic screening** (CNN Image Model)
-- **Epidemiological Risk Stratification** (DHS-based ML)
-- **Predictive outbreak modeling** with 4-week forecast horizonsg
--   **Accessibility**: Progressive Web App (PWA) for offline capability
+| Capability | Method | Status |
+|---|---|---|
+| Blood smear parasite detection | CNN (TensorFlow/Keras, 27,558 images) | ✅ Production |
+| Epidemiological risk stratification | Random Forest (DHS-aligned features) | ✅ Production |
+| OOD / gatekeeper image rejection | Convolutional Autoencoder (MSE threshold) | ✅ Production |
+| Outbreak forecasting | ARIMA time-series with STL decomposition | ✅ Production |
+| Role-based user management | Clerk Management API + JWT RBAC | ✅ Production |
+| PDF report generation | xhtml2pdf (backend) + jsPDF (frontend) | ✅ Production |
+| AI clinical assistant | OpenRouter API (LLM integration) | ✅ Production |
+| Authentication | Clerk RS256 JWT + JWKS verification | ✅ Production |
 
 ---
 
-## ✨ Key Features
+## 🔬 Two-Stage Clinical Workflow
 
-### 🔬 Two-Stage Detection System
-
-**Stage 1: Clinical Risk Index (DHS-Based)**
--   **Method**: Random Forest Risk Calculator (WHO/CDC Guidelines).
--   **Input**: Key indicators (Fever, Net Usage, Anemia, Region, Age).
--   **Output**: Risk Stratification (Low/Medium/High) with **Clinical Index**.
--   **Purpose**: Population-level screening and resource allocation (NOT diagnostic).
--   **Validation**: 100% Index Consistency (Clinical Rules).
-
-**Stage 2: Diagnostic Confirmation (Blood Smear CNN)**
--   **Method**: Deep Learning CNN trained on full NIH Malaria Dataset (27,558 images).
--   **Input**: 128x128 RGB blood smear microscopy images.
--   **Output**: Parasite Detected / Not Detected with **Confidence** score.
--   **Validation**: **94.85% accuracy** on test set (Production Model).
-
-**System Workflow**: User → Risk Stratification → (If High Risk) → Microscopy Confirmation
-
-### 📈 Outbreak Forecasting
-
-**Predictive Analytics Engine**
-- **Time-Series Modeling**: ARIMA-based forecasting with seasonal decomposition
-- **Regional Predictions**: District-level outbreak probability mapping
-- **Hotspot Detection**: Automated identification of high-risk zones
-- **Confidence Intervals**: Statistical uncertainty quantification
-
-**Forecast Capabilities**
-- Horizon: 1-4 weeks ahead
-- Granularity: District/region level
-- Update Frequency: Weekly model retraining
-- Accuracy: Validated on historical data
-
-### 🤖 Intelligent AI Assistant
-
-**Medical Chatbot**
-- **Provider**: OpenRouter AI integration
-- **Knowledge Base**: Malaria-specific medical literature
-- **Capabilities**: Symptom guidance, prevention tips, treatment information
-- **Availability**: 24/7 multilingual support
-
-### 📍 Location Intelligence
-
-**Geospatial Features**
-- **GPS Integration**: Real-time location-based risk assessment
-- **Interactive Maps**: React Leaflet with custom overlays
-- **Outbreak Visualization**: Heat maps and cluster analysis
-- **Regional Insights**: Location-specific prevention recommendations
-
-### 📄 Professional Reporting
-
-**Clinical Documentation**
-- **PDF Generation**: Medical-grade reports with patient data
-- **HIPAA Compliance**: Secure data handling and encryption
-- **Clinical Interpretation**: Automated result analysis and recommendations
-- **Print Optimization**: Professional layout for healthcare records
-
-### 📊 Advanced Analytics Dashboard
-
-**Real-Time Monitoring**
-- **System Metrics**: API health, model performance, usage statistics
-- **Data Visualization**: Interactive charts (Recharts)
-- **Performance Tracking**: Response times, accuracy metrics, error rates
-- **User Analytics**: Assessment trends, regional patterns, forecast accuracy
-
----
-
-## 🚀 Technology Stack
-
-### Frontend Architecture
+Foresee implements a two-stage protocol inspired by the WHO/CDC Integrated Vector Management (IVM) and RTS,S/AS01 trial workflow, separating risk screening from diagnostic confirmation.
 
 ```
-React 18.2 + TypeScript 5.0 + Vite 5.0
-│
-├── UI Framework
-│   ├── Tailwind CSS 3.4        # Utility-first styling
-│   └── shadcn/ui               # Accessible component library
-│
-├── State Management
-│   ├── TanStack Query v5       # Server state & caching
-│   └── React Context           # Global app state
-│
-├── Routing & Navigation
-│   └── React Router DOM v6     # Client-side routing
-│
-├── Forms & Validation
-│   ├── React Hook Form         # Performant form handling
-│   └── Zod                     # TypeScript-first schema validation
-│
-├── Data Visualization
-│   ├── Recharts                # Composable chart library
-│   └── React Leaflet           # Interactive maps
-│
-├── Animations
-│   └── Framer Motion           # Production-ready animations
-│
-├── Authentication
-│   └── Clerk                   # User authentication & management
-│
-└── PWA
-    └── Vite PWA Plugin         # Offline-first capabilities
-```
-
-### Backend Architecture
-
-```
-Flask 3.0 + Python 3.9+
-│
-├── Machine Learning
-│   ├── TensorFlow 2.15         # Deep learning framework
-│   ├── Keras                   # High-level neural networks API
-│   ├── scikit-learn            # Classical ML algorithms
-│   └── statsmodels             # Time-series forecasting
-│
-├── Data Processing
-│   ├── NumPy                   # Numerical computing
-│   ├── Pandas                  # Data manipulation
-│   ├── Pillow (PIL)            # Image processing
-│   └── OpenCV                  # Computer vision
-│
-├── API Framework
-│   ├── Flask-CORS              # Cross-origin resource sharing
-│   └── Flask-RESTful           # RESTful API utilities
-│
-└── Database
-    ├── Prisma ORM              # Type-safe database client
-    └── Neon PostgreSQL         # Serverless Postgres
-```
-
-### Infrastructure & DevOps
-
-```
-Deployment & Hosting
-├── Frontend: Vercel            # Edge network deployment
-├── Backend: Railway            # Container orchestration
-├── Database: Neon              # Serverless PostgreSQL
-└── CDN: Cloudflare             # Global content delivery
-
-Development Tools
-├── Version Control: Git
-├── Package Manager: npm/pip
-├── Build Tool: Vite
-├── Linting: ESLint + Prettier
-└── Type Checking: TypeScript
+Patient / Clinician
+        │
+        ▼
+┌──────────────────────────────────────────────────────────┐
+│  STAGE 1 — Epidemiological Risk Screening               │
+│  (Accessible to all authenticated users)                 │
+│                                                          │
+│  Input: Fever, Age, Sex, Region, Residence Type,        │
+│         Slept Under Net, Anemia Level                   │
+│                                                          │
+│  Model: DHS-based Random Forest Risk Index Calculator   │
+│                                                          │
+│  Output: Low / Medium / High Risk + Risk Score          │
+│  Purpose: Population-level triage, NOT diagnosis        │
+└──────────────────────────────────────────────────────────┘
+        │
+        │  (If HIGH RISK — Doctor role required)
+        ▼
+┌──────────────────────────────────────────────────────────┐
+│  STAGE 2 — Diagnostic Confirmation                      │
+│  (Doctor role only)                                      │
+│                                                          │
+│  Input: High-resolution Giemsa-stained blood smear      │
+│         microscopy image (128×128 RGB)                   │
+│                                                          │
+│  Gatekeeper: Autoencoder OOD filter (MSE < threshold)  │
+│  ↓ Only valid blood smears pass through                 │
+│                                                          │
+│  Model: CNN (9-layer architecture, NIH dataset)         │
+│                                                          │
+│  Output: Parasitized / Uninfected + Confidence %        │
+│  Purpose: Parasite detection, clinical use              │
+└──────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌──────────────────────────────────────────────────────────┐
+│  RESULTS & REPORTING                                    │
+│  ─ Results panel with AI clinical guidance              │
+│  ─ Automatically saved to Neon PostgreSQL               │
+│  ─ Downloadable PDF clinical report                     │
+│  ─ Dashboard analytics updated in real-time            │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🏗️ Architecture
+## 🤖 Machine Learning Models
 
-### System Design
+### Model 1 — CNN Diagnostic Model (`malaria_cnn_full.h5`)
 
+A **nine-layer convolutional neural network** trained on the full NIH Malaria Dataset for binary classification of Giemsa-stained thin blood smear images.
+
+**Architecture:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client Layer                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Browser    │  │  Mobile PWA  │  │   Tablet     │      │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
-└─────────┼──────────────────┼──────────────────┼─────────────┘
-          │                  │                  │
-          └──────────────────┼──────────────────┘
-                             │
-                    ┌────────▼────────┐
-                    │   React App     │
-                    │  (Vite + TS)    │
-                    └────────┬────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          │                  │                  │
-    ┌─────▼─────┐    ┌──────▼──────┐    ┌─────▼─────┐
-    │   Clerk   │    │  Flask API  │    │   Neon    │
-    │   Auth    │    │  (ML Core)  │    │  Database │
-    └───────────┘    └──────┬──────┘    └───────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          │                  │                  │
-    ┌─────▼─────┐    ┌──────▼──────┐    ┌─────▼─────┐
-    │    CNN    │    │   Tabular   │    │   ARIMA   │
-    │   Model   │    │    Model    │    │   Model   │
-    └───────────┘    └─────────────┘    └───────────┘
+Input (128×128×3 RGB)
+  │
+  ├── Conv2D(32, 3×3, ReLU) → MaxPooling2D(2×2)
+  ├── Conv2D(64, 3×3, ReLU) → MaxPooling2D(2×2)
+  ├── Conv2D(128, 3×3, ReLU) → MaxPooling2D(2×2)
+  │
+  ├── Flatten
+  ├── Dense(256, ReLU) → Dropout(0.5)
+  ├── Dense(128, ReLU)
+  │
+  └── Dense(1, Sigmoid) → Binary Output
+       Parasitized (>0.5) / Uninfected (≤0.5)
 ```
 
-### Project Structure
+**Training Details:**
+- **Dataset**: NIH Malaria Cell Images Dataset — 27,558 images (13,779 Parasitized + 13,779 Uninfected)
+- **Train/Val/Test Split**: 80% / 10% / 10%
+- **Optimizer**: Adam (lr=0.001)
+- **Loss**: Binary Cross-Entropy
+- **Image Preprocessing**: Resize to 128×128, normalize pixel values to [0,1], data augmentation (horizontal flip, rotation, zoom)
+- **Framework**: TensorFlow 2.15 / Keras
 
-```
-CodeRedProject/
-│
-├── apps/
-│   ├── web/                           # Frontend Application
-│   │   ├── src/
-│   │   │   ├── components/           # React Components
-│   │   │   │   ├── ui/              # shadcn/ui components
-│   │   │   │   ├── diagnosis/       # Diagnosis feature
-│   │   │   │   ├── forecast/        # Forecasting feature
-│   │   │   │   ├── home/            # Landing page
-│   │   │   │   └── layout/          # Layout components
-│   │   │   ├── pages/               # Route pages
-│   │   │   │   ├── Home.tsx
-│   │   │   │   ├── Diagnosis.tsx
-│   │   │   │   ├── Forecast.tsx
-│   │   │   │   ├── Reports.tsx
-│   │   │   │   └── Dashboard.tsx
-│   │   │   ├── lib/                 # Utilities
-│   │   │   │   ├── api.ts          # API client
-│   │   │   │   └── utils.ts        # Helper functions
-│   │   │   ├── hooks/              # Custom React hooks
-│   │   │   ├── types/              # TypeScript definitions
-│   │   │   └── App.tsx             # Root component
-│   │   ├── public/                 # Static assets
-│   │   ├── index.html
-│   │   ├── vite.config.ts
-│   │   ├── tsconfig.json
-│   │   └── package.json
-│   │
-│   └── inference/                    # Backend Application
-│       ├── src/
-│       │   ├── models/              # ML model implementations
-│       │   ├── utils/               # Helper functions
-│       │   └── config.py            # Configuration
-│       ├── models/                  # Trained model files
-│       │   ├── malaria_cnn_full.h5
-│       │   ├── malaria_symptoms_dhs.pkl
-│       │   └── malaria_forecast_arima.pkl
-│       ├── flask_app.py             # Main Flask application
-│       ├── requirements.txt
-│       └── runtime.txt
-│
-├── apps/database/                    # Database Layer
-│   └── prisma/
-│       ├── schema.prisma            # Database schema
-│       └── migrations/              # Migration history
-│
-├── docs/                            # Documentation
-│   ├── api.md                       # API reference
-│   ├── user-guide.md               # User documentation
-│   └── deployment.md               # Deployment guide
-│
-├── .github/                         # GitHub configuration
-│   └── workflows/                   # CI/CD pipelines
-│
-├── README.md
-├── LICENSE
-├── package.json
-└── .gitignore
-```
+**Production Metrics:**
+
+| Metric | Value |
+|--------|-------|
+| Accuracy | **94.85%** |
+| Precision | **95.6%** |
+| Recall | **94.0%** |
+| F1-Score | **94.8%** |
+| Inference Time | ~1.8s |
 
 ---
 
-## 🚀 Getting Started
+### Model 2 — DHS Risk Index Calculator (`malaria_symptoms_dhs.pkl`)
 
-### Prerequisites
+A **Random Forest** classifier trained on DHS (Demographic and Health Survey) epidemiological data to compute a Clinical Risk Index for malaria likelihood, aligned with WHO/CDC stratification guidelines.
 
-Ensure you have the following installed:
+**This is explicitly a risk screener, not a diagnostic tool.**
 
-| Requirement | Version | Purpose |
-|------------|---------|---------|
-| **Node.js** | 18.0+ | Frontend runtime |
-| **npm** | 9.0+ | Package management |
-| **Python** | 3.9+ | Backend runtime |
-| **pip** | 23.0+ | Python package manager |
-| **PostgreSQL** | 14+ | Database (via Neon) |
-| **Git** | 2.0+ | Version control |
+**Input Features (DHS-aligned indicators):**
 
-### Installation
+| Feature | DHS Code | Type | Description |
+|---------|----------|------|-------------|
+| `fever` | `hc53` | Binary (0/1) | Fever in last 2 weeks |
+| `age_months` | `hw1` | Integer | Child age in months |
+| `sex` | `hc27` | Categorical | Male / Female / Other |
+| `state` | Region | Categorical | Indian state/district |
+| `residence_type` | `hv025` | Categorical | Rural / Urban |
+| `slept_under_net` | `ml1` | Binary (0/1) | Slept under ITN last night |
+| `anemia_level` | `hc57` | Ordinal (1–4) | 1=Severe, 2=Moderate, 3=Mild, 4=None |
+| `interview_month` | `hv006` | Integer (1–12) | Month of assessment (seasonality) |
 
-#### 1. Clone the Repository
-
-```bash
-git clone https://github.com/HumayunK01/CodeRedProject.git
-cd CodeRedProject
-```
-
-#### 2. Install Frontend Dependencies
-
-```bash
-# Install root dependencies
-npm install
-
-# Navigate to web app
-cd apps/web
-npm install
-cd ../..
-```
-
-#### 3. Install Backend Dependencies
-
-```bash
-# Navigate to inference app
-cd apps/inference
-
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-cd ../..
-```
-
-#### 4. Configure Environment Variables
-
-```bash
-# Copy environment template
-cp apps/web/.env.example apps/web/.env.local
-```
-
-Edit `apps/web/.env.local`:
-
-```env
-# Backend API Configuration
-VITE_INFER_BASE_URL=http://localhost:8000
-
-# AI Chatbot (OpenRouter)
-VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
-
-# Database (Neon PostgreSQL)
-DATABASE_URL=postgresql://user:password@host/database
-
-# Clerk Authentication
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-
-# Optional: Analytics
-VITE_ANALYTICS_ID=your_analytics_id
-```
-
-#### 5. Obtain ML Models
-
-> **Note**: Pre-trained models are not included in the repository due to file size constraints.
-
-**Option A**: Contact the team at `humayunk.pvt@gmail.com` to obtain model files
-
-**Option B**: Train your own models (see [Model Training Guide](docs/model-training.md))
-
-Place model files in `apps/inference/models/`:
-- `malaria_cnn_full.h5` - Production CNN Diagnostic Model (Full NIH Dataset)
-- `malaria_symptoms_dhs.pkl` - DHS-based Clinical Risk Index Calculator
-- `malaria_forecast_arima.pkl` - Forecasting model
-
-#### 6. Initialize Database (Optional)
-
-```bash
-# Generate Prisma client
-npm run db:generate
-
-# Run migrations
-npm run db:migrate
-
-# Open Prisma Studio (database GUI)
-npm run db:studio
-```
-
-### Running the Application
-
-#### Development Mode
-
-**Terminal 1 - Frontend**:
-```bash
-npm run dev
-```
-Frontend will be available at `http://localhost:8080`
-
-**Terminal 2 - Backend**:
-```bash
-cd apps/inference
-python flask_app.py
-```
-Backend API will be available at `http://localhost:8000`
-
-#### Production Build
-
-```bash
-# Build frontend
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Verification
-
-Test the installation:
-
-1. **Frontend**: Navigate to `http://localhost:8080`
-2. **Backend Health**: Visit `http://localhost:8000/health`
-3. **API Test**: 
-   ```bash
-   curl http://localhost:8000/health
-   ```
-
-Expected response:
-```json
-{
-  "status": "healthy",
-  "message": "Foresee API is running",
-  "timestamp": "2026-01-31T00:00:00Z"
-}
-```
-
----
-
-## 📡 API Documentation
-
-### Base URL
-
-- **Development**: `http://localhost:8000`
-- **Production**: `https://api.foresee.app`
-
-### Authentication
-
-Currently, the API uses API key authentication for protected endpoints:
-
-```bash
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-     https://api.foresee.app/api/endpoint
-```
-
-### Endpoints
-
-#### 1. Health Check
-
-```http
-GET /health
-```
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "message": "Foresee API is running",
-  "timestamp": "2026-01-31T00:00:00Z"
-}
-```
-
-#### 2. Image-Based Diagnosis
-
-```http
-POST /predict/image
-Content-Type: multipart/form-data
-```
-
-**Request**:
-```javascript
-const formData = new FormData();
-formData.append('image', imageFile);
-
-fetch('http://localhost:8000/predict/image', {
-  method: 'POST',
-  body: formData
-});
-```
-
-**Response**:
-```json
-{
-  "label": "Parasitized",
-  "confidence": 0.9542,
-  "probability": {
-    "Parasitized": 0.9542,
-    "Uninfected": 0.0458
-  },
-  "explanations": {
-    "attention_map": "base64_encoded_image",
-    "features": ["irregular_cell_shape", "dark_spots"]
-  },
-  "inference_time_ms": 1847
-}
-```
-
-#### 3. Malaria Risk Stratification Endpoint (DHS-Based)
-*Screening Tool Only*
-
-```http
-POST /predict/symptoms
-Content-Type: application/json
-```
-
-**Request**:
-```json
-{
-  "fever": true,
-  "slept_under_net": true,
-  "age_months": 36,
-  "region": "West Africa",
-  "residence_type": "Rural"
-}
-```
-
-**Response**:
+**Output:**
 ```json
 {
   "label": "High Risk",
   "risk_score": 0.87,
-  "confidence": 0.87, /* Legacy */
-  "method": "DHS-based ML Risk Model",
+  "method": "DHS-based Random Forest",
   "recommendation": "Refer for microscopy confirmation",
   "model_version": "v1.0"
 }
 ```
 
-#### 4. Regional Outbreak Forecast
+**Risk Stratification Levels:**
+- **Low Risk** (score < 0.33): Routine monitoring recommended
+- **Medium Risk** (0.33 ≤ score < 0.67): Preventive measures, follow-up
+- **High Risk** (score ≥ 0.67): Immediate microscopy confirmation required
+
+---
+
+### Model 3 — Gatekeeper Autoencoder (`gatekeeper_autoencoder.h5`)
+
+A **convolutional autoencoder** trained exclusively on valid Giemsa-stained blood smear images. It acts as an Out-of-Distribution (OOD) detector — rejecting any non-blood-smear image before it reaches the CNN classifier.
+
+**Architecture:**
+```
+Encoder:
+  Input (128×128×3)
+  → Conv2D(32, ReLU) → MaxPooling2D
+  → Conv2D(64, ReLU) → MaxPooling2D
+  → Conv2D(128, ReLU) → MaxPooling2D
+  → Latent Representation
+
+Decoder:
+  → Conv2DTranspose(128, ReLU) → UpSampling2D
+  → Conv2DTranspose(64, ReLU)  → UpSampling2D
+  → Conv2DTranspose(32, ReLU)  → UpSampling2D
+  → Conv2D(3, Sigmoid) → Reconstructed Image (128×128×3)
+```
+
+**OOD Decision Logic:**
+```
+MSE(original, reconstructed) > gatekeeper_threshold
+        → REJECT: "Image not recognized as a blood smear"
+        → Return HTTP 400 with OOD error message
+
+MSE(original, reconstructed) ≤ gatekeeper_threshold
+        → PASS: Forward to CNN classifier
+        → Return prediction result
+```
+
+The `gatekeeper_threshold` is loaded from `models/metadata.json` at startup (default: `0.05`) and is calibrated during training to achieve near-zero false negative rate on valid blood smears.
+
+---
+
+### Model 4 — ARIMA Forecast Model (`malaria_forecast_arima.pkl`)
+
+A **Seasonal ARIMA** model (`statsmodels`) pre-trained on historical malaria case surveillance data for regional outbreak prediction.
+
+**Capabilities:**
+- 1–4 week ahead case count forecasting
+- Seasonal decomposition (STL) to separate trend, seasonality, and residuals
+- Confidence interval generation (upper/lower bounds)
+- District/region-level outbreak probability scoring
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────── CLIENT LAYER ────────────────────────────┐
+│  Browser (React PWA)       Mobile (Responsive PWA)             │
+└─────────────────────────────────┬───────────────────────────────┘
+                                  │  HTTPS + JWT Bearer
+        ┌─────────────────────────┼──────────────────────┐
+        │                         │                       │
+        ▼                         ▼                       ▼
+  ┌──────────┐           ┌────────────────┐      ┌───────────────┐
+  │  Clerk   │           │   Flask API    │      │  Neon (PG)    │
+  │  Auth    │◄──────────│  (Python 3.9) │◄────►│  PostgreSQL   │
+  │  (JWT)   │  JWKS     │  Port 8000    │      │  via Prisma   │
+  └──────────┘  RS256    └───────┬────────┘      └───────────────┘
+                                 │
+              ┌──────────────────┼─────────────────────┐
+              │                  │                      │
+              ▼                  ▼                      ▼
+     ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐
+     │  Gatekeeper  │  │  DHS Risk Index  │  │  ARIMA Forecast  │
+     │  Autoencoder │  │  Random Forest   │  │  Model           │
+     │      +       │  │  (.pkl)          │  │  (.pkl)          │
+     │  CNN Model   │  └──────────────────┘  └──────────────────┘
+     │  (.h5)       │
+     └──────────────┘
+              │
+              ▼
+     ┌──────────────────┐
+     │  OpenRouter API  │
+     │  (AI Medical     │
+     │   Assistant)     │
+     └──────────────────┘
+```
+
+### Request Lifecycle
+
+```
+Client Request
+  │
+  ├─ [1] CORS Preflight Check (enforce_cors hook)
+  │       Origin validated against ALLOWED_ORIGINS allowlist
+  │       Wildcard (*) never used
+  │
+  ├─ [2] Rate Limiter (Flask-Limiter)
+  │       Key: Clerk user_id (from JWT) OR IP address
+  │       Storage: Redis (prod) / in-memory (dev)
+  │       Strategy: Fixed-window
+  │
+  ├─ [3] require_auth Decorator
+  │       Step 1: JWT base64 decode → extract sub + exp
+  │       Step 2: RS256 JWKS signature verification (Clerk JWKS endpoint)
+  │       Step 3: DB user existence check (fallback if JWKS unavailable)
+  │       Step 4: URL parameter guard (clerk_id injection prevention)
+  │       Step 5: RBAC role check via Clerk Management API (if roles specified)
+  │
+  ├─ [4] Input Validation (validate_fields helper)
+  │       Schema-driven: required fields, types, lengths, allowed values
+  │       File uploads: extension + MIME + magic bytes + size limit
+  │
+  ├─ [5] Business Logic / ML Inference
+  │
+  ├─ [6] Security Headers (after_request hook)
+  │       X-Content-Type-Options: nosniff
+  │       X-Frame-Options: DENY
+  │       Referrer-Policy: strict-origin-when-cross-origin
+  │       Permissions-Policy: camera=(), microphone=(), geolocation=()
+  │
+  └─ [7] Security Event Logging (after_request hook)
+          Logs all 401 / 403 / 429 with method, path, IP, user_id
+```
+
+---
+
+## 🚀 Technology Stack
+
+### Backend — `apps/inference/`
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **Python** | 3.9+ | Runtime |
+| **Flask** | 3.0 | WSGI web framework |
+| **Flask-CORS** | 4.x | Cross-origin resource sharing with strict allowlist |
+| **Flask-Limiter** | 3.x | Rate limiting with Redis/in-memory storage |
+| **TensorFlow** | 2.15 | CNN + Autoencoder model training & inference |
+| **Keras** | (bundled) | High-level neural network API |
+| **scikit-learn** | latest | Random Forest (DHS model), joblib serialization |
+| **statsmodels** | latest | ARIMA time-series forecasting |
+| **NumPy** | latest | Array operations, image normalization |
+| **Pandas** | latest | Tabular data manipulation |
+| **Pillow (PIL)** | latest | Image loading and preprocessing |
+| **OpenCV (cv2)** | latest | Advanced computer vision operations |
+| **PyJWT** | 2.x | JWT decoding and RS256 signature verification |
+| **python-dotenv** | latest | Environment variable management |
+| **psycopg** | 3.x | PostgreSQL async driver |
+| **xhtml2pdf** | latest | Server-side PDF generation |
+| **Werkzeug ProxyFix** | (bundled) | Trust reverse proxy X-Forwarded-For headers |
+| **redis** | latest | Rate limiter backend (production) |
+
+### Frontend — `apps/web/`
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **React** | 18.2 | UI component framework |
+| **TypeScript** | 5.0 | Static typing |
+| **Vite** | 5.0 | Build tool and dev server |
+| **React Router DOM** | 6.x | Client-side routing |
+| **TanStack Query** | 5.x | Server state management, caching, background re-fetching |
+| **Tailwind CSS** | 3.4 | Utility-first CSS framework |
+| **shadcn/ui** | latest | Accessible Radix-based component library |
+| **Framer Motion** | latest | Declarative animations and layout transitions |
+| **Recharts** | latest | Composable chart library for analytics dashboard |
+| **React Leaflet** | latest | Interactive maps for geospatial visualization |
+| **React Hook Form** | 7.x | Performant form state management |
+| **Zod** | 3.x | TypeScript-first schema validation |
+| **@hookform/resolvers** | latest | React Hook Form + Zod integration |
+| **Clerk (clerk-react)** | latest | Authentication, session management, user metadata |
+| **jsPDF** | latest | Client-side PDF report generation |
+| **Lucide React** | latest | Icon library |
+| **next-themes** | latest | Dark/light mode theme management |
+| **date-fns** | latest | Date formatting utilities |
+| **@radix-ui** | latest | Accessible primitive components (used by shadcn/ui) |
+
+### Database — `apps/database/`
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **Neon PostgreSQL** | 14+ | Serverless PostgreSQL with connection pooling |
+| **Prisma ORM** | 5.x | Type-safe database client, schema management, migrations |
+| **@prisma/client** | 5.x | Auto-generated TypeScript client |
+
+---
+
+## 📡 API Reference
+
+All protected endpoints require:
+```
+Authorization: Bearer <Clerk JWT>
+```
+
+### Health & Status
+
+```http
+GET /health
+```
+Returns system health, model versions, and uptime. No authentication required.
+
+```json
+{
+  "status": "healthy",
+  "message": "Foresee API is running",
+  "model_accuracy": "94.85%",
+  "timestamp": "2026-03-02T12:00:00Z"
+}
+```
+
+---
+
+### Image Diagnostic Endpoint
+
+```http
+POST /predict/image
+Content-Type: multipart/form-data
+Authorization: Bearer <JWT>
+```
+
+**File Validation Layers (in order):**
+1. File extension check (`.jpg`, `.jpeg`, `.png` only)
+2. MIME type check (`Content-Type` header)
+3. File size limit (max 10MB)
+4. Magic bytes check (validates actual file bytes against known image headers: `FFD8FF` for JPEG, `89504E47` for PNG — prevents format forgery)
+5. Gatekeeper OOD check (autoencoder MSE threshold)
+6. CNN inference
+
+**Response (valid blood smear):**
+```json
+{
+  "label": "Parasitized",
+  "confidence": 0.9542,
+  "model_version": "v1.0",
+  "inference_time_ms": 1847
+}
+```
+
+**Response (OOD rejection):**
+```json
+{
+  "error": "OOD_REJECTED",
+  "message": "Image does not appear to be a valid blood smear microscopy image.",
+  "ood_score": 0.142
+}
+```
+
+---
+
+### Symptom Risk Screening Endpoint
+
+```http
+POST /predict/symptoms
+Content-Type: application/json
+Authorization: Bearer <JWT>
+```
+
+**Request Body:**
+```json
+{
+  "fever": 1,
+  "age_months": 36,
+  "sex": "Male",
+  "state": "Maharashtra",
+  "residence_type": "Rural",
+  "slept_under_net": 0,
+  "anemia_level": 2,
+  "interview_month": 3
+}
+```
+
+**Input Validation Schema (server-side):**
+- `fever`: integer, in `[0, 1]`
+- `age_months`: integer, min 1, max 1440
+- `sex`: string, allowed: `["Male", "Female", "Other"]`
+- `residence_type`: string, allowed: `["Rural", "Urban"]`
+- `anemia_level`: integer, in `[1, 2, 3, 4]`
+
+**Response:**
+```json
+{
+  "label": "High Risk",
+  "risk_score": 0.87,
+  "confidence": 0.87,
+  "method": "DHS-based Random Forest",
+  "recommendation": "Refer for microscopy confirmation",
+  "model_version": "v1.0"
+}
+```
+
+---
+
+### Outbreak Forecast Endpoint
 
 ```http
 POST /forecast/region
 Content-Type: application/json
+Authorization: Bearer <JWT>
 ```
 
-**Request**:
+**Request:**
 ```json
 {
-  "region": "sub-saharan-africa",
-  "horizon_weeks": 4,
-  "include_confidence": true
+  "region": "Maharashtra",
+  "horizon_weeks": 4
 }
 ```
 
-**Response**:
+**Response:**
 ```json
 {
-  "region": "sub-saharan-africa",
-  "forecast_date": "2026-01-31",
+  "region": "Maharashtra",
   "predictions": [
-    {
-      "week": 1,
-      "cases_predicted": 1250,
-      "confidence_lower": 1100,
-      "confidence_upper": 1400,
-      "probability": 0.82
-    },
-    {
-      "week": 2,
-      "cases_predicted": 1380,
-      "confidence_lower": 1200,
-      "confidence_upper": 1560,
-      "probability": 0.79
-    },
-    {
-      "week": 3,
-      "cases_predicted": 1520,
-      "confidence_lower": 1300,
-      "confidence_upper": 1740,
-      "probability": 0.75
-    },
-    {
-      "week": 4,
-      "cases_predicted": 1690,
-      "confidence_lower": 1420,
-      "confidence_upper": 1960,
-      "probability": 0.71
-    }
+    { "week": 1, "cases_predicted": 1250, "confidence_lower": 1100, "confidence_upper": 1400 },
+    { "week": 2, "cases_predicted": 1380, "confidence_lower": 1200, "confidence_upper": 1560 }
   ],
   "hotspot_score": 0.85,
-  "hotspots": [
-    {
-      "district": "District A",
-      "coordinates": [9.0820, 8.6753],
-      "risk_level": "high"
-    }
-  ],
-  "model_accuracy": 0.803
+  "model_accuracy": 0.802
 }
 ```
-
-#### 5. Dashboard Statistics
-
-```http
-GET /dashboard/stats
-```
-
-**Response**:
-```json
-{
-  "total_diagnoses": 15847,
-  "total_forecasts": 3421,
-  "active_users": 892,
-  "average_accuracy": 0.942,
-  "system_uptime": 0.995,
-  "last_updated": "2026-01-31T00:00:00Z"
-}
-```
-
-### Error Handling
-
-All endpoints return standardized error responses:
-
-```json
-{
-  "error": "Error message description",
-  "code": "ERROR_CODE",
-  "status": 400,
-  "timestamp": "2026-01-31T00:00:00Z"
-}
-```
-
-**Common Error Codes**:
-- `400` - Bad Request (invalid input)
-- `401` - Unauthorized (missing/invalid API key)
-- `404` - Not Found (endpoint doesn't exist)
-- `500` - Internal Server Error (server-side issue)
 
 ---
 
-## 🚢 Deployment
+### User Management Endpoints
 
-### Frontend Deployment (Vercel)
-
-#### Prerequisites
-- Vercel account
-- GitHub repository connected
-
-#### Steps
-
-1. **Install Vercel CLI**:
-```bash
-npm install -g vercel
+```http
+POST   /api/users/sync            # Upsert user in DB after Clerk sign-in
+GET    /api/users/<clerk_id>      # Get user profile + stats
+GET    /api/users/<clerk_id>/activity  # Get activity timeline
 ```
 
-2. **Configure Vercel**:
+### Diagnosis Record Endpoints
 
-Create `vercel.json` in project root:
+```http
+POST   /api/diagnoses             # Create diagnosis record
+GET    /api/diagnoses/<clerk_id>  # List user diagnoses
+GET    /api/diagnoses/<clerk_id>/stats  # Aggregated diagnosis statistics
+```
+
+### Forecast Record Endpoints
+
+```http
+POST   /api/forecasts             # Create forecast record
+GET    /api/forecasts/<clerk_id>  # List user forecasts
+GET    /api/forecasts/<clerk_id>/stats  # Aggregated forecast statistics
+```
+
+### Admin Endpoints (Admin role only)
+
+```http
+GET    /api/admin/users           # List all Clerk users
+PATCH  /api/admin/users/<id>/role # Set user role (admin / doctor / patient)
+GET    /dashboard/stats           # Global platform statistics
+```
+
+---
+
+### Error Response Format
+
+All error responses follow a consistent structure:
+
 ```json
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "apps/web/dist",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
+  "error": "Error type",
+  "message": "Human-readable description"
 }
 ```
 
-3. **Set Environment Variables** in Vercel Dashboard:
-   - `VITE_INFER_BASE_URL`
-   - `VITE_OPENROUTER_API_KEY`
-   - `VITE_CLERK_PUBLISHABLE_KEY`
-   - `DATABASE_URL`
+| Status Code | Meaning |
+|---|---|
+| `400` | Bad Request — invalid input or failed validation |
+| `401` | Unauthorized — missing, malformed, expired, or forged JWT |
+| `403` | Forbidden — authenticated but insufficient role |
+| `422` | Unprocessable Entity — field-level validation failure |
+| `429` | Too Many Requests — rate limit exceeded |
+| `500` | Internal Server Error |
 
-4. **Deploy**:
-```bash
-cd apps/web
-vercel --prod
+---
+
+## 🔒 Security Architecture
+
+Foresee implements a defence-in-depth security model across seven layers.
+
+### Layer 1 — CORS Strict Allowlist
+
+The API **never** uses wildcard (`*`) CORS. All allowed origins are explicitly enumerated:
+
+```python
+DEFAULT_DEV_ORIGINS = [
+    "http://localhost:5173", "http://localhost:8080", ...
+]
+# Plus FRONTEND_URL and ALLOWED_ORIGINS from environment variables
+ALLOWED_ORIGINS = _build_allowed_origins()  # deduplicated list
 ```
 
-### Backend Deployment (Railway)
+The `enforce_cors` after-request hook reflects the exact allowed origin back (required for credentialed requests — browsers reject wildcard with credentials=true).
 
-#### Prerequisites
-- Railway account
-- GitHub repository connected
+### Layer 2 — Rate Limiting
 
-#### Steps
+**Flask-Limiter** enforces request rate limits per authenticated user (or IP as fallback):
 
-1. **Create Railway Project**:
-   - Connect GitHub repository
-   - Select `apps/inference` as root directory
+```
+Rate limit key: f"user:{clerk_user_id}"  (if JWT present)
+                f"ip:{remote_address}"   (anonymous fallback)
 
-2. **Configure Railway**:
+Default limit:  100 requests / minute   (configurable via DEFAULT_RATE_LIMIT env)
+ML endpoints:   Stricter limits applied per endpoint decorator
 
-Create `railway.toml`:
-```toml
-[build]
-builder = "NIXPACKS"
-buildCommand = "pip install -r requirements.txt"
-
-[deploy]
-startCommand = "python flask_app.py"
-healthcheckPath = "/health"
-healthcheckTimeout = 100
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+Storage:
+  ├── Production: Redis (persistent, shared across workers)
+  └── Development: In-memory (automatic fallback if Redis unreachable)
 ```
 
-Create `Procfile`:
+Rate limit headers are exposed to clients:
+- `X-RateLimit-Limit`
+- `X-RateLimit-Remaining`
+- `X-RateLimit-Reset`
+
+### Layer 3 — JWT Authentication (RS256 + JWKS)
+
+Every protected endpoint runs the `require_auth` decorator with a 5-step validation pipeline:
+
 ```
-web: python flask_app.py
-```
+Step 1: Extract JWT payload
+        → base64url decode header + payload
+        → Validate presence of "sub" (user_id) and "exp" (expiry)
+        → Reject expired tokens immediately
 
-Create `runtime.txt`:
-```
-python-3.9.18
-```
+Step 2: RS256 Signature Verification (JWKS)
+        → Fetch Clerk's public key JSON Web Key Set (JWKS endpoint)
+        → Match token's "kid" (Key ID) to the correct public key
+        → Cryptographically verify the signature using PyJWT
+        → Reject tokens with invalid signatures (tampered / forged)
+        → JWKS URL derived from CLERK_PUBLISHABLE_KEY (instance-specific)
+        → Cache JWKS in-memory, refresh on kid mismatch
 
-3. **Set Environment Variables** in Railway Dashboard:
-   - `PORT=8000`
-   - `DATABASE_URL`
-   - `FLASK_ENV=production`
+Step 3: Database User Validation
+        → Confirm the user exists in our Neon PostgreSQL database
+        → Prevents valid Clerk tokens from any Clerk app accessing our API
 
-4. **Deploy**:
-```bash
-cd apps/inference
-railway up
-```
+Step 4: URL Parameter Guard
+        → Ensure clerk_id URL params match the authenticated user's sub
+        → Prevents horizontal privilege escalation (IDOR attacks)
 
-### Database Setup (Neon)
-
-1. **Create Neon Project**:
-   - Visit [Neon Console](https://console.neon.tech)
-   - Create new project
-   - Copy connection string
-
-2. **Configure Database**:
-```bash
-# Set DATABASE_URL in .env.local
-DATABASE_URL=postgresql://user:password@host/database
-
-# Run migrations
-npm run db:migrate
-```
-
-### Docker Deployment (Full Stack)
-
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  frontend:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - VITE_INFER_BASE_URL=http://backend:8000
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./apps/inference
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - PORT=8000
-    volumes:
-      - ./apps/inference/models:/app/models
-
-  database:
-    image: postgres:14-alpine
-    environment:
-      - POSTGRES_USER=foresee
-      - POSTGRES_PASSWORD=secure_password
-      - POSTGRES_DB=foresee_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-volumes:
-  postgres_data:
+Step 5: RBAC Role Check
+        → For role-restricted endpoints, fetch caller's publicMetadata from
+          Clerk Management API (fresh — not cached in JWT claims)
+        → Reject if caller's role is not in the allowed roles list
 ```
 
-**Deploy**:
-```bash
-docker-compose up -d
+### Layer 4 — File Upload Security (7-Layer Validation)
+
+The `/predict/image` endpoint validates uploaded files through seven sequential checks:
+
 ```
+Check 1: File presence         → Reject if no file in request
+Check 2: Filename exists       → Reject empty filenames
+Check 3: Extension allowlist   → .jpg / .jpeg / .png only
+Check 4: MIME type header      → image/jpeg, image/png only
+Check 5: File size limit       → max 10MB (10 × 1024 × 1024 bytes)
+Check 6: Magic bytes           → Read first 8 bytes, match against:
+                                  FFD8FF....  → JPEG
+                                  89504E470D0A1A0A → PNG
+                                  Rejects renamed executables, PDFs, etc.
+Check 7: OOD gatekeeper        → Autoencoder MSE threshold
+```
+
+### Layer 5 — Input Validation (Schema-Driven)
+
+A reusable `validate_fields(data, schema)` helper enforces field-level constraints on all POST request bodies. A descriptive `ValidationError` is raised on the first failure and returned as a `422` response.
+
+**Schema capabilities:**
+- `required`: Reject missing fields
+- `type`: Python type enforcement (`int`, `str`, `bool`, `float`)
+- `min_length` / `max_length`: String length bounds
+- `min_value` / `max_value`: Numeric range bounds
+- `allowed`: Enum-style allowed value lists
+
+Applied to: `POST /api/users/sync`, `POST /api/diagnoses`, `POST /api/forecasts`
+
+### Layer 6 — Security Response Headers
+
+An `after_request` hook appends hardening headers to **every** API response:
+
+```
+X-Content-Type-Options:  nosniff
+X-Frame-Options:         DENY
+Referrer-Policy:         strict-origin-when-cross-origin
+Permissions-Policy:      camera=(), microphone=(), geolocation=()
+```
+
+### Layer 7 — Security Event Logging
+
+A second `after_request` hook logs authentication and rate-limit events to stdout (captured by Railway/server log aggregators):
+
+```
+[security] HTTP 401 | POST /predict/image | IP: 1.2.3.4 | user: unauthenticated
+[security] HTTP 403 | GET /api/admin/users | IP: 5.6.7.8 | user: user_2abc123
+[security] HTTP 429 | POST /predict/image | IP: 9.10.11.12 | user: user_2def456
+```
+
+### Frontend Security
+
+- **Zod schema validation** on all form inputs before submission
+- **Error Boundaries** (`DiagnosisErrorBoundary`) wrap all ML result-rendering components — unhandled render errors show a recovery UI instead of a blank page
+- **Clerk session management** — JWTs are short-lived, automatically refreshed
+- **No PHI in localStorage** — only metadata and non-identifying result summaries stored locally
+
+---
+
+## 🗄️ Database Schema
+
+Managed by **Prisma ORM** against **Neon PostgreSQL**.
+
+### Tables
+
+**`User`**
+```
+id          String   (cuid)       Primary key
+clerkId     String   (unique)     Clerk user ID (sub)
+email       String   (unique)
+name        String?
+role        String   default "patient"
+createdAt   DateTime
+updatedAt   DateTime
+```
+
+**`Diagnosis`**
+```
+id              String    (cuid)
+userId          String    → FK User.id
+imageUrl        String?   (base64 or filename)
+result          String    ("Parasitized" / "Uninfected" / risk label)
+confidence      Float
+patientAge      Int?
+patientSex      String?
+location        String?
+symptoms        Json?     (fever, slept_under_net, anemia_level)
+modelVersion    String?
+diagnosisType   String    ("image" / "symptoms")
+createdAt       DateTime
+```
+
+**`Forecast`**
+```
+id          String    (cuid)
+userId      String    → FK User.id
+region      String
+prediction  Json      (weekly predictions array)
+horizon     Int       (weeks)
+accuracy    Float?
+createdAt   DateTime
+```
+
+---
+
+## 🖥️ Frontend Application
+
+### Pages & Routing
+
+| Route | Page | Access |
+|---|---|---|
+| `/` | Home (Landing) | Public |
+| `/diagnosis` | Assessment (Stage 1 + 2) | Authenticated |
+| `/forecast` | Outbreak Forecasting | Authenticated |
+| `/reports` | Diagnosis History | Authenticated |
+| `/dashboard` | Analytics Dashboard | Authenticated |
+| `/admin` | User Role Management | Admin only |
+
+### State Management
+
+- **TanStack Query v5** — all server state (user data, diagnoses, forecasts) with automatic background refetching, optimistic updates, and stale-while-revalidate
+- **React Context** (`DbUserProvider`) — distributes authenticated user object and Clerk ID throughout the component tree
+- **React Hook Form + Zod** — all form state with client-side validation before API calls
+
+### Key Components
+
+```
+src/components/
+├── diagnosis/
+│   ├── DualModeDiagnosis.tsx    # Tab switcher: Risk Screening vs Image Analysis
+│   ├── SymptomsForm.tsx         # Stage 1 form (DHS feature collection)
+│   ├── ImageUploader.tsx        # Stage 2 drag-and-drop image uploader
+│   ├── DiagnosisResults.tsx     # Results panel with AI guidance
+│   └── DownloadReportButton.tsx # PDF report generator
+├── forecast/
+│   ├── ForecastForm.tsx         # Region + horizon selection
+│   └── ForecastChart.tsx        # Recharts line chart with confidence bands
+├── layout/
+│   ├── MainLayout.tsx           # App shell (sidebar + topbar)
+│   └── Sidebar.tsx              # Role-aware navigation
+├── providers/
+│   └── DbUserProvider.tsx       # Auth + DB user context
+└── ui/
+    ├── clinical-advisory.tsx    # Medical disclaimer banner
+    └── [shadcn/ui components]   # Button, Card, Dialog, Toast, etc.
+```
+
+### Frontend Validation (Zod Schemas)
+
+```typescript
+// Symptoms form schema
+symptomsSchema = z.object({
+  fever: z.boolean(),
+  sex: z.enum(["Male", "Female", "Other"]),
+  region: z.string().min(1),
+  residence_type: z.enum(["Rural", "Urban"]),
+  slept_under_net: z.boolean(),
+  age: z.number().min(0).max(120),
+  anemia_level: z.enum(["None", "Mild", "Moderate", "Severe"]),
+})
+
+// Image upload schema
+imageUploadSchema = z.object({
+  file: z.instanceof(File)
+    .refine(f => f.size <= 10 * 1024 * 1024, "Max 10MB")
+    .refine(f => ["image/jpeg","image/png"].includes(f.type), "JPEG/PNG only")
+})
+```
+
+### Error Boundaries
+
+`DiagnosisErrorBoundary` (class component) wraps both `DualModeDiagnosis` and `DiagnosisResults`. On any unhandled render error (e.g. missing `results.method` field for image diagnosis, malformed API response), it renders a recovery card instead of unmounting the entire page:
+
+```
+⚠️  Something went wrong
+    An unexpected error occurred during analysis. Your data is safe — please try again.
+    [Try Again]  ← Resets error state (no page refresh needed)
+```
+
+---
+
+## 👤 Role-Based Access Control
+
+Foresee implements three-tier RBAC via **Clerk publicMetadata** + **backend enforcement**.
+
+| Role | Capabilities |
+|---|---|
+| **patient** (default) | Stage 1 risk screening, view own diagnoses and forecasts |
+| **doctor** | All patient capabilities + Stage 2 image diagnostic (CNN + OOD) |
+| **admin** | All doctor capabilities + user management, role assignment, global dashboard stats |
+
+**Role Assignment Flow:**
+```
+Admin navigates to /admin
+  → Frontend fetches all Clerk users via GET /api/admin/users
+  → Admin selects user and new role
+  → Frontend sends PATCH /api/admin/users/<clerk_id>/role
+  → Backend verifies caller is admin via _get_caller_role()
+  → PATCH to Clerk Management API: /users/<id>/metadata
+      body: { "public_metadata": { "role": "doctor" } }
+  → Clerk propagates role into future JWTs (publicMetadata claim)
+  → User sees updated capabilities on next session refresh
+```
+
+**Frontend enforcement:**
+```typescript
+// DualModeDiagnosis.tsx
+const isDoctor = user?.publicMetadata?.role === "doctor";
+// Only renders the image upload tab and tab switcher if doctor
+```
+
+**Backend enforcement:**
+```python
+@app.route("/predict/image", methods=["POST"])
+@require_auth(roles=["doctor", "admin"])  # Enforced server-side
+def predict_image():
+    ...
+```
+
+---
+
+## 🛡️ Out-of-Distribution (OOD) Detection
+
+A critical safety feature that prevents the CNN classifier from producing meaningless results on arbitrary images (e.g., photos of people, landscapes, screenshots).
+
+**Training:**
+- Autoencoder trained exclusively on NIH Malaria Dataset blood smear images
+- Learns to reconstruct valid blood smears with low MSE
+- Non-blood-smear images have high reconstruction error (poor reconstruction)
+
+**At Inference:**
+```python
+reconstructed = gatekeeper_model.predict(img_array)
+mse = np.mean(np.square(img_array - reconstructed))
+if mse > gatekeeper_threshold:
+    # OOD — reject before CNN sees it
+    return {"error": "OOD_REJECTED", "ood_score": float(mse)}, 400
+else:
+    # Valid blood smear — proceed to CNN
+    prediction = malaria_model.predict(img_array)
+```
+
+**Threshold calibration:**
+The `gatekeeper_threshold` is stored in `models/metadata.json` and loaded at startup. It is set during training to the 99th percentile of MSE values computed on the full valid blood smear training set, ensuring near-zero false negatives on real blood smears while rejecting OOD inputs.
+
+---
+
+## 📈 Outbreak Forecasting Engine
+
+The forecasting system uses **ARIMA** (AutoRegressive Integrated Moving Average) with seasonal decomposition to predict regional malaria case counts.
+
+**Data Pipeline:**
+```
+Historical case surveillance data (CSV)
+  → STL decomposition (trend + seasonality + residual)
+  → ARIMA(p, d, q) model fitting (auto parameter selection via AIC)
+  → Serialized with joblib → malaria_forecast_arima.pkl
+```
+
+**At inference:**
+```
+Region + Horizon input
+  → Load pre-trained ARIMA model
+  → Generate h-step ahead predictions
+  → Compute 95% confidence intervals
+  → Calculate hotspot score (normalized outbreak probability)
+  → Return structured JSON with weekly forecasts
+```
+
+**Forecast output structure:**
+- Weekly case count predictions (1–4 week horizon)
+- Upper/lower confidence bounds at 95% level
+- Regional hotspot probability score (0–1)
+
+---
+
+## 🤖 AI Medical Assistant
+
+An LLM-powered clinical guidance assistant integrated into the results panel.
+
+**Provider:** OpenRouter API (model routing across multiple LLM providers)
+
+**Trigger:** Automatically fires after a diagnosis result is received (`useEffect` on `results` state change in `DiagnosisResults.tsx`)
+
+**Context sent to LLM:**
+- Diagnosis result label and confidence
+- Whether image or symptom-based assessment
+- Patient epidemiological indicators (if symptom-based)
+
+**Output:** Free-text clinical guidance formatted in markdown, rendered with `**bold**` support, displayed in the "Dr. Foresee's Guidance" panel.
+
+**Error handling:** If the API call fails (e.g., 404 from OpenRouter), the guidance panel is silently omitted — the rest of the results display normally.
 
 ---
 
 ## 📊 Performance Metrics
 
-### Model Performance
+### ML Model Performance
 
 | Model | Metric | Value |
-|-------|--------|-------|
-| **CNN (Diagnostic)** | Accuracy | **94.85%** |
+|---|---|---|
+| **CNN (Image Diagnostic)** | Accuracy | **94.85%** |
 | | Precision | **95.6%** |
 | | Recall | **94.0%** |
 | | F1-Score | **94.8%** |
-| | Dataset | 27,558 Images (Full NIH) |
-| **DHS (Risk Index)** | Approach | Clinical Risk Index (Random Forest) |
-| | Output | 3-Level Risk Stratification |
-| | Consistency | **100%** (vs Clinical Rules) |
-| | Use Case | Resource Planning (Non-Diagnostic) |
-| **ARIMA (Forecast)** | MAE (4-week) | 12.3% |
+| | Dataset Size | 27,558 images (NIH Malaria) |
+| **DHS Risk Index** | Approach | Random Forest Risk Calculator |
+| | Risk Stratification Consistency | **100%** (vs. clinical rules) |
+| | Use Case | Screening only (non-diagnostic) |
+| **ARIMA (Forecast)** | MAE (4-week horizon) | 12.3% |
 | | RMSE | 15.7% |
-| | Accuracy | 80.2% |
+| | Directional Accuracy | 80.2% |
 
 ### System Performance
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| **API Response Time** | < 2s | 1.8s avg |
-| **System Uptime** | > 99% | 99.5% |
-| **Lighthouse Score** | > 90 | 95 |
-| **Bundle Size** | < 500KB | 420KB gzipped |
-| **Time to Interactive** | < 3s | 2.4s |
-| **First Contentful Paint** | < 1.5s | 1.2s |
-
-### Scalability
-
-- **Concurrent Users**: 1,000+ simultaneous connections
-- **Requests/Second**: 500+ RPS sustained
-- **Database Connections**: 100 pooled connections
-- **CDN Coverage**: Global edge network (Cloudflare)
+| Metric | Value |
+|---|---|
+| Average API Response Time | ~1.8s |
+| CNN Inference Time | ~1.8s |
+| Symptom Model Inference Time | < 100ms |
+| Lighthouse Score | 95 |
+| Time to Interactive | 2.4s |
+| First Contentful Paint | 1.2s |
 
 ---
 
-## 🔒 Security & Compliance
+## 📁 Project Structure
 
-### Data Protection
-
-- **Encryption at Rest**: AES-256 encryption for stored data
-- **Encryption in Transit**: TLS 1.3 for all API communications
-- **Database Security**: Row-level security (RLS) with Neon PostgreSQL
-- **API Security**: Rate limiting, CORS policies, input sanitization
-
-### Authentication & Authorization
-
-- **User Authentication**: Clerk-based secure authentication
-- **Session Management**: JWT tokens with secure httpOnly cookies
-- **Role-Based Access Control**: Admin, healthcare provider, patient roles
-- **Multi-Factor Authentication**: Optional 2FA support
-
-### Compliance
-
-- **HIPAA Ready**: Architecture designed for HIPAA compliance
-- **GDPR Compliant**: Data privacy and user consent mechanisms
-- **Audit Logging**: Comprehensive activity tracking
-- **Data Retention**: Configurable retention policies
-
-### Privacy
-
-- **No PHI Storage**: Patient data not stored without explicit consent
-- **Anonymization**: Personal identifiers removed from analytics
-- **Data Minimization**: Only essential data collected
-- **User Control**: Data export and deletion capabilities
-
-### Security Best Practices
-
-```typescript
-// Input validation example
-const diagnosisSchema = z.object({
-  fever: z.boolean(),
-  age: z.number().min(0).max(120),
-  region: z.string().min(1).max(100)
-});
-
-// API rate limiting
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-}));
+```
+CodeRedProject/
+├── apps/
+│   ├── web/                              # React Frontend
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   │   ├── diagnosis/
+│   │   │   │   │   ├── DualModeDiagnosis.tsx
+│   │   │   │   │   ├── SymptomsForm.tsx
+│   │   │   │   │   ├── ImageUploader.tsx
+│   │   │   │   │   ├── DiagnosisResults.tsx
+│   │   │   │   │   └── DownloadReportButton.tsx
+│   │   │   │   ├── forecast/
+│   │   │   │   ├── layout/
+│   │   │   │   ├── providers/
+│   │   │   │   │   └── DbUserProvider.tsx
+│   │   │   │   └── ui/
+│   │   │   ├── pages/
+│   │   │   │   ├── Home.tsx
+│   │   │   │   ├── Diagnosis.tsx         # Error boundary + 2-column layout
+│   │   │   │   ├── Forecast.tsx
+│   │   │   │   ├── Reports.tsx
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   └── Admin.tsx
+│   │   │   ├── lib/
+│   │   │   │   ├── api.ts               # Typed API client
+│   │   │   │   ├── chatbot.ts           # OpenRouter integration
+│   │   │   │   ├── constants.ts         # INDIA_REGIONS (deduplicated)
+│   │   │   │   ├── db.ts                # DiagnosisService / ForecastService
+│   │   │   │   ├── storage.ts           # StorageManager (localStorage)
+│   │   │   │   ├── types.ts             # DiagnosisResult, SymptomsInput, etc.
+│   │   │   │   ├── utils.ts
+│   │   │   │   └── validations.ts       # Zod schemas
+│   │   │   ├── hooks/
+│   │   │   └── App.tsx                  # Router + AnimatePresence
+│   │   ├── vite.config.ts
+│   │   └── package.json
+│   │
+│   ├── inference/                        # Flask ML Backend
+│   │   ├── flask_app.py                 # Main application (1800+ lines)
+│   │   ├── database.py                  # Neon PostgreSQL functions
+│   │   ├── models/
+│   │   │   ├── malaria_cnn_full.h5     # Production CNN
+│   │   │   ├── gatekeeper_autoencoder.h5  # OOD detector
+│   │   │   ├── malaria_symptoms_dhs.pkl   # DHS Risk Index
+│   │   │   ├── malaria_forecast_arima.pkl # ARIMA model
+│   │   │   └── metadata.json            # Model accuracy + thresholds
+│   │   └── requirements.txt
+│   │
+│   └── database/                        # Prisma Layer
+│       ├── prisma/
+│       │   ├── schema.prisma            # DB schema (User, Diagnosis, Forecast)
+│       │   └── migrations/
+│       └── src/                         # Prisma client wrapper
+│
+└── package.json                         # Monorepo scripts
 ```
 
 ---
 
-## 🤝 Contributing
+## ⚠️ Limitations & Disclaimer
 
-We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
+1. **Not a Diagnostic Device**: Foresee is a **clinical decision support tool**. All outputs must be interpreted by qualified healthcare professionals. Results do not constitute a medical diagnosis.
 
-### Development Workflow
+2. **Image Requirements**: The CNN model requires **Giemsa-stained thin blood smear** images taken under at least 100× oil-immersion magnification. Poor focus, low lighting, or non-blood-smear images will be rejected by the gatekeeper or yield unreliable results.
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
+3. **Risk Screening ≠ Diagnosis**: The Stage 1 DHS-based model estimates epidemiological risk factors. It does not detect parasites and must not be used as a standalone diagnostic answer.
 
-### Code Standards
+4. **Regional Scope**: Forecasting models are trained on Indian epidemiological data and are optimized for Indian endemic zones. Generalization to other geographies requires retraining.
 
-- **TypeScript**: Strict mode enabled, no `any` types
-- **Python**: PEP 8 style guide, type hints encouraged
-- **Commits**: Conventional commits format
-- **Testing**: Unit tests required for new features
-- **Documentation**: Update README and docs for significant changes
-
-### Reporting Issues
-
-- Use [GitHub Issues](https://github.com/HumayunK01/CodeRedProject/issues)
-- Provide detailed reproduction steps
-- Include system information and error logs
-- Label appropriately (bug, enhancement, question)
+5. **Offline Limitations**: While the frontend is a PWA, ML inference requires a live connection to the Flask backend.
 
 ---
 
@@ -973,19 +1049,19 @@ We welcome contributions from the community! Please read our [Contributing Guide
       <img src="https://github.com/HumayunK01.png" width="100px" style="border-radius: 50%"><br>
       <strong>Khan Humayun Majid</strong><br>
       <em>ML Engineering & Backend</em><br>
-      <sub>Model architecture, API development, deployment</sub><br>
-      <a href="https://github.com/HumayunK01">GitHub</a> • 
+      <sub>Model architecture, API, security hardening</sub><br>
+      <a href="https://github.com/HumayunK01">GitHub</a> •
       <a href="https://linkedin.com/in/devhumayun">LinkedIn</a>
     </td>
     <td align="center" width="33%">
-    <img src="https://github.com/ZohaAnsari04.png" width="100px" style="border-radius: 50%"><br>
+      <img src="https://github.com/ZohaAnsari04.png" width="100px" style="border-radius: 50%"><br>
       <strong>Ansari Zoha</strong><br>
       <em>Frontend & UI/UX</em><br>
-      <sub>React development, design system, user experience</sub><br>
+      <sub>React, design system, user experience</sub><br>
       <a href="https://github.com/ZohaAnsari04">GitHub</a>
     </td>
     <td align="center" width="33%">
-    <img src="https://github.com/addy1805.png" width="100px" style="border-radius: 50%"><br>
+      <img src="https://github.com/addy1805.png" width="100px" style="border-radius: 50%"><br>
       <strong>Ansari Adnan</strong><br>
       <em>Data Science</em><br>
       <sub>Dataset curation, model validation, analytics</sub><br>
@@ -998,162 +1074,26 @@ We welcome contributions from the community! Please read our [Contributing Guide
 
 ### Acknowledgments
 
-- **Dataset**: NIH Malaria Dataset (27,558 images)
-- **Inspiration**: WHO Global Malaria Programme
-- **Community**: Open-source contributors and healthcare professionals
-
----
-
-## ⚠️ Limitations
-
-1.  **Risk Assessment Only**: The DHS-based screening tool estimates epidemiological risk based on demographic and environmental factors. It **does not** detect parasites and should not be used as a standalone diagnostic status.
-2.  **Microscopy Requirements**: The image classification model (CNN) requires high-quality, 100x magnification blood smear images for accurate detection. Poor lighting or resolution may affect results.
-3.  **Regional Bias**: Forecasting models are currently optimized for specific endemic regions and may require retraining for new geographical contexts.
+- **NIH Malaria Cell Images Dataset** — 27,558 annotated blood smear images
+- **WHO Global Malaria Programme** — epidemiological guidelines and DHS methodology reference
+- **Demographic and Health Surveys (DHS) Program** — feature and stratification methodology
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for complete details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-```
-MIT License
-
-Copyright (c) 2026 Foresee Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-```
-
-### ⚠️ Medical Disclaimer
-
-**IMPORTANT**: Foresee is a **decision support tool** and is **NOT a substitute for professional medical diagnosis or treatment**. 
-
-- All diagnostic results must be interpreted by qualified healthcare providers
-- This platform is intended to assist, not replace, clinical judgment
-- Always consult licensed medical professionals for diagnosis and treatment decisions
-- The developers assume no liability for medical decisions made using this tool
-- This software is provided for research and educational purposes
-
----
-
-## 🆘 Support & Contact
-
-### Get Help
-
-- **📖 Documentation**: [docs.foresee.app](https://docs.foresee.app)
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/HumayunK01/CodeRedProject/issues)
-- **💡 Feature Requests**: [GitHub Discussions](https://github.com/HumayunK01/CodeRedProject/discussions)
-- **💬 Community**: [Discord Server](https://discord.gg/foresee)
-
-### Contact Information
-
-- **Email**: humayunk.pvt@gmail.com
-- **LinkedIn**: [devhumayun](https://www.linkedin.com/in/devhumayun/)
-- **Twitter**: [@foresee_ai](https://twitter.com/foresee_ai)
-- **Website**: [foresee.app](https://foresee.app)
-
-### Office Hours
-
-We host weekly community calls:
-- **When**: Every Friday, 3:00 PM UTC
-- **Where**: [Zoom Link](https://zoom.us/foresee)
-- **Topics**: Q&A, feature demos, roadmap discussions
-
----
-
-## 🗺️ Roadmap
-
-### Current Version (v1.1.0)
-- ✅ AI-powered diagnosis (image) & risk screening (symptoms)
-- ✅ Regional outbreak forecasting
-- ✅ AI chatbot assistant
-- ✅ Professional PDF reports
-- ✅ Real-time analytics dashboard
-
-### Upcoming Features (v1.2.0)
-- 🔄 Multi-language support (French, Spanish, Portuguese)
-- 🔄 Mobile native apps (iOS/Android)
-- 🔄 Offline-first PWA enhancements
-- 🔄 Advanced data export capabilities
-- 🔄 Integration with EHR systems
-
-### Future Vision (v2.0.0)
-- 🔮 Real-time collaboration for healthcare teams
-- 🔮 Expanded disease coverage (dengue, typhoid)
-- 🔮 Federated learning for privacy-preserving model training
-- 🔮 Blockchain-based medical records
-- 🔮 Telemedicine integration
-
----
-
-## 📈 Project Statistics
-
-<div align="center">
-
-![GitHub stars](https://img.shields.io/github/stars/HumayunK01/CodeRedProject?style=social)
-![GitHub forks](https://img.shields.io/github/forks/HumayunK01/CodeRedProject?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/HumayunK01/CodeRedProject?style=social)
-
-![GitHub issues](https://img.shields.io/github/issues/HumayunK01/CodeRedProject)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/HumayunK01/CodeRedProject)
-![GitHub last commit](https://img.shields.io/github/last-commit/HumayunK01/CodeRedProject)
-![GitHub code size](https://img.shields.io/github/languages/code-size/HumayunK01/CodeRedProject)
-
-</div>
-
----
-
-## 🔗 Quick Links
-
-<div align="center">
-
-| Resource | Link |
-|----------|------|
-| 🏠 **Live Demo** | [foresee.app](https://foresee.app) |
-| 📖 **Documentation** | [docs.foresee.app](https://docs.foresee.app) |
-| 🐙 **GitHub** | [Repository](https://github.com/HumayunK01/CodeRedProject) |
-| 📊 **Project Board** | [Kanban](https://github.com/HumayunK01/CodeRedProject/projects) |
-| 🎨 **Design System** | [Figma](https://figma.com/foresee) |
-| 📱 **API Status** | [status.foresee.app](https://status.foresee.app) |
-
-</div>
+> **Medical Disclaimer**: Foresee is provided for research and educational purposes. It is NOT certified as a medical device and must not be used as the sole basis for clinical decisions. The developers assume no liability for medical decisions made using this tool.
 
 ---
 
 <div align="center">
 
-## 🌍 Making Healthcare Accessible Through AI
+**Built with ❤️ for global health equity**
 
-**Built with ❤️ by the Foresee Team**
+*Foresee Team — 2026*
 
-*Transforming healthcare, one diagnosis at a time*
-
-<br>
-
-[![Star on GitHub](https://img.shields.io/github/stars/HumayunK01/CodeRedProject?style=social)](https://github.com/HumayunK01/CodeRedProject)
-[![Follow on Twitter](https://img.shields.io/twitter/follow/foresee_ai?style=social)](https://twitter.com/foresee_ai)
-[![Connect on LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://linkedin.com/in/devhumayun)
-
-<br>
-
-**[⭐ Star us on GitHub](https://github.com/HumayunK01/CodeRedProject)** • **[🐦 Follow updates](https://twitter.com/foresee_ai)** • **[💼 Connect with us](https://linkedin.com/in/devhumayun)**
-
-<br>
-
----
-
-<sub>© 2026 Foresee Team. All rights reserved. | Made with passion for global health equity.</sub>
+[![GitHub](https://img.shields.io/badge/GitHub-HumayunK01/CodeRedProject-black?logo=github)](https://github.com/HumayunK01/CodeRedProject)
 
 </div>
