@@ -518,13 +518,13 @@ def require_auth(roles=None, skip_db_check=False):
     """
     Decorator to enforce authentication and optionally role-based authorization.
 
-    Strategy:
-    1. Extract user_id from JWT payload (sub claim).
-    2. Unless skip_db_check=True, verify user exists in our database.
-       (skip_db_check=True is used for the /api/users/sync endpoint where
-        the user may not exist in the DB yet on first login.)
-    3. Optionally check role via Clerk Management API for role-restricted endpoints.
+    Validation order (defence in depth):
+    1. Extract JWT payload (sub + exp) via base64 decode.
+    2. [L1] Attempt RS256 signature verification via Clerk JWKS (best security).
+       Falls back gracefully if JWKS is unavailable / kid not found.
+    3. Unless skip_db_check=True, verify user exists in our database.
     4. Guard URL clerk_id params against lateral access.
+    5. RBAC via Clerk Management API for role-restricted endpoints.
     """
     def decorator(f):
         @wraps(f)
@@ -538,7 +538,7 @@ def require_auth(roles=None, skip_db_check=False):
 
             token = auth_header.split(" ", 1)[1]
 
-            # ── Step 1: Decode payload to get user_id ──────────────────────────
+            # ── Step 1: Decode payload to get user_id + expiry ──────────────────
             payload = _decode_jwt_payload(token)
             if not payload:
                 return jsonify({"error": "Unauthorized", "message": "Malformed token"}), 401
@@ -552,7 +552,35 @@ def require_auth(roles=None, skip_db_check=False):
             if exp and datetime.utcnow().timestamp() > exp:
                 return jsonify({"error": "Unauthorized", "message": "Token expired"}), 401
 
-            # ── Step 2: Validate user exists in our database ────────────────────
+            # ── Step 2 [L1]: RS256 signature verification via JWKS ──────────────
+            # Strongest validation — cryptographically verify the token was issued
+            # by Clerk using their private key. Falls back to DB check if unavailable.
+            _sig_verified = False
+            try:
+                unverified_header = jwt.get_unverified_header(token)
+                kid = unverified_header.get("kid")
+                if kid:
+                    public_key = get_clerk_public_key(kid)
+                    if public_key:
+                        jwt.decode(
+                            token,
+                            public_key,
+                            algorithms=["RS256"],
+                            options={"verify_aud": False}
+                        )
+                        _sig_verified = True
+            except jwt.ExpiredSignatureError:
+                return jsonify({"error": "Unauthorized", "message": "Token expired"}), 401
+            except jwt.InvalidTokenError as e:
+                # Signature verification failed — this token may be forged
+                return jsonify({"error": "Unauthorized", "message": f"Invalid token signature: {e}"}), 401
+            except Exception:
+                # JWKS unavailable — fall through to DB validation
+                pass
+
+            # ── Step 3: DB user validation (fallback when JWKS unavailable) ──────
+            # If signature was verified via JWKS, DB check is still good to confirm
+            # the user is known to our system (not just any valid Clerk user).
             if DB_AVAILABLE and not skip_db_check:
                 try:
                     db_user = get_user_by_clerk_id(user_id)
@@ -560,18 +588,20 @@ def require_auth(roles=None, skip_db_check=False):
                         return jsonify({"error": "Unauthorized", "message": "User not found in system"}), 401
                 except Exception as e:
                     print(f"[auth] DB user lookup error: {e}")
-                    # If DB is down, fall through (don't block all users)
+                    if not _sig_verified:
+                        # Neither JWKS nor DB could validate — reject
+                        return jsonify({"error": "Unauthorized", "message": "Could not validate identity"}), 401
 
-            # ── Step 3: Set the validated identity on the request ───────────────
+            # ── Step 4: Set the validated identity on the request ───────────────
             request.user_id = user_id
 
-            # ── Step 4: Guard URL params against lateral access ─────────────────
+            # ── Step 5: Guard URL params against lateral access ─────────────────
             if "clerk_id" in kwargs and kwargs["clerk_id"] != request.user_id:
                 caller_role, _ = _get_caller_role(request)
                 if caller_role != "admin":
                     return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
 
-            # ── Step 5: Role-based access control ──────────────────────────────
+            # ── Step 6: Role-based access control ──────────────────────────────
             if roles:
                 caller_role, _ = _get_caller_role(request)
                 if caller_role not in roles:
@@ -1451,21 +1481,76 @@ def forecast_region():
 @app.route("/predict/image", methods=["POST"])
 @track_performance
 def predict_image():
+    # ── [L2] File upload validation constants ───────────────────────────────
+    MAX_FILE_SIZE_MB = 10
+    MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+    ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/tiff", "image/webp"}
+    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
+    # Magic bytes for each allowed image format (first bytes of valid files)
+    MAGIC_BYTES = [
+        (b"\xff\xd8\xff", "JPEG"),
+        (b"\x89PNG\r\n\x1a\n", "PNG"),
+        (b"BM", "BMP"),
+        (b"II\x2a\x00", "TIFF-LE"),
+        (b"MM\x00\x2a", "TIFF-BE"),
+        (b"RIFF", "WEBP"),
+    ]
+
     try:
         if malaria_model is None:
             return jsonify({"error": "CNN model not loaded"}), 500
-        
+
         if 'file' not in request.files:
             return jsonify({"error": "No file provided"}), 400
-        
+
         file = request.files['file']
-        if file.filename == '':
+        if not file.filename:
             return jsonify({"error": "No file selected"}), 400
-        
+
+        # ── Extension check ──────────────────────────────────────────────────
+        _, ext = os.path.splitext(file.filename.lower())
+        if ext not in ALLOWED_EXTENSIONS:
+            return jsonify({
+                "error": "Invalid file type",
+                "message": f"Only image files are accepted ({', '.join(sorted(ALLOWED_EXTENSIONS))})"
+            }), 415
+
+        # ── MIME type check (from Content-Type header) ───────────────────────
+        content_type = file.content_type or ""
+        if content_type and content_type.split(";")[0].strip() not in ALLOWED_MIME_TYPES:
+            return jsonify({
+                "error": "Invalid MIME type",
+                "message": f"Expected an image MIME type, got: {content_type}"
+            }), 415
+
+        # ── File size check ──────────────────────────────────────────────────
+        file_bytes = file.read()
+        if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+            return jsonify({
+                "error": "File too large",
+                "message": f"Maximum allowed file size is {MAX_FILE_SIZE_MB}MB"
+            }), 413
+        if len(file_bytes) == 0:
+            return jsonify({"error": "Empty file"}), 400
+
+        # ── Magic bytes check (format forgery prevention) ────────────────────
+        # Validates actual file content regardless of filename or Content-Type header.
+        _magic_ok = any(file_bytes.startswith(magic) for magic, _ in MAGIC_BYTES)
+        if not _magic_ok:
+            return jsonify({
+                "error": "Invalid image content",
+                "message": "File does not appear to be a valid image (magic bytes mismatch)"
+            }), 415
+
+        # Seek back so the rest of the handler can read normally
+        import io
+        file_stream = io.BytesIO(file_bytes)
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = os.path.join(temp_dir, file.filename)
-            file.save(temp_path)
-            
+            temp_path = os.path.join(temp_dir, os.path.basename(file.filename))
+            with open(temp_path, "wb") as f_out:
+                f_out.write(file_bytes)
+
             img = image.load_img(temp_path, target_size=(128, 128))
             img_array = image.img_to_array(img)
             img_array = img_array / 255.0 
