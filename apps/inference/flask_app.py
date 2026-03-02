@@ -73,10 +73,15 @@ app.config["SECRET_KEY"] = _secret_key
 #   FRONTEND_URL      — shortcut for the single production frontend URL
 
 DEFAULT_DEV_ORIGINS = [
-    "http://localhost:5173",   # Vite dev server (default)
-    "http://localhost:3000",   # CRA / Next.js alt port
+    "http://localhost:5173",   # Vite default
+    "http://localhost:5174",   # Vite secondary instance
+    "http://localhost:3000",   # CRA / Next.js
+    "http://localhost:8080",   # Alternative dev port
+    "http://localhost:4173",   # Vite preview
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:8080",
 ]
 
 def _build_allowed_origins() -> list:
