@@ -95,12 +95,12 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
         className="h-full flex flex-col"
       >
         {/* Result Header */}
-        <div className={`p-6 rounded-[24px] mb-4 text-center relative overflow-hidden ${results.label.includes('Positive') || results.label.includes('High') || results.label.includes('Parasitized')
+        <div className={`p-6 rounded-[24px] mb-4 text-center relative overflow-hidden ${results.label?.includes('Positive') || results.label?.includes('High') || results.label?.includes('Parasitized')
           ? 'bg-rose-500/10 border border-rose-500/20'
           : 'bg-emerald-500/10 border border-emerald-500/20'
           }`}>
           <div className="relative z-10 flex flex-col items-center">
-            {results.label.includes('Positive') || results.label.includes('High') || results.label.includes('Parasitized') ? (
+            {results.label?.includes('Positive') || results.label?.includes('High') || results.label?.includes('Parasitized') ? (
               <div className="w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center mb-3 shadow-lg shadow-rose-500/30">
                 <XCircle className="h-6 w-6" />
               </div>
@@ -110,7 +110,7 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
               </div>
             )}
 
-            <h2 className={`text-2xl font-bold mb-1 ${results.label.includes('Positive') || results.label.includes('High') || results.label.includes('Parasitized') ? 'text-rose-600' : 'text-emerald-600'
+            <h2 className={`text-2xl font-bold mb-1 ${results.label?.includes('Positive') || results.label?.includes('High') || results.label?.includes('Parasitized') ? 'text-rose-600' : 'text-emerald-600'
               }`}>
               {results.label}
             </h2>
@@ -147,11 +147,11 @@ export const DiagnosisResults = ({ results, isLoading, patientData, imageData }:
           </h4>
           <p className="text-sm text-foreground/70 leading-relaxed mb-4">
             {isImageDiagnosis ? (
-              results.label.includes('Positive') || results.label.includes('Parasitized')
+              results.label?.includes('Positive') || results.label?.includes('Parasitized')
                 ? "Microscopic analysis has identified patterns consistent with parasitic infection. "
                 : "Microscopic analysis did not detect parasitic patterns in the uploaded sample. "
             ) : (
-              results.method.includes('Fallback') || results.method.includes('Rule-Based')
+              results.method?.includes('Fallback') || results.method?.includes('Rule-Based')
                 ? `The Clinical Risk Index identifies this profile as ${results.label}. This is a rule-based assessment and not a medical diagnosis.`
                 : `The Clinical Risk Index Calculator identifies this profile as ${results.label} based on verified DHS risk factors.`
             )}

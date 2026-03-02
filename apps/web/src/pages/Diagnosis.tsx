@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,55 @@ import { StorageManager } from "@/lib/storage";
 import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// ── Error Boundary ────────────────────────────────────────────────────────────
+// Catches rendering errors thrown by child components (e.g. malformed API
+// result data) and shows a recovery UI instead of a blank page.
+interface EBState { hasError: boolean; message: string }
+class DiagnosisErrorBoundary extends Component<{ children: ReactNode }, EBState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+  static getDerivedStateFromError(error: Error): EBState {
+    return { hasError: true, message: error?.message ?? "Unknown error" };
+  }
+  componentDidCatch(error: Error, info: { componentStack: string }) {
+    console.error("[DiagnosisErrorBoundary]", error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-400 text-2xl">
+            ⚠️
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Something went wrong</h3>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              An unexpected error occurred during analysis. Your data is safe — please try again.
+            </p>
+            {this.state.message && (
+              <p className="text-[10px] font-mono text-muted-foreground/60 mt-1 max-w-xs truncate">
+                {this.state.message}
+              </p>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            onClick={() => this.setState({ hasError: false, message: "" })}
+          >
+            Try Again
+          </Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 import {
   Stethoscope,
   Activity,
@@ -250,10 +299,12 @@ const Diagnosis = () => {
             </div>
 
             {isSignedIn ? (
-              <DualModeDiagnosis
-                onResult={handleResult}
-                onLoadingChange={handleLoading}
-              />
+              <DiagnosisErrorBoundary>
+                <DualModeDiagnosis
+                  onResult={handleResult}
+                  onLoadingChange={handleLoading}
+                />
+              </DiagnosisErrorBoundary>
             ) : <DiagnosisFormSkeleton />}
           </DashboardContainer>
         </div>
@@ -264,12 +315,14 @@ const Diagnosis = () => {
             <SectionHeader icon={Activity} title="Analysis Results" subtitle="Real-time Output" />
             <div className="flex-1">
               {isSignedIn ? (
-                <DiagnosisResults
-                  results={results}
-                  isLoading={isLoading}
-                  patientData={storedPatientData || undefined}
-                  imageData={storedImageData || undefined}
-                />
+                <DiagnosisErrorBoundary>
+                  <DiagnosisResults
+                    results={results}
+                    isLoading={isLoading}
+                    patientData={storedPatientData || undefined}
+                    imageData={storedImageData || undefined}
+                  />
+                </DiagnosisErrorBoundary>
               ) : <DiagnosisResultsSkeleton />}
             </div>
           </DashboardContainer>

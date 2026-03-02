@@ -206,6 +206,38 @@ def enforce_cors(response):
 
     return response
 
+
+# ── [M2] Security Response Headers ─────────────────────────────────────────────
+# Adds browser-protection headers to EVERY response to harden the frontend
+# against common web attacks like clickjacking, MIME sniffing, and data leaks.
+@app.after_request
+def security_headers(response):
+    # Prevent browsers from MIME-sniffing a response away from the declared content-type
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Deny embedding in iframes entirely — prevents clickjacking attacks
+    response.headers["X-Frame-Options"] = "DENY"
+    # Control referrer info sent when navigating away from our API
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Restrict browser features (camera, mic, etc.) — belt-and-suspenders
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
+
+# ── [M3] Security Event Logging ─────────────────────────────────────────────────
+# Log every authentication/authorization failure with enough context to detect
+# brute-force, enumeration, and credential stuffing attacks.
+@app.after_request
+def log_security_events(response):
+    if response.status_code in (401, 403, 429):
+        user_id = getattr(request, "user_id", "unauthenticated")
+        print(
+            f"[security] HTTP {response.status_code} "
+            f"| {request.method} {request.path} "
+            f"| IP: {request.remote_addr} "
+            f"| user: {user_id}"
+        )
+    return response
+
 malaria_model = None # Kept as placeholder to avoid NameErrors if referenced elsewhere, but unused
 malaria_forecast_model = None # Kept as placeholder
 symptoms_model = None  # DHS-based Risk Screening Model
@@ -752,6 +784,61 @@ def test_db_connection():
         result["traceback"] = traceback.format_exc()
         return jsonify(result), 500
 
+# --- [M1] Input Validation Helper ---
+
+# Lightweight validation for POST request bodies.
+# Checks required fields exist, have the right type, and string lengths are sane.
+# No heavy library dependency — just clean, readable validation.
+
+class ValidationError(Exception):
+    def __init__(self, field: str, message: str):
+        self.field = field
+        self.message = message
+        super().__init__(f"{field}: {message}")
+
+def validate_fields(data: dict, schema: dict) -> None:
+    """
+    Validate a request body dict against a schema.
+
+    Schema format:
+        {
+          "fieldName": {
+              "required": bool,
+              "type": type | tuple[type],   # e.g. str, (str, type(None))
+              "max_length": int,             # for strings
+              "min_val": number,             # for numbers
+              "max_val": number,             # for numbers
+              "allowed": list,              # enum check
+          }
+        }
+    Raises ValidationError on the first failing field.
+    """
+    for field, rules in schema.items():
+        value = data.get(field)
+        if value is None:
+            if rules.get("required", False):
+                raise ValidationError(field, "This field is required")
+            continue
+        expected_type = rules.get("type")
+        if expected_type and not isinstance(value, expected_type):
+            raise ValidationError(field, f"Expected {expected_type}, got {type(value).__name__}")
+        if isinstance(value, str):
+            max_len = rules.get("max_length")
+            if max_len and len(value) > max_len:
+                raise ValidationError(field, f"Exceeds maximum length of {max_len} characters")
+            if not value.strip() and rules.get("required"):
+                raise ValidationError(field, "Cannot be blank")
+        if isinstance(value, (int, float)):
+            min_val = rules.get("min_val")
+            max_val = rules.get("max_val")
+            if min_val is not None and value < min_val:
+                raise ValidationError(field, f"Must be >= {min_val}")
+            if max_val is not None and value > max_val:
+                raise ValidationError(field, f"Must be <= {max_val}")
+        allowed = rules.get("allowed")
+        if allowed is not None and value not in allowed:
+            raise ValidationError(field, f"Must be one of: {allowed}")
+
 # --- User Routes ---
 
 @app.route("/api/users/sync", methods=["POST"])
@@ -764,13 +851,24 @@ def sync_user():
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
+
+        try:
+            validate_fields(data, {
+                "clerkId":    {"required": True,  "type": str, "max_length": 64},
+                "email":      {"required": True,  "type": str, "max_length": 254},
+                "firstName":  {"required": False, "type": (str, type(None)), "max_length": 100},
+                "lastName":   {"required": False, "type": (str, type(None)), "max_length": 100},
+                "imageUrl":   {"required": False, "type": (str, type(None)), "max_length": 1000},
+            })
+        except ValidationError as ve:
+            return jsonify({"error": "Validation failed", "field": ve.field, "message": ve.message}), 422
+
         clerk_id = data.get("clerkId")
         email = data.get("email")
-        
-        if not clerk_id or not email:
-            return jsonify({"error": "clerkId and email are required"}), 400
-        
+
+        if clerk_id != request.user_id:
+            return jsonify({"error": "Forbidden", "message": "clerkId does not match authenticated user"}), 403
+
         user = upsert_user(
             clerk_id=clerk_id,
             email=email,
@@ -824,16 +922,30 @@ def create_diagnosis():
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
+
+        try:
+            validate_fields(data, {
+                "clerkId":    {"required": True,  "type": str, "max_length": 64},
+                "result":     {"required": True,  "type": str, "max_length": 100},
+                "confidence": {"required": False, "type": (int, float), "min_val": 0.0, "max_val": 1.0},
+                "imageUrl":   {"required": False, "type": (str, type(None)), "max_length": 1000},
+                "patientAge": {"required": False, "type": (int, float), "min_val": 0, "max_val": 150},
+                "patientSex": {"required": False, "type": (str, type(None)),
+                               "allowed": ["Male", "Female", "Other", None]},
+                "location":   {"required": False, "type": (str, type(None)), "max_length": 200},
+            })
+        except ValidationError as ve:
+            return jsonify({"error": "Validation failed", "field": ve.field, "message": ve.message}), 422
+
         clerk_id = data.get("clerkId")
         if not clerk_id:
             return jsonify({"error": "clerkId is required"}), 400
-            
+
         if clerk_id != request.user_id:
             caller_role, _ = _get_caller_role(request)
-            if caller_role != "admin": # Allow admins to bypass
+            if caller_role != "admin":
                 return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
-        
+
         user = get_user_by_clerk_id(clerk_id)
         if not user:
             return jsonify({"error": "User not found. Please sync user first."}), 404
@@ -910,16 +1022,29 @@ def create_forecast_record():
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
+
+        try:
+            validate_fields(data, {
+                "clerkId":      {"required": True,  "type": str,  "max_length": 64},
+                "region":       {"required": True,  "type": str,  "max_length": 200},
+                "horizonWeeks": {"required": False, "type": (int, float), "min_val": 1, "max_val": 52},
+                "riskLevel":    {"required": False, "type": (str, type(None)),
+                                 "allowed": ["Low", "Medium", "High", "Critical", None]},
+                "hotspotScore": {"required": False, "type": (int, float), "min_val": 0.0, "max_val": 1.0},
+                "confidence":   {"required": False, "type": (int, float), "min_val": 0.0, "max_val": 1.0},
+            })
+        except ValidationError as ve:
+            return jsonify({"error": "Validation failed", "field": ve.field, "message": ve.message}), 422
+
         clerk_id = data.get("clerkId")
         if not clerk_id:
             return jsonify({"error": "clerkId is required"}), 400
-            
+
         if clerk_id != request.user_id:
             caller_role, _ = _get_caller_role(request)
-            if caller_role != "admin": # Allow admins to bypass
+            if caller_role != "admin":
                 return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
-        
+
         user = get_user_by_clerk_id(clerk_id)
         if not user:
             return jsonify({"error": "User not found. Please sync user first."}), 404
