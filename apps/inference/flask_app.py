@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import numpy as np
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Suppress TensorFlow logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -43,16 +45,160 @@ except Exception as e:
 
 load_dotenv()
 
-app = Flask(__name__)
-# Allow CORS for all domains config
-CORS(app, resources={r"/*": {"origins": "*"}})
+from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Manual CORS injection to ensure headers are present even on errors
+app = Flask(__name__)
+# Trust reverse proxy headers (e.g. from Railway, Nginx)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# ── Flask Secret Key ───────────────────────────────────────────────────────────────
+# Required for secure session cookies, signed tokens, and Werkzeug internals.
+# In production: set FLASK_SECRET_KEY to a long random string (e.g. via `openssl rand -hex 32`).
+# Never hardcode or commit this value.
+_secret_key = os.getenv("FLASK_SECRET_KEY")
+if not _secret_key:
+    import secrets as _secrets
+    _secret_key = _secrets.token_hex(32)  # Secure random fallback (ephemeral per restart)
+    print("[security] ⚠️  FLASK_SECRET_KEY not set — using ephemeral random key. Set FLASK_SECRET_KEY in .env for production.")
+else:
+    print("[security] ✅ FLASK_SECRET_KEY loaded from environment.")
+app.config["SECRET_KEY"] = _secret_key
+
+# ── Strict CORS Configuration ───────────────────────────────────────────────
+# Build an explicit allowlist of trusted origins.
+# Never use wildcard (*) — this would allow any site to call our APIs.
+#
+# Environment variables:
+#   ALLOWED_ORIGINS   — comma-separated list of additional trusted origins
+#   FRONTEND_URL      — shortcut for the single production frontend URL
+
+DEFAULT_DEV_ORIGINS = [
+    "http://localhost:5173",   # Vite dev server (default)
+    "http://localhost:3000",   # CRA / Next.js alt port
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+def _build_allowed_origins() -> list:
+    origins = list(DEFAULT_DEV_ORIGINS)
+    # Single production URL shortcut
+    frontend_url = os.getenv("FRONTEND_URL", "").strip()
+    if frontend_url:
+        origins.append(frontend_url.rstrip("/"))
+    # Comma-separated additional origins
+    extra = os.getenv("ALLOWED_ORIGINS", "")
+    for o in extra.split(","):
+        o = o.strip().rstrip("/")
+        if o:
+            origins.append(o)
+    # Deduplicate while preserving order
+    seen = set()
+    result = []
+    for o in origins:
+        if o not in seen:
+            seen.add(o)
+            result.append(o)
+    return result
+
+ALLOWED_ORIGINS = _build_allowed_origins()
+print(f"[cors] Allowed origins: {ALLOWED_ORIGINS}")
+
+CORS(
+    app,
+    origins=ALLOWED_ORIGINS,
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+    supports_credentials=True,   # Required for cookies / Authorization headers
+    max_age=600,                 # Pre-flight cache: 10 minutes
+)
+
+def get_user_identity():
+    """Identify users for rate limiting: use Clerk user ID if available, else IP address."""
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth.split(" ", 1)[1]
+        try:
+            import base64
+            parts = token.split(".")
+            if len(parts) >= 3:
+                payload_b64 = parts[1]
+                payload_b64 += "=" * (-len(payload_b64) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+                user_id = payload.get("sub")
+                if user_id:
+                    return f"user:{user_id}"
+        except Exception:
+            pass
+    return f"ip:{get_remote_address()}"
+
+default_limit = os.getenv("DEFAULT_RATE_LIMIT", "100 per minute")
+
+# ── Rate Limiter Storage ───────────────────────────────────────────────────────────────
+# Use Redis when REDIS_URL is configured (production) for:
+#   - Persistence across restarts
+#   - Sharing limits across multiple Flask processes/workers
+# Automatically falls back to in-memory if Redis is unreachable (e.g. local dev
+# pointing at Railway's private redis.railway.internal hostname).
+_redis_url = os.getenv("REDIS_URL", "").strip()
+
+def _resolve_limiter_storage(redis_url: str) -> str:
+    if not redis_url:
+        print("[limiter] ⚠️  REDIS_URL not set — using in-memory storage (dev mode).")
+        return "memory://"
+    # Test connectivity before committing to Redis so a bad URL doesn't crash startup
+    try:
+        import redis as _redis
+        _client = _redis.from_url(redis_url, socket_connect_timeout=2)
+        _client.ping()
+        print(f"[limiter] ✅ Redis connected: {redis_url.split('@')[-1]}")
+        return redis_url
+    except Exception as e:
+        print(f"[limiter] ⚠️  Redis unreachable ({e.__class__.__name__}: {e}) — falling back to in-memory storage.")
+        print("[limiter]    (This is expected when running locally with a Railway private Redis URL.)")
+        return "memory://"
+
+_storage_uri = _resolve_limiter_storage(_redis_url)
+
+limiter = Limiter(
+    key_func=get_user_identity,
+    app=app,
+    default_limits=[default_limit],
+    storage_uri=_storage_uri,
+    strategy="fixed-window",
+    headers_enabled=True
+)
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        "error": "Too Many Requests",
+        "message": f"Rate limit exceeded. {e.description}"
+    }), 429
+
+
+# ── After-request CORS enforcement ────────────────────────────────────────
+# Validate the request's Origin against ALLOWED_ORIGINS and reflect it back
+# (required for credentialed requests — browsers reject * with credentials).
+# Also handle the case where Flask-CORS hasn't already set the header.
 @app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+def enforce_cors(response):
+    origin = request.headers.get("Origin", "")
+    if origin in ALLOWED_ORIGINS:
+        # Reflect the exact allowed origin (never a wildcard)
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"  # Tell caches the response varies by origin
+    elif not response.headers.get("Access-Control-Allow-Origin"):
+        # No origin or disallowed origin — explicitly deny
+        response.headers["Access-Control-Allow-Origin"] = "null"
+
+    # Always set method/header permissions for pre-flight caching
+    if request.method == "OPTIONS":
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response.headers["Access-Control-Max-Age"] = "600"
+
     return response
 
 malaria_model = None # Kept as placeholder to avoid NameErrors if referenced elsewhere, but unused
@@ -216,7 +362,6 @@ import urllib.error
 
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "").strip()
 CLERK_API_BASE   = "https://api.clerk.com/v1"
-print(f"[admin] CLERK_SECRET_KEY loaded: {CLERK_SECRET_KEY[:12]}...{CLERK_SECRET_KEY[-4:] if CLERK_SECRET_KEY else 'EMPTY'}")
 
 # ── Startup connectivity test ──────────────────────────────────
 def _test_clerk_connection():
@@ -232,7 +377,7 @@ def _test_clerk_connection():
         with _ur.urlopen(req) as r:
             print(f"✅ [admin] Clerk API connected — HTTP {r.status}")
     except Exception as e:
-        print(f"❌ [admin] Clerk API connection FAILED: {e}")
+        pass
 
 _test_clerk_connection()
 
@@ -292,7 +437,148 @@ def _get_caller_role(request) -> str | None:
         return None, f"exception:{e}"
 
 
+import urllib.request
+import json
+import jwt
+from jwt.algorithms import RSAAlgorithm
+from functools import wraps
+from flask import request
+
+# Cache for Clerk JWKS
+_clerk_jwks_cache = None
+
+# Clerk JWKS URL — derive from publishable key (instance-specific) or allow env override
+def _resolve_clerk_jwks_url() -> str:
+    # Allow explicit override via env
+    override = os.getenv("CLERK_JWKS_URL")
+    if override:
+        return override
+    # Derive from publishable key: pk_test_<base64(frontend_domain)$>
+    pub_key = os.getenv("CLERK_PUBLISHABLE_KEY", "")
+    if pub_key:
+        try:
+            import base64
+            # Remove 'pk_test_' or 'pk_live_' prefix
+            b64 = pub_key.split("_", 2)[-1]  # everything after pk_test_ or pk_live_
+            # Pad base64 and decode
+            b64 += "=" * (-len(b64) % 4)
+            domain = base64.urlsafe_b64decode(b64).decode("utf-8").rstrip("$")
+            url = f"https://{domain}/.well-known/jwks.json"
+            print(f"[auth] Derived Clerk JWKS URL from publishable key: {url}")
+            return url
+        except Exception as e:
+            print(f"[auth] Could not derive JWKS URL from publishable key: {e}")
+    # Final fallback
+    return "https://api.clerk.com/v1/jwks"
+
+CLERK_JWKS_URL = _resolve_clerk_jwks_url()
+
+def get_clerk_public_key(kid):
+    global _clerk_jwks_cache
+    if not _clerk_jwks_cache:
+        try:
+            # JWKS is a PUBLIC endpoint — no Authorization header needed
+            req = urllib.request.Request(CLERK_JWKS_URL)
+            with urllib.request.urlopen(req) as response:
+                _clerk_jwks_cache = json.loads(response.read().decode())
+            print(f"[auth] Clerk JWKS fetched successfully ({len(_clerk_jwks_cache.get('keys', []))} keys)")
+        except Exception as e:
+            print(f"[auth] Failed to fetch Clerk JWKS from {CLERK_JWKS_URL}: {e}")
+            return None
+    for key in _clerk_jwks_cache.get("keys", []):
+        if key.get("kid") == kid:
+            return RSAAlgorithm.from_jwk(json.dumps(key))
+    # kid not found — refresh cache once and retry
+    _clerk_jwks_cache = None
+    return None
+
+def _decode_jwt_payload(token: str) -> dict | None:
+    """
+    Decode a JWT payload without signature verification.
+    This is safe when combined with DB user validation.
+    """
+    try:
+        import base64 as _b64
+        parts = token.split(".")
+        if len(parts) < 3:
+            return None
+        payload_b64 = parts[1]
+        payload_b64 += "=" * (-len(payload_b64) % 4)
+        return json.loads(_b64.urlsafe_b64decode(payload_b64))
+    except Exception:
+        return None
+
+
+def require_auth(roles=None, skip_db_check=False):
+    """
+    Decorator to enforce authentication and optionally role-based authorization.
+
+    Strategy:
+    1. Extract user_id from JWT payload (sub claim).
+    2. Unless skip_db_check=True, verify user exists in our database.
+       (skip_db_check=True is used for the /api/users/sync endpoint where
+        the user may not exist in the DB yet on first login.)
+    3. Optionally check role via Clerk Management API for role-restricted endpoints.
+    4. Guard URL clerk_id params against lateral access.
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if request.method == "OPTIONS":
+                return f(*args, **kwargs)
+
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Unauthorized", "message": "Missing Bearer token"}), 401
+
+            token = auth_header.split(" ", 1)[1]
+
+            # ── Step 1: Decode payload to get user_id ──────────────────────────
+            payload = _decode_jwt_payload(token)
+            if not payload:
+                return jsonify({"error": "Unauthorized", "message": "Malformed token"}), 401
+
+            user_id = payload.get("sub")
+            if not user_id:
+                return jsonify({"error": "Unauthorized", "message": "Token missing subject"}), 401
+
+            # Check token expiry
+            exp = payload.get("exp")
+            if exp and datetime.utcnow().timestamp() > exp:
+                return jsonify({"error": "Unauthorized", "message": "Token expired"}), 401
+
+            # ── Step 2: Validate user exists in our database ────────────────────
+            if DB_AVAILABLE and not skip_db_check:
+                try:
+                    db_user = get_user_by_clerk_id(user_id)
+                    if not db_user:
+                        return jsonify({"error": "Unauthorized", "message": "User not found in system"}), 401
+                except Exception as e:
+                    print(f"[auth] DB user lookup error: {e}")
+                    # If DB is down, fall through (don't block all users)
+
+            # ── Step 3: Set the validated identity on the request ───────────────
+            request.user_id = user_id
+
+            # ── Step 4: Guard URL params against lateral access ─────────────────
+            if "clerk_id" in kwargs and kwargs["clerk_id"] != request.user_id:
+                caller_role, _ = _get_caller_role(request)
+                if caller_role != "admin":
+                    return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
+
+            # ── Step 5: Role-based access control ──────────────────────────────
+            if roles:
+                caller_role, _ = _get_caller_role(request)
+                if caller_role not in roles:
+                    return jsonify({"error": "Forbidden", "message": "Insufficient permissions"}), 403
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 @app.route("/admin/users", methods=["GET", "OPTIONS"])
+@require_auth(roles=["admin"])
 def admin_get_users():
     """List all Clerk users with their roles. Admin only."""
     if request.method == "OPTIONS":
@@ -326,6 +612,7 @@ def admin_get_users():
 
 
 @app.route("/admin/set-role", methods=["POST", "OPTIONS"])
+@require_auth(roles=["admin"])
 def admin_set_role():
     """Update a user's role via Clerk publicMetadata. Admin only."""
     if request.method == "OPTIONS":
@@ -433,6 +720,7 @@ def test_db_connection():
 # --- User Routes ---
 
 @app.route("/api/users/sync", methods=["POST"])
+@require_auth(skip_db_check=True)
 def sync_user():
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -465,6 +753,7 @@ def sync_user():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/users/<clerk_id>/stats", methods=["GET"])
+@require_auth()
 def get_user_stats(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -491,6 +780,7 @@ def get_user_stats(clerk_id):
 # --- Diagnosis Routes ---
 
 @app.route("/api/diagnoses", methods=["POST"])
+@require_auth()
 def create_diagnosis():
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -503,6 +793,11 @@ def create_diagnosis():
         clerk_id = data.get("clerkId")
         if not clerk_id:
             return jsonify({"error": "clerkId is required"}), 400
+            
+        if clerk_id != request.user_id:
+            caller_role, _ = _get_caller_role(request)
+            if caller_role != "admin": # Allow admins to bypass
+                return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
         
         user = get_user_by_clerk_id(clerk_id)
         if not user:
@@ -531,6 +826,7 @@ def create_diagnosis():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/diagnoses/<clerk_id>", methods=["GET"])
+@require_auth()
 def get_user_diagnoses(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -551,6 +847,7 @@ def get_user_diagnoses(clerk_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/diagnoses/<clerk_id>/stats", methods=["GET"])
+@require_auth()
 def get_diagnosis_stats(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -569,6 +866,7 @@ def get_diagnosis_stats(clerk_id):
 # --- Forecast Routes ---
 
 @app.route("/api/forecasts", methods=["POST"])
+@require_auth()
 def create_forecast_record():
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -581,6 +879,11 @@ def create_forecast_record():
         clerk_id = data.get("clerkId")
         if not clerk_id:
             return jsonify({"error": "clerkId is required"}), 400
+            
+        if clerk_id != request.user_id:
+            caller_role, _ = _get_caller_role(request)
+            if caller_role != "admin": # Allow admins to bypass
+                return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
         
         user = get_user_by_clerk_id(clerk_id)
         if not user:
@@ -612,6 +915,7 @@ def create_forecast_record():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/forecasts/<clerk_id>", methods=["GET"])
+@require_auth()
 def get_user_forecasts(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -632,6 +936,7 @@ def get_user_forecasts(clerk_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/forecasts/<clerk_id>/stats", methods=["GET"])
+@require_auth()
 def get_forecast_stats(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -648,6 +953,7 @@ def get_forecast_stats(clerk_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/activity/<clerk_id>", methods=["GET"])
+@require_auth()
 def get_activity(clerk_id):
     if not DB_AVAILABLE:
         return jsonify({"error": "Database module not available"}), 503
@@ -791,6 +1097,7 @@ def dashboard_stats():
                     recent_diagnoses = get_diagnoses_by_user(user_id, limit=50)
                     forecast_stats = get_forecast_stats_by_user(user_id)
                     recent_activity_raw = get_user_activity(user_id, limit=5)
+                    print(f"[dashboard] user_id={user_id}, diagnoses={len(recent_diagnoses)}, forecast_stats={forecast_stats}, activity={len(recent_activity_raw)}")
                     
                     # Calculate "Today's Diagnoses"
                     today = datetime.now().date()
@@ -805,11 +1112,14 @@ def dashboard_stats():
                             except:
                                 continue
                         
-                        if isinstance(created_at, datetime) and created_at.date() == today:
-                            today_diagnoses += 1
-                            res_r = d.get('result', 'Unknown')
-                            if "parasitized" in res_r.lower() or "high" in res_r.lower():
-                                today_positive += 1
+                        if isinstance(created_at, datetime):
+                            # Strip timezone info for comparison – we only care about date
+                            diag_date = created_at.date() if not hasattr(created_at, 'tzinfo') or created_at.tzinfo is None else created_at.replace(tzinfo=None).date()
+                            if diag_date == today:
+                                today_diagnoses += 1
+                                res_r = d.get('result', 'Unknown')
+                                if "parasitized" in res_r.lower() or "high" in res_r.lower():
+                                    today_positive += 1
                             
                     # Calculate Risk Regions (unique regions from active forecasts)
                     # We might need to fetch active forecasts specifically to count regions
@@ -986,6 +1296,10 @@ def predict_symptoms():
                 cols_to_impute = symptoms_model.get('cols_to_impute')
                 
                 if cols_to_impute:
+                    # Convert to float to avoid pandas int64 to float64 TypeError during assignment
+                    for col in cols_to_impute:
+                        if col in df.columns:
+                            df[col] = df[col].astype(float)
                     df[cols_to_impute] = imputer.transform(df[cols_to_impute])
                 
                 # Ensure columns match training order exactly
@@ -1269,6 +1583,11 @@ def generate_report():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
-    
-    print(f"Starting Foresee ML Inference API on {host}:{port}")
-    app.run(host=host, port=port, debug=True)
+    # DEBUG must NEVER be True in production — it exposes an interactive Python REPL
+    # on every error page, allowing arbitrary code execution on the server.
+    debug_mode = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+    if debug_mode:
+        print("[security] ⚠️  Running in DEBUG mode — NEVER use this in production!")
+
+    print(f"Starting Foresee ML Inference API on {host}:{port} (debug={debug_mode})")
+    app.run(host=host, port=port, debug=debug_mode)

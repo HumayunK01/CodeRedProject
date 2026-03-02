@@ -6,8 +6,8 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { useUser as useClerkUser } from "@clerk/clerk-react";
-import { UserService, type User, type UserWithStats } from "../lib/db";
+import { useUser as useClerkUser, useAuth } from "@clerk/clerk-react";
+import { UserService, setTokenProvider, type User, type UserWithStats } from "../lib/db";
 
 interface UseUserReturn {
     /** The database user record */
@@ -31,6 +31,10 @@ interface UseUserReturn {
  */
 export function useDbUser(): UseUserReturn {
     const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useClerkUser();
+    const { getToken } = useAuth();
+
+    // Always keep the token provider up-to-date (called synchronously on re-render)
+    setTokenProvider(() => getToken());
 
     const [user, setUser] = useState<User | null>(null);
     const [userWithStats, setUserWithStats] = useState<UserWithStats | null>(null);
@@ -54,6 +58,14 @@ export function useDbUser(): UseUserReturn {
         setError(null);
 
         try {
+            // Ensure the token is available before syncing
+            const token = await getToken();
+            if (!token) {
+                console.warn("[useDbUser] No auth token available yet, skipping sync");
+                setIsLoading(false);
+                return;
+            }
+
             // Upsert user in database (create if not exists, update if exists)
             const dbUser = await UserService.upsert({
                 clerkId: clerkUser.id,
@@ -63,7 +75,7 @@ export function useDbUser(): UseUserReturn {
                 imageUrl: clerkUser.imageUrl,
             });
 
-            setUser(dbUser);
+            setUser(dbUser as unknown as User);
 
             // Also fetch with stats
             const withStats = await UserService.findByClerkIdWithStats(clerkUser.id);
@@ -74,7 +86,7 @@ export function useDbUser(): UseUserReturn {
         } finally {
             setIsLoading(false);
         }
-    }, [clerkUser, clerkLoaded, isSignedIn]);
+    }, [clerkUser, clerkLoaded, isSignedIn, getToken]);
 
     /**
      * Refresh user data

@@ -3,6 +3,7 @@
  *
  * This module provides functions to interact with the Flask backend API
  * for database operations. All CRUD operations go through the API endpoints.
+ * All protected requests include the Clerk session token as Bearer auth.
  */
 
 // Re-export types from our manual type definitions
@@ -21,6 +22,20 @@ export type {
 
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_INFER_BASE_URL || "http://localhost:8000";
+
+// Token provider — set by use-db-user.ts on auth
+let _getTokenFn: (() => Promise<string | null>) | null = null;
+
+export function setTokenProvider(fn: () => Promise<string | null>) {
+  _getTokenFn = fn;
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const token = _getTokenFn ? await _getTokenFn() : null;
+  return token
+    ? { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+    : { "Content-Type": "application/json" };
+}
 
 // Type definitions for service inputs (browser-safe)
 export interface CreateUserInput {
@@ -73,9 +88,7 @@ export const UserService = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/sync`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: await authHeaders(),
         body: JSON.stringify(data),
       });
 
@@ -96,7 +109,9 @@ export const UserService = {
    */
   findByClerkIdWithStats: async (clerkId: string): Promise<UserWithStats | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${clerkId}/stats`);
+      const response = await fetch(`${API_BASE_URL}/api/users/${clerkId}/stats`, {
+        headers: await authHeaders(),
+      });
 
       if (!response.ok) {
         if (response.status === 404) return null;
@@ -137,9 +152,7 @@ export const DiagnosisService = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/diagnoses`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: await authHeaders(),
         body: JSON.stringify({
           clerkId,
           imageUrl,
@@ -166,7 +179,9 @@ export const DiagnosisService = {
    */
   getByClerkId: async (clerkId: string, limit: number = 20) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/diagnoses/${clerkId}?limit=${limit}`);
+      const response = await fetch(`${API_BASE_URL}/api/diagnoses/${clerkId}?limit=${limit}`, {
+        headers: await authHeaders(),
+      });
 
       if (!response.ok) {
         if (response.status === 404) return [];
@@ -186,7 +201,9 @@ export const DiagnosisService = {
    */
   getStatsByClerkId: async (clerkId: string): Promise<DiagnosisStats> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/diagnoses/${clerkId}/stats`);
+      const response = await fetch(`${API_BASE_URL}/api/diagnoses/${clerkId}/stats`, {
+        headers: await authHeaders(),
+      });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -204,7 +221,7 @@ export const DiagnosisService = {
   },
 
   // Legacy method that uses userId - now redirects to use clerkId internally
-  getStatsByUserId: async (userId: string): Promise<DiagnosisStats> => {
+  getStatsByUserId: async (_userId: string): Promise<DiagnosisStats> => {
     console.warn("[DiagnosisService.getStatsByUserId] This method is deprecated. Use getStatsByClerkId instead.");
     return { total: 0, positive: 0, negative: 0, lastDiagnosis: null };
   },
@@ -231,9 +248,7 @@ export const ForecastService = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/forecasts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: await authHeaders(),
         body: JSON.stringify({
           clerkId,
           region,
@@ -261,7 +276,9 @@ export const ForecastService = {
    */
   getByClerkId: async (clerkId: string, limit: number = 20) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/forecasts/${clerkId}?limit=${limit}`);
+      const response = await fetch(`${API_BASE_URL}/api/forecasts/${clerkId}?limit=${limit}`, {
+        headers: await authHeaders(),
+      });
 
       if (!response.ok) {
         if (response.status === 404) return [];
@@ -281,7 +298,9 @@ export const ForecastService = {
    */
   getStatsByClerkId: async (clerkId: string): Promise<ForecastStats> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/forecasts/${clerkId}/stats`);
+      const response = await fetch(`${API_BASE_URL}/api/forecasts/${clerkId}/stats`, {
+        headers: await authHeaders(),
+      });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -299,7 +318,7 @@ export const ForecastService = {
   },
 
   // Legacy method that uses userId - now returns empty stats
-  getStatsByUserId: async (userId: string): Promise<ForecastStats> => {
+  getStatsByUserId: async (_userId: string): Promise<ForecastStats> => {
     console.warn("[ForecastService.getStatsByUserId] This method is deprecated. Use getStatsByClerkId instead.");
     return { total: 0, active: 0, highRisk: 0, lastForecast: null };
   },

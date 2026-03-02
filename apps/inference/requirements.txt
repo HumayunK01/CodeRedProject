@@ -14,3 +14,7 @@ gunicorn
 xhtml2pdf
 matplotlib
 seaborn
+Flask-Limiter[redis]
+
+PyJWT
+cryptography

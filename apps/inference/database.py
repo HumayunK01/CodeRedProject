@@ -228,7 +228,7 @@ def get_forecast_stats_by_user(user_id: str) -> Dict[str, Any]:
                 SELECT 
                     COUNT(*) as total,
                     COUNT(CASE WHEN "endDate" > %s THEN 1 END) as active,
-                    COUNT(CASE WHEN "riskLevel" IN ('high', 'critical') THEN 1 END) as high_risk,
+                    COUNT(CASE WHEN LOWER("riskLevel"::text) IN ('high', 'critical') THEN 1 END) as high_risk,
                     MAX("createdAt") as last_forecast
                 FROM "Forecast" 
                 WHERE "userId" = %s
