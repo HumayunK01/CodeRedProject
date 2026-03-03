@@ -116,6 +116,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          # Dummy URL — prisma generate only reads the schema, doesn't connect
+          DATABASE_URL: postgresql://user:pass@localhost:5432/ci_placeholder
 
       - name: Type-check
         run: npx tsc --noEmit --skipLibCheck
