@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Detect which apps changed to skip unnecessary jobs
+  # ──────────────────────────────────────────────
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      inference: ${{ steps.filter.outputs.inference }}
+      database: ${{ steps.filter.outputs.database }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'package.json'
+            inference:
+              - 'apps/inference/**'
+            database:
+              - 'apps/database/**'
+              - 'package.json'
+
+  # ──────────────────────────────────────────────
+  # Frontend: Lint → Type-check → Build
+  # ──────────────────────────────────────────────
+  web:
+    name: Web (Lint + Type-check + Build)
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+        env:
+          # Provide dummy env vars so Vite build doesn't fail
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder' }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:8000' }}
+
+      # - name: Run tests
+      #   run: npm test
+      #   # Uncomment when Vitest is set up
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: apps/web/dist
+          retention-days: 7
+
+  # ──────────────────────────────────────────────
+  # Database: Generate → Type-check → Build
+  # ──────────────────────────────────────────────
+  database:
+    name: Database (Generate + Build)
+    needs: changes
+    if: needs.changes.outputs.database == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/database
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/database/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Type-check & Build
+        run: npm run build
+
+  # ──────────────────────────────────────────────
+  # Inference: Lint → Security Scan → Docker Build
+  # ──────────────────────────────────────────────
+  inference:
+    name: Inference API (Lint + Docker Build)
+    needs: changes
+    if: needs.changes.outputs.inference == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/inference
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: apps/inference/requirements.txt
+
+      - name: Install linting tools
+        run: pip install ruff bandit
+
+      - name: Lint with Ruff
+        run: ruff check . --output-format=github
+
+      - name: Security scan with Bandit
+        run: bandit -r . -x ./tests,./notebooks,./scripts --severity-level medium -f json || true
+
+      - name: Build Docker image
+        run: docker build -t foresee-inference:ci .
+
+  # ──────────────────────────────────────────────
+  # Final status gate — require all checks before merge
+  # ──────────────────────────────────────────────
+  ci-passed:
+    name: CI Passed
+    if: always()
+    needs: [web, database, inference]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs
+        run: |
+          echo "Web:       ${{ needs.web.result }}"
+          echo "Database:  ${{ needs.database.result }}"
+          echo "Inference: ${{ needs.inference.result }}"
+
+          # Fail if any required job failed (skipped is OK due to path filtering)
+          if [[ "${{ needs.web.result }}" == "failure" ]] || \
+             [[ "${{ needs.database.result }}" == "failure" ]] || \
+             [[ "${{ needs.inference.result }}" == "failure" ]]; then
+            echo "::error::One or more CI jobs failed"
+            exit 1
+          fi
+
+          echo "All checks passed ✓"

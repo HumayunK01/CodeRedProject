@@ -1,0 +1,45 @@
+name: Database Migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/database/prisma/migrations/**'
+      - 'apps/database/prisma/schema.prisma'
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Run Prisma Migrations
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: apps/database
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/database/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Validate schema
+        run: npx prisma validate
+
+      - name: Check migration drift
+        run: npx prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --exit-code
+        continue-on-error: true
+
+      - name: Deploy migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -1,0 +1,40 @@
+# Ruff linter configuration for the inference API
+# https://docs.astral.sh/ruff/configuration/
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+# Exclude auto-generated and non-source directories
+exclude = [
+    "notebooks",
+    "data",
+    "models",
+    "__pycache__",
+    ".venv",
+]
+
+[tool.ruff.lint]
+# Start with a practical set of rules, expand over time
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit (security)
+    "UP",   # pyupgrade
+]
+
+ignore = [
+    "E501",   # line too long — handled by line-length setting
+    "S101",   # assert usage — fine in scripts/tests
+    "S603",   # subprocess calls — review manually
+    "S608",   # SQL injection — raw SQL is intentional in db/
+    "B008",   # function call in default arg — Flask patterns
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S106"]
+"scripts/*" = ["S101", "E402"]
+"agents/*" = ["S106"]
