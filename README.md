@@ -4,8 +4,6 @@
 
 ### AI-Powered Malaria Diagnosis & Outbreak Forecasting Platform
 
-<br/>
-
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -13,20 +11,38 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 
-<br/>
-
 > **BE Final Year Major Project**
 >
 > *Diagnose Today. Predict Tomorrow.*
 
-
 </div>
-
-<br/>
 
 ---
 
+## 📸 Preview
+
+<div align="center">
+
+<img src="apps/web/public/preview.jpg" alt="Foresee — Landing Page" width="100%" />
+
+<table>
+<tr>
+<td align="center" width="50%">
+<img src="apps/web/public/preview1.jpg" alt="Diagnosis Dashboard" width="100%" />
 <br/>
+<sub><b>Diagnosis Dashboard</b></sub>
+</td>
+<td align="center" width="50%">
+<img src="apps/web/public/preview2 (1).jpg" alt="Forecasting & Analytics" width="100%" />
+<br/>
+<sub><b>Forecasting & Analytics</b></sub>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
 
 ## 📋 Table of Contents
 
@@ -53,40 +69,7 @@
 
 </details>
 
-<br/>
-
 ---
-
-<br/>
-
-## 📸 Preview
-
-<div align="center">
-
-<img src="apps/web/public/preview.jpg" alt="Foresee — Landing Page" width="100%" />
-
-<table>
-<tr>
-<td align="center" width="50%">
-<img src="apps/web/public/preview1.jpg" alt="Fully Responsive" width="100%" />
-<br/>
-<sub><b>Fully Responsive</b></sub>
-</td>
-<td align="center" width="50%">
-<img src="apps/web/public/preview2 (1).jpg" alt="Mobile First Design" width="100%" />
-<br/>
-<sub><b>Mobile First Design</b></sub>
-</td>
-</tr>
-</table>
-
-</div>
-
-<br/>
-
----
-
-<br/>
 
 ## 🌟 Overview
 
@@ -99,11 +82,7 @@
 
 The platform is purpose-built for endemic regions where skilled microscopists are scarce and rapid triage is critical. It provides **role-differentiated interfaces** for doctors, administrators, and patients under a unified web application.
 
-<br/>
-
 ---
-
-<br/>
 
 ## ✨ Key Features
 
@@ -150,11 +129,7 @@ The platform is purpose-built for endemic regions where skilled microscopists ar
 </tr>
 </table>
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🔬 Two-Stage Clinical Workflow
 
@@ -195,11 +170,7 @@ Inspired by WHO/CDC Integrated Vector Management (IVM) guidelines — separating
   └─────────────────────────────────────────────────────┘
 ```
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🤖 Machine Learning Models
 
@@ -270,11 +241,7 @@ Threshold calibrated at the 99th percentile MSE of valid training images (stored
 
 Seasonal ARIMA with STL decomposition for 1–4 week ahead regional case count prediction, with 95% confidence intervals and hotspot probability scoring.
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🏗️ System Architecture
 
@@ -315,11 +282,7 @@ Every API request passes through 7 sequential layers:
 6. **Security Headers** — `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy`
 7. **Audit Logging** — all 401/403/429 events logged with IP, user, path
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🚀 Tech Stack
 
@@ -373,11 +336,7 @@ Every API request passes through 7 sequential layers:
 </tr>
 </table>
 
-<br/>
-
 ---
-
-<br/>
 
 ## ⚡ Getting Started
 
@@ -463,11 +422,7 @@ npm run dev                    # runs on :8080
 
 </details>
 
-<br/>
-
 ---
-
-<br/>
 
 ## 📡 API Reference
 
@@ -602,11 +557,7 @@ GET    /dashboard/stats                 # Global platform statistics
 
 </details>
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🔒 Security
 
@@ -632,11 +583,7 @@ Foresee implements **defence-in-depth** across 7 layers:
 
 Roles are stored in **Clerk `publicMetadata`** and enforced both client-side (conditional UI rendering) and server-side (`@require_auth(roles=[...])` decorator with live Clerk Management API lookup).
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🗄️ Database Schema
 
@@ -662,11 +609,7 @@ Managed by **Prisma 6.19** on **Neon PostgreSQL**.
                    └──────────────────────────┘
 ```
 
-<br/>
-
 ---
-
-<br/>
 
 ## 🖥️ Frontend
 
@@ -689,11 +632,7 @@ Managed by **Prisma 6.19** on **Neon PostgreSQL**.
 - **Error Boundaries** — graceful recovery on render failures (no blank pages)
 - **Dark / light mode** — system-aware theming via `next-themes`
 
-<br/>
-
 ---
-
-<br/>
 
 ## 📊 Performance
 
@@ -729,11 +668,7 @@ Managed by **Prisma 6.19** on **Neon PostgreSQL**.
 </tr>
 </table>
 
-<br/>
-
 ---
-
-<br/>
 
 ## 📁 Project Structure
 
@@ -783,11 +718,7 @@ CodeRedProject/
 └── package.json                          # Monorepo root
 ```
 
-<br/>
-
 ---
-
-<br/>
 
 ## ⚠️ Limitations & Disclaimer
 
@@ -801,11 +732,7 @@ CodeRedProject/
 
 > **Medical Disclaimer:** Foresee is provided for research and educational purposes. It is NOT certified as a medical device and must not be used as the sole basis for clinical decisions. The developers assume no liability for medical decisions made using this tool.
 
-<br/>
-
 ---
-
-<br/>
 
 ## 👥 Team
 
@@ -864,29 +791,19 @@ CodeRedProject/
 - **[WHO Global Malaria Programme](https://www.who.int/teams/global-malaria-programme)** — epidemiological guidelines & DHS methodology
 - **[Demographic and Health Surveys (DHS)](https://dhsprogram.com/)** — feature engineering & stratification reference
 
-<br/>
-
 ---
-
-<br/>
 
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-<br/>
-
 ---
 
 <div align="center">
 
-<br/>
-
 **BE Final Year Major Project** · Built with ❤️ for global health equity
 
 *Foresee Team — 2026*
-
-<br/>
 
 [![GitHub](https://img.shields.io/badge/GitHub-HumayunK01%2FCodeRedProject-181717?style=for-the-badge&logo=github)](https://github.com/HumayunK01/CodeRedProject)
 
