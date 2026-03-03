@@ -325,6 +325,6 @@ npm run build
 
 <div align="center">
 
-**Part of the [Foresee](https://github.com/HumayunK01/CodeRedProject) platform** · Built for the CodeRed Hackathon
+**Part of the [Foresee](https://github.com/HumayunK01/CodeRedProject) platform** · BE Final Year Major Project
 
 </div>
