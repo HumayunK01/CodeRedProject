@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { MapPin, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Hotspot {
-  lat: number;
-  lng: number;
+  name: string;
   intensity: number;
 }
 
@@ -12,51 +14,113 @@ interface ForecastMapProps {
   hotspots?: Hotspot[];
 }
 
-export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+const REGION_COORDS: Record<string, [number, number]> = {
+  "Maharashtra": [19.7515, 75.7139],
+  "Delhi": [28.7041, 77.1025],
+  "Kerala": [10.8505, 76.2711],
+  "Karnataka": [15.3173, 75.7139],
+  "Tamil Nadu": [11.1271, 78.6569],
+  "Uttar Pradesh": [26.8467, 80.9462],
+  "Gujarat": [22.2587, 71.1924],
+  "West Bengal": [22.9868, 87.8550],
+  "Rajasthan": [27.0238, 74.2179],
+  "Madhya Pradesh": [22.9734, 78.6569],
+  "Bihar": [25.0961, 85.3131],
+  "Punjab": [31.1471, 75.3412],
+  "Haryana": [29.0588, 76.0856],
+  "Assam": [26.2006, 92.9376],
+  "Odisha": [20.9517, 85.0985],
+  "India": [20.5937, 78.9629],
+  "Global": [20, 0]
+};
 
+// Component to dynamically change map view
+const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }) => {
+  const map = useMap();
   useEffect(() => {
-    // Mock map implementation with better visualization
-    if (!mapRef.current) return;
-    
-    const mockMap = document.createElement('div');
-    mockMap.className = 'w-full h-80 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border border-border flex flex-col items-center justify-center p-6';
-    mockMap.innerHTML = `
-      <div class="text-center space-y-4">
-        <div class="p-4 rounded-full bg-primary/10 w-fit mx-auto">
-          <MapPin class="h-8 w-8 text-primary" />
-        </div>
-        <div>
-          <h3 class="text-xl font-bold">${region} Region</h3>
-          <p class="text-muted-foreground mt-2">
-            ${hotspots?.length || 0} outbreak hotspot${(hotspots?.length || 0) !== 1 ? 's' : ''} identified
-          </p>
-        </div>
-        ${hotspots && hotspots.length > 0 ? `
-          <div class="mt-4 space-y-2">
-            ${hotspots.map((hotspot, index) => `
-              <div class="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
-                <div class="flex items-center space-x-2">
-                  <AlertTriangle class="h-4 w-4 text-warning" />
-                  <span class="text-sm">Hotspot ${index + 1}</span>
-                </div>
-                <span class="text-xs bg-warning/10 text-warning px-2 py-1 rounded">
-                  ${(hotspot.intensity * 100).toFixed(0)}% intensity
-                </span>
-              </div>
-            `).join('')}
-          </div>
-        ` : `
-          <div class="text-center py-4">
-            <p class="text-muted-foreground">No significant hotspots detected in this region</p>
-          </div>
-        `}
-      </div>
-    `;
-    
-    mapRef.current.innerHTML = '';
-    mapRef.current.appendChild(mockMap);
-  }, [region, hotspots]);
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  return null;
+};
 
-  return <div ref={mapRef} />;
+export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
+  // Determine the map center based on regional coordinates. High zoom for states, low for global/India
+  const center: [number, number] = REGION_COORDS[region] || [20.5937, 78.9629];
+  const zoom = REGION_COORDS[region] && region !== "India" && region !== "Global" ? 6 : 4;
+
+  // Generate synthetic coordinates for the hotspots scattered radially around the regional center
+  const generateSpacedPoints = (center: [number, number], idx: number, total: number) => {
+    const radius = 1.5; // Offset multiplier
+    const angle = (idx / total) * (2 * Math.PI);
+    return [
+      center[0] + radius * Math.sin(angle),
+      center[1] + radius * Math.cos(angle)
+    ] as [number, number];
+  };
+
+  return (
+    <div className="w-full h-80 lg:h-96 rounded-xl overflow-hidden border border-border relative z-0">
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false}
+      >
+        <ChangeView center={center} zoom={zoom} />
+
+        {/* Sleek Minimalist Map Style from CartoDB */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+
+        {/* Render Region Base Indicator */}
+        <CircleMarker
+          center={center}
+          radius={5}
+          pathOptions={{ color: 'hsl(var(--primary))', fillColor: 'hsl(var(--primary))', fillOpacity: 0.8 }}
+        >
+          <Popup>
+            <div className="text-center font-semibold text-primary">{region} Center</div>
+          </Popup>
+        </CircleMarker>
+
+        {/* Render Extrapolated Hotspots as animated alert rings */}
+        {hotspots && hotspots.map((hotspot, idx) => {
+          const coords = generateSpacedPoints(center, idx, hotspots.length);
+          // Scale color: High risk = Red, Medium = Orange, Low = Blue
+          const hexColor = hotspot.intensity > 0.7 ? '#ef4444' : hotspot.intensity > 0.4 ? '#f59e0b' : '#3b82f6';
+
+          return (
+            <CircleMarker
+              key={idx}
+              center={coords}
+              radius={hotspot.intensity * 30 + 10} // The higher the intensity, the larger the heatmap circle
+              pathOptions={{
+                color: hexColor,
+                fillColor: hexColor,
+                fillOpacity: 0.3,
+                weight: 2
+              }}
+            >
+              <Popup className="custom-popup">
+                <div className="p-1 min-w-[150px]">
+                  <div className="flex items-center gap-2 border-b pb-2 mb-2">
+                    <AlertTriangle className="h-4 w-4" style={{ color: hexColor }} />
+                    <h4 className="font-bold text-sm m-0 leading-none">{hotspot.name}</h4>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-muted-foreground mr-2 font-medium">Risk Level</span>
+                    <Badge variant="outline" style={{ borderColor: hexColor, color: hexColor }}>
+                      {(hotspot.intensity * 100).toFixed(0)}%
+                    </Badge>
+                  </div>
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
+      </MapContainer>
+    </div>
+  );
 };

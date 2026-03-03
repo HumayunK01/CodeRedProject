@@ -45,16 +45,27 @@ export interface ForecastInput {
 
 export interface ForecastResult {
   region: string;
+  disease?: string;
+  historical?: {
+    week: string;
+    cases: number;
+  }[];
   predictions: {
     week: string;
     cases: number;
   }[];
   hotspot_score?: number;
   hotspots?: {
-    lat: number;
-    lng: number;
+    name: string;
     intensity: number;
   }[];
+  live_insights?: {
+    temperature: number;
+    humidity: number;
+    precipitation: number;
+    news_articles_found: number;
+    top_headlines: string[];
+  };
 }
 
 export interface HealthStatus {

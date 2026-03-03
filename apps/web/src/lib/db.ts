@@ -243,6 +243,11 @@ export const ForecastService = {
       predictions: { week: string; cases: number }[];
       hotspot_score?: number;
       riskLevel?: string;
+      live_insights?: {
+        temperature: number;
+        precipitation: number;
+        humidity: number;
+      };
     }
   ) => {
     try {
@@ -256,6 +261,9 @@ export const ForecastService = {
           predictions: mlResult.predictions,
           hotspotScore: mlResult.hotspot_score,
           riskLevel: mlResult.riskLevel,
+          temperature: mlResult.live_insights?.temperature,
+          rainfall: mlResult.live_insights?.precipitation,
+          humidity: mlResult.live_insights?.humidity,
         }),
       });
 

@@ -1,7 +1,7 @@
 import os
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import psycopg
 from psycopg.rows import dict_row
@@ -178,6 +178,9 @@ def create_forecast(
         with conn.cursor() as cur:
             forecast_id = str(uuid.uuid4())
             now = datetime.now()
+            if risk_level and isinstance(risk_level, str):
+                risk_level = risk_level.lower()
+            
             end_date = now + timedelta(weeks=horizon_weeks)
             
             cases = [p['cases'] for p in predictions]

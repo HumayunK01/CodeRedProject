@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,6 @@ import { forecastSchema, ForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
 import { ForecastService } from "@/lib/db";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
-import { INDIA_REGIONS } from "@/lib/constants";
 import {
   TrendingUp,
   MapPin,
@@ -29,17 +28,30 @@ interface ForecastFormProps {
   onLoadingChange: (loading: boolean) => void;
 }
 
-// Regions are imported from shared constants
-
 export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) => {
   const { toast } = useToast();
   const { clerkId, isSignedIn } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [regions, setRegions] = useState<string[]>(["India", "Brazil", "United States", "Global"]);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const fetchedRegions = await apiClient.getForecastRegions();
+        if (fetchedRegions && fetchedRegions.length > 0) {
+          setRegions(fetchedRegions);
+        }
+      } catch (err) {
+        console.error("Failed to load regions", err);
+      }
+    };
+    fetchRegions();
+  }, []);
 
   const form = useForm<ForecastFormData>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-      region: "",
+      region: "India",
       horizon_weeks: 4,
     },
   });
@@ -69,11 +81,11 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
       if (isSignedIn && clerkId) {
         try {
           // Determine risk level from hotspot score
-          let riskLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
+          let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' = 'Low';
           if (result.hotspot_score) {
-            if (result.hotspot_score >= 0.75) riskLevel = 'critical';
-            else if (result.hotspot_score >= 0.5) riskLevel = 'high';
-            else if (result.hotspot_score >= 0.25) riskLevel = 'medium';
+            if (result.hotspot_score >= 0.75) riskLevel = 'Critical';
+            else if (result.hotspot_score >= 0.5) riskLevel = 'High';
+            else if (result.hotspot_score >= 0.25) riskLevel = 'Medium';
           }
 
           await ForecastService.createFromMLResult(
@@ -84,6 +96,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
               predictions: result.predictions,
               hotspot_score: result.hotspot_score,
               riskLevel,
+              live_insights: result.live_insights
             }
           );
 
@@ -149,7 +162,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="rounded-xl border-primary/10 bg-white/95 backdrop-blur-xl">
-                    {INDIA_REGIONS.map((region) => (
+                    {regions.map((region) => (
                       <SelectItem key={region} value={region} className="focus:bg-primary/5 focus:text-primary cursor-pointer">
                         {region}
                       </SelectItem>
@@ -250,9 +263,12 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/40 border border-white/60 p-3 rounded-xl text-center">
-            <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1">Accuracy</p>
-            <p className="text-sm font-bold text-primary">87.3%</p>
+          <div className="bg-white/40 border border-white/60 p-3 rounded-xl text-center relative group">
+            <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1">Model Accuracy</p>
+            <p className="text-sm font-bold text-primary">~89.8%</p>
+            <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] rounded p-2 bottom-full mb-2 w-full left-0 pointer-events-none">
+              89.8% overall fit (R²). ~70.0% variance on completely unseen future data.
+            </div>
           </div>
           <div className="bg-white/40 border border-white/60 p-3 rounded-xl text-center">
             <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1">Update</p>

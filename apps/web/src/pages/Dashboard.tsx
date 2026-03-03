@@ -44,8 +44,8 @@ const Dashboard = () => {
   const [systemMetrics, setSystemMetrics] = useState([
     { title: "Model Accuracy", value: "0%", status: "unknown", icon: Brain },
     { title: "Response Time", value: "0s", status: "unknown", icon: Zap },
-    { title: "Data Security", value: "Unknown", status: "unknown", icon: Shield },
-    { title: "Global Reach", value: "0", status: "unknown", icon: Globe }
+    { title: "Active Monitor", value: "Standby", status: "unknown", icon: MapPin },
+    { title: "Live Environment", value: "Waiting...", status: "unknown", icon: Globe }
   ]);
 
   const [recentActivity, setRecentActivity] = useState([]);
@@ -112,8 +112,8 @@ const Dashboard = () => {
         setSystemMetrics([
           { title: "Model Accuracy", value: stats.model_accuracy, status: "excellent", icon: Brain },
           { title: "Response Time", value: stats.response_time, status: "optimal", icon: Zap },
-          { title: "Data Security", value: stats.data_security, status: "compliant", icon: Shield },
-          { title: "Global Reach", value: stats.global_reach, status: "regions", icon: Globe }
+          { title: "Active Monitor", value: stats.data_security, status: "regions", icon: MapPin },
+          { title: "Live Environment", value: stats.global_reach, status: "regions", icon: Globe }
         ]);
 
         setRecentActivity(stats.recent_activity);

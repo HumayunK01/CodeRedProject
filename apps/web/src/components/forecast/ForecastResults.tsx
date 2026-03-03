@@ -16,7 +16,11 @@ import {
   Calendar,
   AlertTriangle,
   TrendingDown,
-  Minus
+  Minus,
+  CloudRain,
+  Thermometer,
+  Newspaper,
+  Zap
 } from "lucide-react";
 
 interface ForecastResultsProps {
@@ -107,6 +111,25 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
         return 'text-primary';
     }
   };
+
+  const combinedData: any[] = [];
+
+  if (results?.historical) {
+    results.historical.forEach((h, index) => {
+      const point: any = { week: h.week, historicalCases: h.cases };
+      // Connect the prediction line to the last historical point
+      if (index === results.historical!.length - 1) {
+        point.predictedCases = h.cases;
+      }
+      combinedData.push(point);
+    });
+  }
+
+  if (results?.predictions) {
+    results.predictions.forEach(p => {
+      combinedData.push({ week: p.week, predictedCases: p.cases });
+    });
+  }
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -233,6 +256,62 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
               </Card>
             )}
 
+            {/* Live Agent Insights */}
+            {results.live_insights && (
+              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center space-x-2 text-foreground/60">
+                    <Zap className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Live Web Agent Intelligence</span>
+                  </div>
+                  <CardDescription className="text-xs mt-1 text-muted-foreground">
+                    Real-time data scraped specifically for {results.region} right now.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-4">
+                  {/* Weather Info */}
+                  <div className="bg-white/40 backdrop-blur-sm border border-white/60 p-3 rounded-xl flex flex-col justify-center space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Thermometer className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Temperature</span>
+                      </div>
+                      <span className="text-sm font-bold text-primary">{results.live_insights.temperature}°C</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CloudRain className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Humidity (Precip)</span>
+                      </div>
+                      <span className="text-sm font-bold text-primary">{results.live_insights.humidity}% ({(results.live_insights.precipitation || 0).toFixed(1)}mm)</span>
+                    </div>
+                  </div>
+
+                  {/* News Info */}
+                  <div className="bg-white/40 backdrop-blur-sm border border-white/60 p-3 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Newspaper className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Live News Monitor</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-white/50 border-white/60 text-primary">
+                        {results.live_insights.news_articles_found} Articles
+                      </Badge>
+                    </div>
+                    {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
+                      <ul className="space-y-1 text-[11px] text-foreground/80 list-disc pl-4">
+                        {results.live_insights.top_headlines.map((headline, idx) => (
+                          <li key={idx} className="truncate tracking-tight" title={headline}>{headline}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic tracking-tight">No current outbreak alarms found in recent news.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Visualization Tabs */}
             <Card className="bg-white/60 backdrop-blur-md border border-white/60 shadow-md">
               <CardHeader>
@@ -278,7 +357,7 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <ForecastChart data={results.predictions} />
+                      <ForecastChart data={combinedData} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -290,7 +369,7 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     >
                       <ForecastMap
                         region={results.region}
-                        hotspots={results.hotspots}
+                        hotspots={results.hotspots as any}
                       />
                     </motion.div>
                   )}

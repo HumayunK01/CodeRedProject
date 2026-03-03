@@ -41,10 +41,10 @@ class ApiClient {
       if (!response.ok) {
         let errorMessage = 'Image prediction failed';
         try {
-            const error = await response.json();
-            errorMessage = error.error || error.message || errorMessage;
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
         } catch (e) {
-            // failed to parse json
+          // failed to parse json
         }
         throw new Error(errorMessage);
       }
@@ -119,6 +119,22 @@ class ApiClient {
         throw error;
       }
       throw new Error('Failed to generate forecast. Please try again.');
+    }
+  }
+
+  async getForecastRegions(): Promise<string[]> {
+    try {
+      const response = await this.fetchWithTimeout(`${BASE_URL}/forecast/regions`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch regions');
+      }
+
+      const data = await response.json();
+      return data.regions || [];
+    } catch (error) {
+      console.error("Error fetching regions:", error);
+      return []; // fallback to empty array or we could throw
     }
   }
 

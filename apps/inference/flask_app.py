@@ -5,6 +5,7 @@ import tempfile
 import traceback
 from datetime import datetime, timedelta
 from io import BytesIO
+from collections import deque
 
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_cors import CORS
@@ -264,9 +265,6 @@ def load_models():
             except Exception as e:
                 print(f"⚠️ Error loading metadata.json: {e}")
 
-
-
-
         # Load Gatekeeper Model
         gatekeeper_path = "models/gatekeeper_autoencoder.h5"
         if os.path.exists(gatekeeper_path):
@@ -277,6 +275,18 @@ def load_models():
                 print(f"✅ Gatekeeper Autoencoder loaded! (Threshold: {gatekeeper_threshold:.4f})")
             except Exception as e:
                 print(f"⚠️ Error loading gatekeeper: {e}")
+
+        # Load Outbreak Forecasting Model
+        forecaster_path = "outbreak_forecaster.pkl"
+        if os.path.exists(forecaster_path):
+            try:
+                malaria_forecast_model = joblib.load(forecaster_path)
+                print("✅ Generalized Outbreak Forecasting Model loaded successfully!")
+            except Exception as e:
+                print(f"❌ Error loading forecasting model: {e}")
+                traceback.print_exc()
+        else:
+            print(f"⚠️ Forecasting model file not found at {forecaster_path}")
 
         # Load CNN Model (Production - Full Dataset)
         cnn_model_path = "models/malaria_cnn_full.h5"
@@ -1306,7 +1316,7 @@ def dashboard_stats():
                             else: time_str = f"{int(seconds/86400)} day(s) ago"
                         
                         if act.get('type') == 'diagnosis':
-                            result_val = act.get('result', 'Unknown')
+                            result_val = act.get('result') or 'Unknown'
                             is_safe = "negative" in result_val.lower() or "uninfected" in result_val.lower() or "low" in result_val.lower()
                             recent_activity.append({
                                 "type": "diagnosis",
@@ -1316,13 +1326,13 @@ def dashboard_stats():
                                 "status": "success" if is_safe else "warning"
                             })
                         elif act.get('type') == 'forecast':
-                            risk = act.get('riskLevel', 'Unknown')
+                            risk = act.get('riskLevel') or 'Unknown'
                             recent_activity.append({
                                 "type": "forecast",
                                 "title": f"{act.get('region', 'Unknown')} forecast",
                                 "time": time_str,
                                 "result": f"{risk} Risk",
-                                "status": "info" if risk.lower() in ['low', 'medium'] else "warning"
+                                "status": "info" if risk and risk.lower() in ['low', 'medium'] else "warning"
                             })
 
                             
@@ -1332,6 +1342,14 @@ def dashboard_stats():
                     health_pct = round(100.0 * SUCCESS_COUNT / total_reqs, 1) if total_reqs > 0 else 100.0
                     avg_latency = int(sum(REQUEST_TIMES) / len(REQUEST_TIMES)) if len(REQUEST_TIMES) > 0 else 0
                     
+                    recent_forecasts = get_forecasts_by_user(user_id, limit=1)
+                    live_env_str = "Standby"
+                    live_region_str = "Global"
+                    if len(recent_forecasts) > 0 and recent_forecasts[0].get('temperature') is not None:
+                        f = recent_forecasts[0]
+                        live_env_str = f"{f['temperature']}°C | {f['humidity']}% | {f['rainfall']}mm"
+                        live_region_str = f['region']
+
                     return jsonify({
                         "today_diagnoses": today_diagnoses,
                         "today_positive": today_positive,
@@ -1341,8 +1359,8 @@ def dashboard_stats():
                         "system_health": health_pct,
                         "model_accuracy": MODEL_TEST_ACCURACY,
                         "response_time": f"{avg_latency}ms" if avg_latency > 0 else "<200ms",
-                        "data_security": DATA_SECURITY_STATUS,
-                        "global_reach": "Global",
+                        "data_security": live_region_str,
+                        "global_reach": live_env_str,
                         "recent_activity": recent_activity
                     })
             except Exception as e:
@@ -1549,6 +1567,15 @@ def predict_symptoms():
     except Exception as e:
         print(f"Error in symptom prediction: {e}")
         return jsonify({"error": str(e)}), 500
+@app.route("/forecast/regions", methods=["GET"])
+@track_performance
+def get_forecast_regions():
+    try:
+        df = pd.read_csv('data/realtime_india_outbreaks.csv')
+        regions = df['Region'].unique().tolist()
+        return jsonify({"regions": sorted(regions)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/forecast/region", methods=["POST"])
 @track_performance
@@ -1561,46 +1588,102 @@ def forecast_region():
         if not data:
             return jsonify({"error": "No forecast data provided"}), 400
         
-        region = data.get('region', 'Global')
-        horizon_weeks = min(data.get('horizon_weeks', 8), 14) 
+        region = data.get('region', 'India') # Default to India
+        # How many weeks to predict
+        horizon_weeks = min(data.get('horizon_weeks', 4), 12) 
         
-        try:
-            forecast_raw = malaria_forecast_model.predict(n_periods=14)
-            forecast_val = np.maximum(forecast_raw, 0)
-        except:
-             # Fallback if model doesn't support n_periods or other issue
-             forecast_val = [1000, 1100, 1200, 1300, 1250, 1150, 1100, 1050, 1000, 950, 900, 850, 800, 750]
-
-        forecast_rounded = [round(float(v)) for v in forecast_val]
+        # 1. Load historical data to feed the model
+        df = pd.read_csv('data/realtime_india_outbreaks.csv')
+        region_df = df[df['Region'] == region].copy()
         
-        current_date = datetime.now()
+        if len(region_df) < 8:
+            return jsonify({"error": f"Not enough historical data for {region}. Need at least 8 weeks."}), 400
+            
+        region_df['Date'] = pd.to_datetime(region_df['Date'])
+        region_cases = region_df['New_Cases'].values
+        last_date = region_df['Date'].iloc[-1]
+        
+        # 2. Prepare the model input (sliding window of 8 weeks)
+        WINDOW_SIZE = 8
+        current_window = deque(region_cases[-WINDOW_SIZE:], maxlen=WINDOW_SIZE)
+        
+        # 3. Create the Autoregressive forecast
         predictions = []
-        
-        for i, cases in enumerate(forecast_rounded[:horizon_weeks]):
-            week_date = current_date + timedelta(weeks=i)
+        forecast_val = []
+        for i in range(horizon_weeks):
+            # Scale input using log1p
+            input_feat = np.array([current_window])
+            input_scaled = np.log1p(input_feat)
+            
+            # Predict next step
+            pred_scaled = malaria_forecast_model.predict(input_scaled)[0]
+            pred_actual = np.expm1(pred_scaled) # Reverse log scale
+            pred_actual = max(0, int(pred_actual)) # Floor to 0, convert to int
+            
+            # Store prediction
+            forecast_val.append(pred_actual)
+            current_window.append(pred_actual)
+            
+            week_date = last_date + timedelta(weeks=i+1)
             predictions.append({
-                "week": week_date.strftime("%Y-W%U"), 
-                "cases": cases
+                "week": week_date.strftime("%Y-%m-%d"), 
+                "cases": pred_actual
+            })
+            
+        # 4. Grab the last 12 weeks of historical data for the chart
+        historical = []
+        for _, row in region_df.tail(12).iterrows():
+            historical.append({
+                "week": row['Date'].strftime("%Y-%m-%d"),
+                "cases": int(row['New_Cases'])
             })
         
-        MAX_EXPECTED_CASES = 2000000 
+        # 5. Hotspot logic (Dynamic based on severity and real-time live data)
+        MAX_EXPECTED_CASES = 5000 
         avg_cases = np.mean(forecast_val)
-        hotspot_score = min(0.9, max(0.1, avg_cases / MAX_EXPECTED_CASES))
+        base_score = min(1.0, max(0.1, avg_cases / MAX_EXPECTED_CASES))
+
+        # Integrate Live Agent Data
+        try:
+            from live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
+            weather_data = fetch_live_weather(region)
+            news_data = fetch_live_news_outbreak_risk(region)
+            
+            live_multiplier = weather_data['risk_multiplier'] * news_data['risk_multiplier']
+            hotspot_score = float(min(1.0, base_score * live_multiplier))
+            
+            live_insights = {
+                "temperature": weather_data['temperature'],
+                "humidity": weather_data['humidity'],
+                "precipitation": weather_data['precipitation'],
+                "news_articles_found": news_data['article_count'],
+                "top_headlines": news_data['headlines']
+            }
+        except Exception as e:
+            print(f"Live agent error: {e}")
+            hotspot_score = float(base_score)
+            live_insights = None
         
+        # We can dynamically set some dummy hotspots based on the score
         hotspots = [
-            {"lat": 19.0760, "lng": 72.8777, "intensity": 0.8},
-            {"lat": 28.6139, "lng": 77.2090, "intensity": 0.6},
-            {"lat": 13.0827, "lng": 80.2707, "intensity": 0.7},
+            {"name": f"Northern {region}", "intensity": round(hotspot_score * 0.9, 2)},
+            {"name": f"Central {region}", "intensity": round(hotspot_score * 0.6, 2)},
+            {"name": f"Southern {region}", "intensity": round(hotspot_score * 0.7, 2)},
         ]
         
         return jsonify({
             "region": region,
+            "disease": "Aggregate Endemic",
+            "historical": historical,
             "predictions": predictions,
             "hotspot_score": round(hotspot_score, 2),
-            "hotspots": hotspots
+            "hotspots": hotspots,
+            "live_insights": live_insights
         })
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/predict/image", methods=["POST"])

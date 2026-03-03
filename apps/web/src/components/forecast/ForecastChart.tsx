@@ -1,7 +1,7 @@
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, AreaChart } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface ForecastChartProps {
-  data: { week: string; cases: number }[];
+  data: any[];
 }
 
 export const ForecastChart = ({ data }: ForecastChartProps) => {
@@ -11,9 +11,11 @@ export const ForecastChart = ({ data }: ForecastChartProps) => {
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium text-foreground">{label}</p>
-          <p className="text-sm text-primary">
-            Predicted Cases: <span className="font-bold">{payload[0].value}</span>
-          </p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: <span className="font-bold">{entry.value}</span>
+            </p>
+          ))}
         </div>
       );
     }
@@ -25,33 +27,51 @@ export const ForecastChart = ({ data }: ForecastChartProps) => {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
-            <linearGradient id="casesGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+            <linearGradient id="historicalGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="predictedGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} vertical={false} />
-          <XAxis 
-            dataKey="week" 
+          <XAxis
+            dataKey="week"
             tick={{ fontSize: 12 }}
             axisLine={false}
             tickLine={false}
+            minTickGap={30}
           />
-          <YAxis 
+          <YAxis
             tick={{ fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={40}
           />
           <Tooltip content={<CustomTooltip />} />
+          <Legend verticalAlign="top" height={36} />
           <Area
             type="monotone"
-            dataKey="cases"
+            dataKey="historicalCases"
+            name="Historical Cases"
             stroke="hsl(var(--primary))"
             fillOpacity={1}
-            fill="url(#casesGradient)"
+            fill="url(#historicalGradient)"
             strokeWidth={3}
             activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+          />
+          <Area
+            type="monotone"
+            dataKey="predictedCases"
+            name="Predicted Cases"
+            stroke="hsl(var(--destructive))"
+            fillOpacity={1}
+            strokeDasharray="5 5"
+            fill="url(#predictedGradient)"
+            strokeWidth={3}
+            activeDot={{ r: 6, fill: "hsl(var(--destructive))" }}
           />
         </AreaChart>
       </ResponsiveContainer>
