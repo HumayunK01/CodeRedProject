@@ -78,9 +78,8 @@ jobs:
           VITE_OPENROUTER_API_KEY: 'ci-placeholder'
           VITE_CHATBOT_MODEL: 'openrouter/aurora-alpha'
 
-      # - name: Run tests
-      #   run: npm test
-      #   # Uncomment when Vitest is set up
+      - name: Run tests
+        run: npm test
 
       - name: Upload build artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -146,6 +145,17 @@ jobs:
 
       - name: Install linting tools
         run: pip install ruff bandit
+
+      - name: Install test dependencies
+        run: pip install -r requirements.txt pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: python -m pytest tests/ -v --tb=short --cov=. --cov-report=term-missing -m "not slow"
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/ci_placeholder
+          CLERK_SECRET_KEY: sk_test_ci_placeholder
+          FLASK_SECRET_KEY: ci-test-secret
+          REDIS_URL: ""
 
       - name: Lint with Ruff
         run: ruff check . --output-format=github

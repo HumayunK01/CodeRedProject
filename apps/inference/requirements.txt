@@ -18,3 +18,7 @@ Flask-Limiter[redis]
 
 PyJWT
 cryptography
+
+# Testing
+pytest
+pytest-cov
