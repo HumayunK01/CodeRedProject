@@ -24,7 +24,7 @@
         "push": "prisma db push",
         "studio": "prisma studio",
         "seed": "prisma db seed",
-        "verify": "npx tsx src/verify-prisma.ts"
+        "verify": "npx tsx src/tests/verify-prisma.ts"
     },
     "dependencies": {
         "@prisma/client": "^6.19.2"

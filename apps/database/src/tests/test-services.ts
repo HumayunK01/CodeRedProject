@@ -3,10 +3,10 @@
  * Verifies that all services work correctly with the database
  */
 
-import { prisma } from "./lib/prisma";
-import { UserService } from "./services/user.service";
-import { DiagnosisService } from "./services/diagnosis.service";
-import { ForecastService } from "./services/forecast.service";
+import { prisma } from "../lib/prisma";
+import { UserService } from "../services/user.service";
+import { DiagnosisService } from "../services/diagnosis.service";
+import { ForecastService } from "../services/forecast.service";
 
 async function testServices() {
     console.log("🧪 Testing Database Services...\n");
