@@ -2,7 +2,17 @@ import pandas as pd
 import numpy as np
 import os
 
-def process_covid_data(input_file="data/time_series_covid_19_confirmed.csv", output_file="data/processed_outbreaks.csv"):
+# Resolve paths relative to the project root (one level up from scripts/)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def process_covid_data(
+    input_file=None,
+    output_file=None
+):
+    if input_file is None:
+        input_file = os.path.join(BASE_DIR, "data", "time_series_covid_19_confirmed.csv")
+    if output_file is None:
+        output_file = os.path.join(BASE_DIR, "data", "processed_outbreaks.csv")
     print("Loading COVID-19 dataset...")
     df = pd.read_csv(input_file)
     

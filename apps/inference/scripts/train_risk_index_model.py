@@ -37,8 +37,8 @@ import joblib
 import json
 
 # DHS file path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-dhs_path = os.path.join(project_root, "data_private", "dhs", "india", "raw", "IAKR7EFL.DTA")
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dhs_path = os.path.join(project_root, "data", "dhs", "india", "raw", "IAKR7EFL.DTA")
 
 print("="*70)
 print("MALARIA RISK INDEX MODEL TRAINING")

@@ -41,7 +41,7 @@ from xhtml2pdf import pisa
 
 # ── Database Layer ───────────────────────────────────────────────────────────
 try:
-    from database import (
+    from db.database import (
         upsert_user,
         get_user_with_stats,
         get_user_by_clerk_id,
@@ -269,7 +269,7 @@ def load_models():
                 print(f"⚠️ Error loading gatekeeper: {e}")
 
         # Load Outbreak Forecasting Model
-        forecaster_path = "outbreak_forecaster.pkl"
+        forecaster_path = "models/outbreak_forecaster.pkl"
         if os.path.exists(forecaster_path):
             try:
                 malaria_forecast_model = joblib.load(forecaster_path)
@@ -1616,7 +1616,7 @@ def forecast_region():
 
         # Live agent data integration
         try:
-            from live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
+            from agents.live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
             weather_data = fetch_live_weather(region)
             news_data = fetch_live_news_outbreak_risk(region)
             

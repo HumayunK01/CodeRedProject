@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import datetime
@@ -7,6 +8,9 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 import warnings
 
 warnings.filterwarnings("ignore")
+
+# Resolve paths relative to the project root (one level up from agents/)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # List of major Indian states to track
 INDIAN_STATES = [
@@ -75,7 +79,7 @@ def generate_live_state_data(end_date=datetime.datetime.now()):
             
     df = pd.DataFrame(all_data)
     
-    output_path = 'data/realtime_india_outbreaks.csv'
+    output_path = os.path.join(BASE_DIR, 'data', 'realtime_india_outbreaks.csv')
     df.to_csv(output_path, index=False)
     print(f"✅ [Data Agent] Successfully anchored {len(df)} weekly records spanning 2020 to 2026!")
     return df
@@ -103,13 +107,13 @@ def retrain_model_on_live_data(df):
     model = HistGradientBoostingRegressor(max_iter=200, learning_rate=0.1, max_depth=10, random_state=42)
     model.fit(X_scaled, y_scaled)
     
-    joblib.dump(model, 'outbreak_forecaster.pkl')
+    joblib.dump(model, os.path.join(BASE_DIR, 'models', 'outbreak_forecaster.pkl'))
     print("🚀 [ML Engine] Model upgraded and saved! Now ready for live 2026 predictions.")
 
 if __name__ == "__main__":
-    import os
-    if not os.path.exists('data'):
-        os.makedirs('data')
-        
+    data_dir = os.path.join(BASE_DIR, 'data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
     df_live = generate_live_state_data()
     retrain_model_on_live_data(df_live)

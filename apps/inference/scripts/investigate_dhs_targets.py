@@ -7,9 +7,9 @@ import numpy as np
 
 # DHS file path - Kids Recode (KR) file
 import os
-# Go from scripts/ -> inference/ -> CodeRedProject/
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-dhs_path = os.path.join(project_root, "data_private", "dhs", "india", "raw", "IAKR7EFL.DTA")
+# Go from scripts/ -> inference/
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dhs_path = os.path.join(project_root, "data", "dhs", "india", "raw", "IAKR7EFL.DTA")
 print(f"Looking for DHS data at: {dhs_path}")
 
 print("="*70)

@@ -11,10 +11,10 @@ def train_and_save_dhs_model():
     print("🚀 Starting DHS Model Training Pipeline...")
     
     # 1. Configuration
-    # Assumes script is run from project root; adjust if needed
-    BASE_DIR = os.getcwd()
-    DHS_PATH = os.path.join(BASE_DIR, "data_private/dhs/india/raw/IAKR7EFL.DTA")
-    MODEL_DIR = os.path.join(BASE_DIR, "apps/inference/models")
+    # Resolve paths relative to the inference root (one level up from scripts/)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DHS_PATH = os.path.join(BASE_DIR, "data", "dhs", "india", "raw", "IAKR7EFL.DTA")
+    MODEL_DIR = os.path.join(BASE_DIR, "models")
     SAVE_PATH = os.path.join(MODEL_DIR, "malaria_symptoms_dhs.pkl")
     
     FEATURE_COLUMNS = {

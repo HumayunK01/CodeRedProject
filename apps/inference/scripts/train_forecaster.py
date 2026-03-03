@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import joblib
@@ -8,6 +9,9 @@ import warnings
 
 # Suppress sklearn warnings about feature names
 warnings.filterwarnings("ignore")
+
+# Resolve paths relative to the project root (one level up from scripts/)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 WINDOW_SIZE = 8 # Look back 8 weeks to predict the next week
 
@@ -31,7 +35,7 @@ def create_sliding_window_data(df, window_size=WINDOW_SIZE):
 
 def train_model():
     print("Loading processed outbreak data...")
-    df = pd.read_csv('data/processed_outbreaks.csv')
+    df = pd.read_csv(os.path.join(BASE_DIR, 'data', 'processed_outbreaks.csv'))
     
     print("Creating sliding window features...")
     X, y = create_sliding_window_data(df, WINDOW_SIZE)
@@ -51,8 +55,8 @@ def train_model():
     
     # Save the model
     print("Saving the AI model to disk...")
-    joblib.dump(model, 'outbreak_forecaster.pkl')
-    print("✅ Model trained and saved as 'outbreak_forecaster.pkl'!")
+    joblib.dump(model, os.path.join(BASE_DIR, 'models', 'outbreak_forecaster.pkl'))
+    print("\u2705 Model trained and saved to 'models/outbreak_forecaster.pkl'!")
     
     # Let's run a quick simulation to prove it works
     print("\n--- Simulation Test ---")
