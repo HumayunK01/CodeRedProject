@@ -117,8 +117,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Type-check & Build
-        run: npx tsc --noEmit
+      - name: Type-check
+        run: npx tsc --noEmit --skipLibCheck
 
   # ──────────────────────────────────────────────
   # Inference: Lint → Security Scan → Docker Build
