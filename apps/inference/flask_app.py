@@ -1,29 +1,45 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  IMPORTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Standard Library ─────────────────────────────────────────────────────────
 import os
+import io
 import json
 import uuid
+import time
+import base64
+import secrets
 import tempfile
 import traceback
+import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 from io import BytesIO
 from collections import deque
+from functools import wraps
 
+# ── Third-Party ──────────────────────────────────────────────────────────────
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
+import jwt
+from jwt.algorithms import RSAAlgorithm
 import joblib
 import pandas as pd
 import numpy as np
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-# Suppress TensorFlow logs
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# ── TensorFlow / ML ─────────────────────────────────────────────────────────
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logs
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing import image
 import cv2
 from xhtml2pdf import pisa
 
-# Try to import database functions, handle if not available
+# ── Database Layer ───────────────────────────────────────────────────────────
 try:
     from database import (
         upsert_user,
@@ -46,32 +62,28 @@ except Exception as e:
 
 load_dotenv()
 
-from werkzeug.middleware.proxy_fix import ProxyFix
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  APP INITIALIZATION & CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
 
 app = Flask(__name__)
-# Trust reverse proxy headers (e.g. from Railway, Nginx)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# ── Flask Secret Key ───────────────────────────────────────────────────────────────
+# ── Secret Key ───────────────────────────────────────────────────────────────
 # Required for secure session cookies, signed tokens, and Werkzeug internals.
-# In production: set FLASK_SECRET_KEY to a long random string (e.g. via `openssl rand -hex 32`).
-# Never hardcode or commit this value.
+# Production: set FLASK_SECRET_KEY to a long random string (`openssl rand -hex 32`).
 _secret_key = os.getenv("FLASK_SECRET_KEY")
 if not _secret_key:
-    import secrets as _secrets
-    _secret_key = _secrets.token_hex(32)  # Secure random fallback (ephemeral per restart)
+    _secret_key = secrets.token_hex(32)
     print("[security] ⚠️  FLASK_SECRET_KEY not set — using ephemeral random key. Set FLASK_SECRET_KEY in .env for production.")
 else:
     print("[security] ✅ FLASK_SECRET_KEY loaded from environment.")
 app.config["SECRET_KEY"] = _secret_key
 
-# ── Strict CORS Configuration ───────────────────────────────────────────────
-# Build an explicit allowlist of trusted origins.
-# Never use wildcard (*) — this would allow any site to call our APIs.
-#
-# Environment variables:
-#   ALLOWED_ORIGINS   — comma-separated list of additional trusted origins
-#   FRONTEND_URL      — shortcut for the single production frontend URL
+# ── CORS ─────────────────────────────────────────────────────────────────────
+# Explicit allowlist of trusted origins (never wildcard).
+# Env vars: ALLOWED_ORIGINS (comma-separated), FRONTEND_URL (single URL shortcut).
 
 DEFAULT_DEV_ORIGINS = [
     "http://localhost:5173",   # Vite default
@@ -120,32 +132,19 @@ CORS(
 )
 
 def get_user_identity():
-    """Identify users for rate limiting: use Clerk user ID if available, else IP address."""
+    """Identify users for rate limiting: Clerk user ID if available, else IP."""
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
-        token = auth.split(" ", 1)[1]
-        try:
-            import base64
-            parts = token.split(".")
-            if len(parts) >= 3:
-                payload_b64 = parts[1]
-                payload_b64 += "=" * (-len(payload_b64) % 4)
-                payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-                user_id = payload.get("sub")
-                if user_id:
-                    return f"user:{user_id}"
-        except Exception:
-            pass
+        payload = _decode_jwt_payload(auth.split(" ", 1)[1])
+        if payload and payload.get("sub"):
+            return f"user:{payload['sub']}"
     return f"ip:{get_remote_address()}"
 
 default_limit = os.getenv("DEFAULT_RATE_LIMIT", "100 per minute")
 
-# ── Rate Limiter Storage ───────────────────────────────────────────────────────────────
-# Use Redis when REDIS_URL is configured (production) for:
-#   - Persistence across restarts
-#   - Sharing limits across multiple Flask processes/workers
-# Automatically falls back to in-memory if Redis is unreachable (e.g. local dev
-# pointing at Railway's private redis.railway.internal hostname).
+# ── Rate Limiter ─────────────────────────────────────────────────────────────
+# Redis in production (persistent, shared across workers).
+# Falls back to in-memory if Redis is unreachable (e.g. local dev).
 _redis_url = os.getenv("REDIS_URL", "").strip()
 
 def _resolve_limiter_storage(redis_url: str) -> str:
@@ -183,10 +182,13 @@ def ratelimit_handler(e):
     }), 429
 
 
-# ── After-request CORS enforcement ────────────────────────────────────────
-# Validate the request's Origin against ALLOWED_ORIGINS and reflect it back
-# (required for credentialed requests — browsers reject * with credentials).
-# Also handle the case where Flask-CORS hasn't already set the header.
+# ═══════════════════════════════════════════════════════════════════════════════
+#  MIDDLEWARE & REQUEST HOOKS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── CORS Enforcement & Security Headers ─────────────────────────────────────
+# Validates Origin, reflects it back, sets security headers, logs security events.
+
 @app.after_request
 def enforce_cors(response):
     origin = request.headers.get("Origin", "")
@@ -205,30 +207,13 @@ def enforce_cors(response):
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
         response.headers["Access-Control-Max-Age"] = "600"
 
-    return response
-
-
-# ── [M2] Security Response Headers ─────────────────────────────────────────────
-# Adds browser-protection headers to EVERY response to harden the frontend
-# against common web attacks like clickjacking, MIME sniffing, and data leaks.
-@app.after_request
-def security_headers(response):
-    # Prevent browsers from MIME-sniffing a response away from the declared content-type
+    # Security response headers (clickjacking, MIME sniffing, referrer, permissions)
     response.headers["X-Content-Type-Options"] = "nosniff"
-    # Deny embedding in iframes entirely — prevents clickjacking attacks
     response.headers["X-Frame-Options"] = "DENY"
-    # Control referrer info sent when navigating away from our API
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    # Restrict browser features (camera, mic, etc.) — belt-and-suspenders
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    return response
 
-
-# ── [M3] Security Event Logging ─────────────────────────────────────────────────
-# Log every authentication/authorization failure with enough context to detect
-# brute-force, enumeration, and credential stuffing attacks.
-@app.after_request
-def log_security_events(response):
+    # Security event logging
     if response.status_code in (401, 403, 429):
         user_id = getattr(request, "user_id", "unauthenticated")
         print(
@@ -237,16 +222,23 @@ def log_security_events(response):
             f"| IP: {request.remote_addr} "
             f"| user: {user_id}"
         )
+
     return response
 
-malaria_model = None # Kept as placeholder to avoid NameErrors if referenced elsewhere, but unused
-malaria_forecast_model = None # Kept as placeholder
-symptoms_model = None  # DHS-based Risk Screening Model
-gatekeeper_model = None # Autoencoder for OOD detection
-gatekeeper_threshold = 0.05 # Default fallback threshold
 
-# Fallback/Default Name
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ML MODELS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+malaria_model = None
+malaria_forecast_model = None
+symptoms_model = None
+gatekeeper_model = None
+gatekeeper_threshold = 0.05
 SYMPTOM_MODEL_NAME = "Malaria Risk Screening (DHS-Based)"
+
+
+# ── Model Loading ────────────────────────────────────────────────────────────
 
 def load_models():
     """Load ML models from disk"""
@@ -342,22 +334,20 @@ def load_models():
         MODEL_TEST_ACCURACY = "Error"
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  PERFORMANCE MONITORING
+# ═══════════════════════════════════════════════════════════════════════════════
 
-
-# --- Performance Monitoring Globals ---
-REQUEST_TIMES = [] # Circular buffer of last 100 request durations (ms)
+REQUEST_TIMES = []          # Circular buffer of last 100 request durations (ms)
 SUCCESS_COUNT = 0
 ERROR_COUNT = 0
-# Static metric from training evaluation (updated when models load)
-MODEL_TEST_ACCURACY = "Pending" 
+MODEL_TEST_ACCURACY = "Pending"   # Updated when models load
 DATA_SECURITY_STATUS = "HIPAA Compliant"
 
-# Load models on startup
 load_models()
 
-from functools import wraps
-import time
 
+# ── Performance Tracking Decorator ──────────────────────────────────────────
 def track_performance(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -388,7 +378,7 @@ def track_performance(f):
     return decorated_function
 
 def serialize_datetime(obj):
-    """Helper to serialize datetime objects in JSON response"""
+    """Recursively convert datetime objects to ISO strings in dicts/lists."""
     if isinstance(obj, dict):
         for k, v in obj.items():
             if isinstance(v, datetime):
@@ -400,12 +390,60 @@ def serialize_datetime(obj):
             serialize_datetime(item)
     return obj
 
-# ─────────────────────────────────────────
-#  Admin Helpers
-# ─────────────────────────────────────────
 
-import urllib.request
-import urllib.error
+# ═══════════════════════════════════════════════════════════════════════════════
+#  UTILITY HELPERS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _format_time_ago(created_at) -> str:
+    """Format a datetime (or ISO string) as a human-readable relative time string."""
+    if not created_at:
+        return "Recently"
+    if isinstance(created_at, str):
+        try:
+            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return "Recently"
+    if not isinstance(created_at, datetime):
+        return "Recently"
+    try:
+        diff = datetime.now(created_at.tzinfo) - created_at
+        seconds = diff.total_seconds()
+        if seconds < 60:
+            return "Just now"
+        if seconds < 3600:
+            return f"{int(seconds / 60)} minute(s) ago"
+        if seconds < 86400:
+            return f"{int(seconds / 3600)} hour(s) ago"
+        return f"{int(seconds / 86400)} day(s) ago"
+    except Exception:
+        return "Recently"
+
+
+def _resolve_user_or_error(clerk_id: str):
+    """Look up user by Clerk ID. Returns (user_dict, None) or (None, (json_response, status))."""
+    if not DB_AVAILABLE:
+        return None, (jsonify({"error": "Database module not available"}), 503)
+    user = get_user_by_clerk_id(clerk_id)
+    if not user:
+        return None, (jsonify({"error": "User not found"}), 404)
+    return user, None
+
+
+def _safe_float(value, default=0, decimals=1):
+    """Safely convert a value (e.g. Decimal) to a rounded float."""
+    try:
+        return round(float(value), decimals) if value is not None else default
+    except (TypeError, ValueError):
+        return default
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  AUTHENTICATION & AUTHORIZATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Clerk Admin Helpers ──────────────────────────────────────────────────────
 
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "").strip()
 CLERK_API_BASE   = "https://api.clerk.com/v1"
@@ -416,14 +454,13 @@ def _test_clerk_connection():
         print("⚠️  [admin] CLERK_SECRET_KEY is not set — admin endpoints will not work")
         return
     try:
-        import urllib.request as _ur
-        req = _ur.Request(
+        req = urllib.request.Request(
             f"{CLERK_API_BASE}/users?limit=1",
             headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
         )
-        with _ur.urlopen(req) as r:
+        with urllib.request.urlopen(req) as r:
             print(f"✅ [admin] Clerk API connected — HTTP {r.status}")
-    except Exception as e:
+    except Exception:
         pass
 
 _test_clerk_connection()
@@ -458,13 +495,9 @@ def _get_caller_role(request) -> str | None:
         return None, "no_bearer_token"
     token = auth.split(" ", 1)[1]
     try:
-        import base64
-        parts = token.split(".")
-        if len(parts) < 3:
-            return None, f"invalid_jwt_parts:{len(parts)}"
-        payload_b64 = parts[1]
-        payload_b64 += "=" * (-len(payload_b64) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        payload = _decode_jwt_payload(token)
+        if not payload:
+            return None, "invalid_jwt"
         user_id = payload.get("sub")
         print(f"[admin] JWT sub={user_id!r}, CLERK_SECRET_KEY set={bool(CLERK_SECRET_KEY)}")
         if not user_id:
@@ -484,14 +517,8 @@ def _get_caller_role(request) -> str | None:
         return None, f"exception:{e}"
 
 
-import urllib.request
-import json
-import jwt
-from jwt.algorithms import RSAAlgorithm
-from functools import wraps
-from flask import request
+# ── JWT / JWKS Verification ─────────────────────────────────────────────────
 
-# Cache for Clerk JWKS
 _clerk_jwks_cache = None
 
 # Clerk JWKS URL — derive from publishable key (instance-specific) or allow env override
@@ -504,7 +531,6 @@ def _resolve_clerk_jwks_url() -> str:
     pub_key = os.getenv("CLERK_PUBLISHABLE_KEY", "")
     if pub_key:
         try:
-            import base64
             # Remove 'pk_test_' or 'pk_live_' prefix
             b64 = pub_key.split("_", 2)[-1]  # everything after pk_test_ or pk_live_
             # Pad base64 and decode
@@ -539,22 +565,20 @@ def get_clerk_public_key(kid):
     _clerk_jwks_cache = None
     return None
 
+
 def _decode_jwt_payload(token: str) -> dict | None:
-    """
-    Decode a JWT payload without signature verification.
-    This is safe when combined with DB user validation.
-    """
+    """Decode a JWT payload without signature verification (safe when combined with DB/JWKS validation)."""
     try:
-        import base64 as _b64
         parts = token.split(".")
         if len(parts) < 3:
             return None
-        payload_b64 = parts[1]
-        payload_b64 += "=" * (-len(payload_b64) % 4)
-        return json.loads(_b64.urlsafe_b64decode(payload_b64))
+        payload_b64 = parts[1] + "=" * (-len(parts[1]) % 4)
+        return json.loads(base64.urlsafe_b64decode(payload_b64))
     except Exception:
         return None
 
+
+# ── Route Auth Decorator ─────────────────────────────────────────────────────
 
 def require_auth(roles=None, skip_db_check=False):
     """
@@ -580,7 +604,7 @@ def require_auth(roles=None, skip_db_check=False):
 
             token = auth_header.split(" ", 1)[1]
 
-            # ── Step 1: Decode payload to get user_id + expiry ──────────────────
+            # Step 1: Decode payload (user_id + expiry)
             payload = _decode_jwt_payload(token)
             if not payload:
                 return jsonify({"error": "Unauthorized", "message": "Malformed token"}), 401
@@ -620,9 +644,7 @@ def require_auth(roles=None, skip_db_check=False):
                 # JWKS unavailable — fall through to DB validation
                 pass
 
-            # ── Step 3: DB user validation (fallback when JWKS unavailable) ──────
-            # If signature was verified via JWKS, DB check is still good to confirm
-            # the user is known to our system (not just any valid Clerk user).
+            # Step 3: DB user validation (fallback + system check)
             if DB_AVAILABLE and not skip_db_check:
                 try:
                     db_user = get_user_by_clerk_id(user_id)
@@ -634,16 +656,16 @@ def require_auth(roles=None, skip_db_check=False):
                         # Neither JWKS nor DB could validate — reject
                         return jsonify({"error": "Unauthorized", "message": "Could not validate identity"}), 401
 
-            # ── Step 4: Set the validated identity on the request ───────────────
+            # Step 4: Set validated identity
             request.user_id = user_id
 
-            # ── Step 5: Guard URL params against lateral access ─────────────────
+            # Step 5: Guard URL params against lateral access
             if "clerk_id" in kwargs and kwargs["clerk_id"] != request.user_id:
                 caller_role, _ = _get_caller_role(request)
                 if caller_role != "admin":
                     return jsonify({"error": "Forbidden", "message": "Access denied to other user data"}), 403
 
-            # ── Step 6: Role-based access control ──────────────────────────────
+            # Step 6: Role-based access control
             if roles:
                 caller_role, _ = _get_caller_role(request)
                 if caller_role not in roles:
@@ -652,6 +674,11 @@ def require_auth(roles=None, skip_db_check=False):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ADMIN ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
 
 
 @app.route("/admin/users", methods=["GET", "OPTIONS"])
@@ -722,6 +749,11 @@ def admin_set_role():
     return jsonify({"success": True, "userId": user_id, "role": new_role}), 200
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CORE ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
 @app.route("/")
 def home():
 
@@ -770,7 +802,7 @@ def test_db_connection():
         try:
             parts = db_url.split("@")
             result["db_host"] = parts[1].split("/")[0] if len(parts) > 1 else "unknown"
-        except:
+        except Exception:
             result["db_host"] = "parse_error"
     
     try:
@@ -794,11 +826,11 @@ def test_db_connection():
         result["traceback"] = traceback.format_exc()
         return jsonify(result), 500
 
-# --- [M1] Input Validation Helper ---
 
-# Lightweight validation for POST request bodies.
-# Checks required fields exist, have the right type, and string lengths are sane.
-# No heavy library dependency — just clean, readable validation.
+# ═══════════════════════════════════════════════════════════════════════════════
+#  INPUT VALIDATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ValidationError(Exception):
     def __init__(self, field: str, message: str):
@@ -849,7 +881,11 @@ def validate_fields(data: dict, schema: dict) -> None:
         if allowed is not None and value not in allowed:
             raise ValidationError(field, f"Must be one of: {allowed}")
 
-# --- User Routes ---
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  USER ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.route("/api/users/sync", methods=["POST"])
 @require_auth(skip_db_check=True)
@@ -920,7 +956,11 @@ def get_user_stats(clerk_id):
         print(f"Error getting user stats: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- Diagnosis Routes ---
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  DIAGNOSIS ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.route("/api/diagnoses", methods=["POST"])
 @require_auth()
@@ -985,20 +1025,13 @@ def create_diagnosis():
 @app.route("/api/diagnoses/<clerk_id>", methods=["GET"])
 @require_auth()
 def get_user_diagnoses(clerk_id):
-    if not DB_AVAILABLE:
-        return jsonify({"error": "Database module not available"}), 503
-
+    user, err = _resolve_user_or_error(clerk_id)
+    if err:
+        return err
     try:
-        user = get_user_by_clerk_id(clerk_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
         limit = request.args.get("limit", default=20, type=int)
         diagnoses = get_diagnoses_by_user(user['id'], limit=limit)
-        
-        serialize_datetime(diagnoses)
-        
-        return jsonify(diagnoses)
+        return jsonify(serialize_datetime(diagnoses))
     except Exception as e:
         print(f"Error getting diagnoses: {e}")
         return jsonify({"error": str(e)}), 500
@@ -1006,21 +1039,20 @@ def get_user_diagnoses(clerk_id):
 @app.route("/api/diagnoses/<clerk_id>/stats", methods=["GET"])
 @require_auth()
 def get_diagnosis_stats(clerk_id):
-    if not DB_AVAILABLE:
-        return jsonify({"error": "Database module not available"}), 503
-
+    user, err = _resolve_user_or_error(clerk_id)
+    if err:
+        return err
     try:
-        user = get_user_by_clerk_id(clerk_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
-        stats = get_diagnosis_stats_by_user(user['id'])
-        return jsonify(stats)
+        return jsonify(get_diagnosis_stats_by_user(user['id']))
     except Exception as e:
         print(f"Error getting diagnosis stats: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- Forecast Routes ---
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  FORECAST ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.route("/api/forecasts", methods=["POST"])
 @require_auth()
@@ -1087,20 +1119,13 @@ def create_forecast_record():
 @app.route("/api/forecasts/<clerk_id>", methods=["GET"])
 @require_auth()
 def get_user_forecasts(clerk_id):
-    if not DB_AVAILABLE:
-        return jsonify({"error": "Database module not available"}), 503
-
+    user, err = _resolve_user_or_error(clerk_id)
+    if err:
+        return err
     try:
-        user = get_user_by_clerk_id(clerk_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
         limit = request.args.get("limit", default=20, type=int)
         forecasts = get_forecasts_by_user(user['id'], limit=limit)
-        
-        serialize_datetime(forecasts)
-        
-        return jsonify(forecasts)
+        return jsonify(serialize_datetime(forecasts))
     except Exception as e:
         print(f"Error getting forecasts: {e}")
         return jsonify({"error": str(e)}), 500
@@ -1108,42 +1133,37 @@ def get_user_forecasts(clerk_id):
 @app.route("/api/forecasts/<clerk_id>/stats", methods=["GET"])
 @require_auth()
 def get_forecast_stats(clerk_id):
-    if not DB_AVAILABLE:
-        return jsonify({"error": "Database module not available"}), 503
-
+    user, err = _resolve_user_or_error(clerk_id)
+    if err:
+        return err
     try:
-        user = get_user_by_clerk_id(clerk_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
-        stats = get_forecast_stats_by_user(user['id'])
-        return jsonify(stats)
+        return jsonify(get_forecast_stats_by_user(user['id']))
     except Exception as e:
         print(f"Error getting forecast stats: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ACTIVITY & DASHBOARD
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
 @app.route("/api/activity/<clerk_id>", methods=["GET"])
 @require_auth()
 def get_activity(clerk_id):
-    if not DB_AVAILABLE:
-        return jsonify({"error": "Database module not available"}), 503
-
+    user, err = _resolve_user_or_error(clerk_id)
+    if err:
+        return err
     try:
-        user = get_user_by_clerk_id(clerk_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
         limit = request.args.get("limit", default=5, type=int)
         activities = get_user_activity(user['id'], limit=limit)
-        
-        serialize_datetime(activities)
-        
-        return jsonify(activities)
+        return jsonify(serialize_datetime(activities))
     except Exception as e:
         print(f"Error getting activity: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- Dashboard Stats ---
+
+# ── Dashboard Stats Computation ─────────────────────────────────────────────
 
 def calculate_dashboard_stats(stored_results):
     today_diagnoses = 0
@@ -1187,19 +1207,9 @@ def calculate_dashboard_stats(stored_results):
         reverse=True
     )
     
-    for result in sorted_results[:3]: # Top 3 items
-        try:
-            result_dt = datetime.fromisoformat(result['timestamp'].replace('Z', '+00:00'))
-            diff = datetime.now(result_dt.tzinfo) - result_dt
-            # Approximate time ago
-            seconds = diff.total_seconds()
-            if seconds < 60: time_str = "Just now"
-            elif seconds < 3600: time_str = f"{int(seconds/60)} minute(s) ago"
-            elif seconds < 86400: time_str = f"{int(seconds/3600)} hour(s) ago"
-            else: time_str = f"{int(seconds/86400)} day(s) ago"
-        except:
-            time_str = "Recently"
-            
+    for result in sorted_results[:3]:
+        time_str = _format_time_ago(result.get('timestamp'))
+
         if result.get('type') == 'diagnosis':
             label = result.get('result', {}).get('label', 'Unknown')
             is_safe = "negative" in label.lower() or "low" in label.lower() or "uninfected" in label.lower()
@@ -1253,10 +1263,9 @@ def calculate_dashboard_stats(stored_results):
 @app.route("/dashboard/stats")
 def dashboard_stats():
     try:
-        # Check if we have a logged-in user to fetch real DB stats
         clerk_id = request.args.get('clerkId')
         
-        # 1. DATABASE PATH (Authenticated)
+        # --- Database Path (authenticated user) ---
         if clerk_id and DB_AVAILABLE:
             try:
                 user = get_user_by_clerk_id(clerk_id)
@@ -1269,52 +1278,35 @@ def dashboard_stats():
                     recent_activity_raw = get_user_activity(user_id, limit=5)
                     print(f"[dashboard] user_id={user_id}, diagnoses={len(recent_diagnoses)}, forecast_stats={forecast_stats}, activity={len(recent_activity_raw)}")
                     
-                    # Calculate "Today's Diagnoses"
+                    # Today's diagnoses
                     today = datetime.now().date()
                     today_diagnoses = 0
-                    today_positive = 0  # Initialize counter for positive cases
+                    today_positive = 0
                     for d in recent_diagnoses:
                         # Handle both datetime object and string (if serialized)
                         created_at = d.get('createdAt')
                         if isinstance(created_at, str):
                             try:
                                 created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                            except:
+                            except (ValueError, TypeError):
                                 continue
                         
                         if isinstance(created_at, datetime):
-                            # Strip timezone info for comparison – we only care about date
-                            diag_date = created_at.date() if not hasattr(created_at, 'tzinfo') or created_at.tzinfo is None else created_at.replace(tzinfo=None).date()
+                            diag_date = created_at.replace(tzinfo=None).date()
                             if diag_date == today:
                                 today_diagnoses += 1
                                 res_r = d.get('result', 'Unknown')
                                 if "parasitized" in res_r.lower() or "high" in res_r.lower():
                                     today_positive += 1
                             
-                    # Calculate Risk Regions (unique regions from active forecasts)
-                    # We might need to fetch active forecasts specifically to count regions
-                    # For now, approximate from recent activity or just use active count
+                    # Active forecasts
                     active_forecasts = forecast_stats.get('active', 0)
-                    
 
-                    
-                    # Format Recent Activity
+                    # Recent activity
                     recent_activity = []
                     for act in recent_activity_raw:
-                        # Calculate relative time
-                        created_at = act.get('createdAt')
-                        time_str = "Recently"
-                        if created_at:
-                            if isinstance(created_at, str):
-                                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                            
-                            diff = datetime.now(created_at.tzinfo) - created_at
-                            seconds = diff.total_seconds()
-                            if seconds < 60: time_str = "Just now"
-                            elif seconds < 3600: time_str = f"{int(seconds/60)} minute(s) ago"
-                            elif seconds < 86400: time_str = f"{int(seconds/3600)} hour(s) ago"
-                            else: time_str = f"{int(seconds/86400)} day(s) ago"
-                        
+                        time_str = _format_time_ago(act.get('createdAt'))
+
                         if act.get('type') == 'diagnosis':
                             result_val = act.get('result') or 'Unknown'
                             is_safe = "negative" in result_val.lower() or "uninfected" in result_val.lower() or "low" in result_val.lower()
@@ -1335,8 +1327,6 @@ def dashboard_stats():
                                 "status": "info" if risk and risk.lower() in ['low', 'medium'] else "warning"
                             })
 
-                            
-
                     # Real-time metrics
                     total_reqs = SUCCESS_COUNT + ERROR_COUNT
                     health_pct = round(100.0 * SUCCESS_COUNT / total_reqs, 1) if total_reqs > 0 else 100.0
@@ -1345,9 +1335,12 @@ def dashboard_stats():
                     recent_forecasts = get_forecasts_by_user(user_id, limit=1)
                     live_env_str = "Standby"
                     live_region_str = "Global"
-                    if len(recent_forecasts) > 0 and recent_forecasts[0].get('temperature') is not None:
+                    if recent_forecasts and recent_forecasts[0].get('temperature') is not None:
                         f = recent_forecasts[0]
-                        live_env_str = f"{f['temperature']}°C | {f['humidity']}% | {f['rainfall']}mm"
+                        temp = _safe_float(f['temperature'])
+                        hum = _safe_float(f.get('humidity'))
+                        rain = _safe_float(f.get('rainfall'))
+                        live_env_str = f"{temp}°C | {hum}% | {rain}mm"
                         live_region_str = f['region']
 
                     return jsonify({
@@ -1366,11 +1359,10 @@ def dashboard_stats():
             except Exception as e:
                 print(f"Error fetching DB stats for dashboard: {e}")
                 traceback.print_exc()
-                # Fallback to local storage method if DB fails
+                # Fallback to local storage if DB fails
                 pass
 
-        # 2. FALLBACK PATH (Local Storage / Unauthenticated)
-        # For now, accept stored_results from frontend via query param (temporary pattern)
+        # --- Fallback Path (local storage / unauthenticated) ---
         stored_results_json = request.args.get('stored_results', '[]')
         try:
             stored_results = json.loads(stored_results_json)
@@ -1382,7 +1374,12 @@ def dashboard_stats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- Prediction Routes ---
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ML PREDICTION ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Symptom-Based Risk Prediction ───────────────────────────────────────────
 
 @app.route("/predict/symptoms", methods=["POST"])
 @track_performance
@@ -1405,23 +1402,17 @@ def predict_symptoms():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        # --- Check if ML Model is Loaded ---
+        # --- ML Model Path ---
         if symptoms_model and isinstance(symptoms_model, dict):
             try:
-                # 1. Extract Features
-                # Handle missing optional values with None (to be imputed)
-                
-                # Convert fever boolean to 1/0
+                # Extract & convert features
                 fever = data.get("fever")
                 if isinstance(fever, bool):
                     fever = 1 if fever else 0
                 elif fever is None:
-                    # If strictly missing, we can let it be None (for imputer), 
-                    # but if it's the primary indicator, maybe we should error? 
-                    # For now, let imputer handle it (-1)
-                    fever = -1 
+                    fever = -1  # Sentinel for imputer
                 
-                # Convert slept_under_net to 1/0
+                # Convert net boolean to 1/0
                 net = data.get("slept_under_net")
                 if isinstance(net, bool):
                     net = 1 if net else 0
@@ -1440,8 +1431,7 @@ def predict_symptoms():
                 
                 df = pd.DataFrame(input_data)
                 
-                # 2. Preprocess
-                # Encode State
+                # Encode categorical features
                 try:
                     le_state = symptoms_model['le_state']
                     # Handle unseen labels by mapping to a default (e.g. mode) or skip encoding if fails
@@ -1453,12 +1443,10 @@ def predict_symptoms():
                          df.loc[~state_valid, 'state'] = le_state.classes_[0]
                     
                     df['state'] = le_state.transform(df['state'])
-                    
                 except Exception as e:
                     print(f"State encoding error: {e}")
-                    df['state'] = 0 # Fallback
+                    df['state'] = 0
                 
-                # Encode Residence
                 try:
                     le_res = symptoms_model['le_res']
                     res_valid = df['residence_type'].isin(le_res.classes_)
@@ -1469,7 +1457,7 @@ def predict_symptoms():
                 except Exception:
                     df['residence_type'] = 0
                 
-                # Impute
+                # Impute missing values
                 imputer = symptoms_model['imputer']
                 cols_to_impute = symptoms_model.get('cols_to_impute')
                 
@@ -1480,25 +1468,16 @@ def predict_symptoms():
                             df[col] = df[col].astype(float)
                     df[cols_to_impute] = imputer.transform(df[cols_to_impute])
                 
-                # Ensure columns match training order exactly
+                # Predict
                 feature_order = symptoms_model['features']
                 X = df[feature_order].values
-                
-                # 3. Predict
                 model = symptoms_model['model']
                 
-                # Use predict_proba for risk scoring
-                # Classes are usually [0, 1, 2] for Low, Medium, High
-                probabilities = model.predict_proba(X)[0] 
+                probabilities = model.predict_proba(X)[0]
                 prediction = np.argmax(probabilities)
-                
-                # Risk Score is the probability of the predicted class
-                # OR for a risk model, we might want the probability of being "High Risk" (class 2) 
-                # effectively? 
-                # But requirement says: "risk_score = probability of predicted class"
                 risk_score = float(probabilities[prediction])
                 
-                # 4. Map Label
+                # Map prediction to label
                 risk_map = {0: "Low Risk", 1: "Medium Risk", 2: "High Risk"}
                 label = risk_map.get(prediction, "Unknown Risk")
                 
@@ -1515,58 +1494,50 @@ def predict_symptoms():
                 traceback.print_exc()
                 # Fall through to rule-based
         
-        # --- Fallback: Clinical Rule-Based Logic ---
-        # Extract fever status (primary indicator)
+        # --- Rule-Based Fallback ---
         fever = bool(data.get("fever", False))
 
-        # List of secondary symptoms to check (legacy support)
         symptom_keys = [
             "chills", "headache", "fatigue", "muscle_aches",
             "nausea", "diarrhea", "abdominal_pain",
             "cough", "skin_rash"
         ]
 
-        # Count presence of other symptoms
-        symptom_count = sum(bool(data.get(symptom, False)) for symptom in symptom_keys)
+        symptom_count = sum(bool(data.get(s, False)) for s in symptom_keys)
 
-        # Apply Clinical Rules
-        # Check Anemia Level (1=Severe, 2=Moderate) -> High Risk Factor
+        # Anemia check (1=Severe, 2=Moderate)
         anemia_level = data.get("anemia_level", 4)
         is_anemic = False
         try:
-             # If anemia level is 1 or 2, consider it a significant risk factor
              if int(anemia_level) <= 2:
                  is_anemic = True
-        except:
+        except (ValueError, TypeError):
              pass
 
         if not fever and not is_anemic:
-            risk = "Low"
-            risk_score = 0.15
+            risk, risk_score = "Low", 0.15
         elif symptom_count >= 2 or (fever and is_anemic):
-            # High risk if multiple symptoms OR (Fever + Anemia)
-            risk = "High"
-            risk_score = 0.85
+            risk, risk_score = "High", 0.85
         elif is_anemic:
-             # Severe/Moderate Anemia alone is significant
-            risk = "Medium"
-            risk_score = 0.65
+            risk, risk_score = "Medium", 0.65
         else:
-            # Fever alone without other symptoms
-            risk = "Medium"
-            risk_score = 0.50
+            risk, risk_score = "Medium", 0.50
         
         return jsonify({
             "label": f"{risk} Risk",
             "risk_score": risk_score,
-            "confidence": risk_score, # Backward compatibility
-            "method": "Clinical Rule-Based Assessment (Interim - Fallback)",
+            "confidence": risk_score, # Backward compat
+            "method": "Clinical Rule-Based Assessment (Fallback)",
             "model_version": "v1.0 (Fallback)"
         })
 
     except Exception as e:
         print(f"Error in symptom prediction: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# ── Outbreak Forecasting ─────────────────────────────────────────────────────
+
 @app.route("/forecast/regions", methods=["GET"])
 @track_performance
 def get_forecast_regions():
@@ -1603,11 +1574,11 @@ def forecast_region():
         region_cases = region_df['New_Cases'].values
         last_date = region_df['Date'].iloc[-1]
         
-        # 2. Prepare the model input (sliding window of 8 weeks)
+        # Sliding window input
         WINDOW_SIZE = 8
         current_window = deque(region_cases[-WINDOW_SIZE:], maxlen=WINDOW_SIZE)
         
-        # 3. Create the Autoregressive forecast
+        # Autoregressive forecast
         predictions = []
         forecast_val = []
         for i in range(horizon_weeks):
@@ -1630,7 +1601,7 @@ def forecast_region():
                 "cases": pred_actual
             })
             
-        # 4. Grab the last 12 weeks of historical data for the chart
+        # Historical data for chart
         historical = []
         for _, row in region_df.tail(12).iterrows():
             historical.append({
@@ -1638,12 +1609,12 @@ def forecast_region():
                 "cases": int(row['New_Cases'])
             })
         
-        # 5. Hotspot logic (Dynamic based on severity and real-time live data)
+        # Hotspot scoring (case severity + live data)
         MAX_EXPECTED_CASES = 5000 
         avg_cases = np.mean(forecast_val)
         base_score = min(1.0, max(0.1, avg_cases / MAX_EXPECTED_CASES))
 
-        # Integrate Live Agent Data
+        # Live agent data integration
         try:
             from live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
             weather_data = fetch_live_weather(region)
@@ -1682,28 +1653,29 @@ def forecast_region():
         })
         
     except Exception as e:
-        import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
+# ── Image-Based Diagnosis ────────────────────────────────────────────────────
+
+IMAGE_MAX_FILE_SIZE_MB = 10
+IMAGE_MAX_FILE_SIZE_BYTES = IMAGE_MAX_FILE_SIZE_MB * 1024 * 1024
+IMAGE_ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/tiff", "image/webp"}
+IMAGE_ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
+IMAGE_MAGIC_BYTES = [
+    (b"\xff\xd8\xff", "JPEG"),
+    (b"\x89PNG\r\n\x1a\n", "PNG"),
+    (b"BM", "BMP"),
+    (b"II\x2a\x00", "TIFF-LE"),
+    (b"MM\x00\x2a", "TIFF-BE"),
+    (b"RIFF", "WEBP"),
+]
+
 
 @app.route("/predict/image", methods=["POST"])
 @track_performance
 def predict_image():
-    # ── [L2] File upload validation constants ───────────────────────────────
-    MAX_FILE_SIZE_MB = 10
-    MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-    ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/tiff", "image/webp"}
-    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
-    # Magic bytes for each allowed image format (first bytes of valid files)
-    MAGIC_BYTES = [
-        (b"\xff\xd8\xff", "JPEG"),
-        (b"\x89PNG\r\n\x1a\n", "PNG"),
-        (b"BM", "BMP"),
-        (b"II\x2a\x00", "TIFF-LE"),
-        (b"MM\x00\x2a", "TIFF-BE"),
-        (b"RIFF", "WEBP"),
-    ]
-
     try:
         if malaria_model is None:
             return jsonify({"error": "CNN model not loaded"}), 500
@@ -1717,42 +1689,37 @@ def predict_image():
 
         # ── Extension check ──────────────────────────────────────────────────
         _, ext = os.path.splitext(file.filename.lower())
-        if ext not in ALLOWED_EXTENSIONS:
+        if ext not in IMAGE_ALLOWED_EXTENSIONS:
             return jsonify({
                 "error": "Invalid file type",
-                "message": f"Only image files are accepted ({', '.join(sorted(ALLOWED_EXTENSIONS))})"
+                "message": f"Only image files are accepted ({', '.join(sorted(IMAGE_ALLOWED_EXTENSIONS))})"
             }), 415
 
         # ── MIME type check (from Content-Type header) ───────────────────────
         content_type = file.content_type or ""
-        if content_type and content_type.split(";")[0].strip() not in ALLOWED_MIME_TYPES:
+        if content_type and content_type.split(";")[0].strip() not in IMAGE_ALLOWED_MIME_TYPES:
             return jsonify({
                 "error": "Invalid MIME type",
                 "message": f"Expected an image MIME type, got: {content_type}"
             }), 415
 
-        # ── File size check ──────────────────────────────────────────────────
+        # File size check
         file_bytes = file.read()
-        if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+        if len(file_bytes) > IMAGE_MAX_FILE_SIZE_BYTES:
             return jsonify({
                 "error": "File too large",
-                "message": f"Maximum allowed file size is {MAX_FILE_SIZE_MB}MB"
+                "message": f"Maximum allowed file size is {IMAGE_MAX_FILE_SIZE_MB}MB"
             }), 413
         if len(file_bytes) == 0:
             return jsonify({"error": "Empty file"}), 400
 
-        # ── Magic bytes check (format forgery prevention) ────────────────────
-        # Validates actual file content regardless of filename or Content-Type header.
-        _magic_ok = any(file_bytes.startswith(magic) for magic, _ in MAGIC_BYTES)
+        # Magic bytes check (forgery prevention)
+        _magic_ok = any(file_bytes.startswith(magic) for magic, _ in IMAGE_MAGIC_BYTES)
         if not _magic_ok:
             return jsonify({
                 "error": "Invalid image content",
                 "message": "File does not appear to be a valid image (magic bytes mismatch)"
             }), 415
-
-        # Seek back so the rest of the handler can read normally
-        import io
-        file_stream = io.BytesIO(file_bytes)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = os.path.join(temp_dir, os.path.basename(file.filename))
@@ -1764,14 +1731,13 @@ def predict_image():
             img_array = img_array / 255.0 
             img_array = np.expand_dims(img_array, axis=0)
             
-            # --- GATEKEEPER CHECK (OOD Detection) ---
+            # --- Gatekeeper (Out-of-Distribution Detection) ---
             if gatekeeper_model is not None:
-                # Resize specifically for gatekeeper if it differs from malaria model size
+                # Resize for gatekeeper input
                 gk_img = image.load_img(temp_path, target_size=(64, 64))
                 gk_array = image.img_to_array(gk_img) / 255.0
                 gk_array = np.expand_dims(gk_array, axis=0)
                 
-                # Reconstruct image
                 reconstructed = gatekeeper_model.predict(gk_array, verbose=0)
                 mse = np.mean(np.square(gk_array - reconstructed))
                 
@@ -1786,7 +1752,7 @@ def predict_image():
                         "error": "This image does not appear to be a standard Giemsa-stained thin blood smear. Please upload a valid microscopic image."
                     }), 400
             
-            # --- OPENCV IMAGE VALIDATION (Too many cells / Not a crop) ---
+            # --- OpenCV Cell-Count Validation ---
             try:
                 cv_img = cv2.imread(temp_path)
                 if cv_img is not None:
@@ -1795,9 +1761,6 @@ def predict_image():
                     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
                     edges = cv2.Canny(blurred, 50, 150)
                     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                    
-                    # A single cell from the NIH dataset should have very few external contours depending on dye spots.
-                    # We just filter out tiny artifacts
                     valid_contours = [c for c in contours if cv2.contourArea(c) > 50]
                     
                     print(f"[OpenCV Validator] Found {len(valid_contours)} cell-like contours in the image.")
@@ -1813,7 +1776,7 @@ def predict_image():
             except Exception as cv_e:
                 print(f"[OpenCV Error] {cv_e}")
             
-            # --- MALARIA CLASSIFICATION ---
+            # --- Malaria Classification ---
             prediction = malaria_model.predict(img_array)
             score = float(prediction[0][0])
             label = "Parasitized" if score > 0.5 else "Uninfected"
@@ -1827,6 +1790,12 @@ def predict_image():
             
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  REPORT GENERATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.route("/api/generate_report", methods=["POST"])
 def generate_report():
@@ -1877,6 +1846,11 @@ def generate_report():
     except Exception as e:
         print(f"Error generating report: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ENTRYPOINT
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
