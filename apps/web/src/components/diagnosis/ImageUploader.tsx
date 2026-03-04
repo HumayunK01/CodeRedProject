@@ -112,7 +112,7 @@ export const ImageUploader = ({ onResult, onLoadingChange }: ImageUploaderProps)
         try {
           await DiagnosisService.createFromMLResult(
             clerkId,
-            preview || selectedFile.name, // Use base64 preview or filename as imageUrl
+            selectedFile.name, // Send filename only; base64 preview exceeds backend max_length
             {
               label: result.label,
               confidence: result.confidence,

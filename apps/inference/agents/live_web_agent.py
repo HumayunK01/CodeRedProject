@@ -1,6 +1,9 @@
+import logging
 import requests
 import urllib.parse
 import xml.etree.ElementTree as ET
+
+logger = logging.getLogger("foresee.agents.web")
 
 # Base coordinates for major Indian states
 REGION_COORDS = {
@@ -57,7 +60,7 @@ def fetch_live_weather(region):
                 "risk_multiplier": float(risk)
             }
     except Exception as e:
-        print(f"Error fetching live weather: {e}")
+        logger.error("Error fetching live weather for %s: %s", region, e)
         
     # Fallback to defaults
     return {"temperature": 28.0, "humidity": 65.0, "precipitation": 0.0, "risk_multiplier": 1.0}
@@ -98,6 +101,6 @@ def fetch_live_news_outbreak_risk(region):
                 "headlines": headlines
             }
     except Exception as e:
-        print(f"Error fetching live news: {e}")
+        logger.error("Error fetching live news for %s: %s", region, e)
         
     return {"article_count": 0, "risk_multiplier": 1.0, "headlines": []}

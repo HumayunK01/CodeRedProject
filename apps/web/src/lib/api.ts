@@ -165,15 +165,15 @@ class ApiClient {
       // Get stored results to send to backend for real statistics
       const storedResults = StorageManager.getAllResults();
 
-      // Encode stored results as URL parameter
-      const encodedResults = encodeURIComponent(JSON.stringify(storedResults));
-
-      let url = `${BASE_URL}/dashboard/stats?stored_results=${encodedResults}`;
-      if (clerkId) {
-        url += `&clerkId=${encodeURIComponent(clerkId)}`;
-      }
-
-      const response = await this.fetchWithTimeout(url);
+      // Use POST to avoid URL length limits with stored_results
+      const response = await this.fetchWithTimeout(`${BASE_URL}/dashboard/stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stored_results: storedResults,
+          clerkId: clerkId || undefined,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch dashboard stats: ${response.status}`);

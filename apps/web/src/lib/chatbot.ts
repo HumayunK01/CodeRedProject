@@ -69,7 +69,7 @@ export class ChatbotService {
   constructor() {
     this.apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || '';
     // Load model from environment variable or use default
-    this.defaultModel = import.meta.env.VITE_CHATBOT_MODEL || 'openrouter/aurora-alpha';
+    this.defaultModel = import.meta.env.VITE_CHATBOT_MODEL || 'openrouter/optimus-alpha';
   }
 
   static getInstance(): ChatbotService {

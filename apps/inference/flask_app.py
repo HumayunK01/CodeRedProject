@@ -6,6 +6,7 @@
 import os
 import io
 import json
+import logging
 import uuid
 import time
 import base64
@@ -39,6 +40,16 @@ from tensorflow.keras.preprocessing import image
 import cv2
 from xhtml2pdf import pisa
 
+# ── Logging ───────────────────────────────────────────────────────────────────
+from logging_config import get_logger
+
+logger = get_logger("foresee.app")
+logger_security = get_logger("foresee.security")
+logger_auth = get_logger("foresee.auth")
+logger_admin = get_logger("foresee.admin")
+logger_models = get_logger("foresee.models")
+logger_ml = get_logger("foresee.ml")
+
 # ── Database Layer ───────────────────────────────────────────────────────────
 try:
     from db.database import (
@@ -54,10 +65,9 @@ try:
         get_user_activity
     )
     DB_AVAILABLE = True
-    print("✅ Database module loaded successfully")
+    logger.info("Database module loaded successfully")
 except Exception as e:
-    print(f"❌ Warning: Database module could not be imported. DB features will fail. Error: {e}")
-    traceback.print_exc()
+    logger.error("Database module could not be imported — DB features will fail", exc_info=e)
     DB_AVAILABLE = False
 
 load_dotenv()
@@ -76,9 +86,9 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 _secret_key = os.getenv("FLASK_SECRET_KEY")
 if not _secret_key:
     _secret_key = secrets.token_hex(32)
-    print("[security] ⚠️  FLASK_SECRET_KEY not set — using ephemeral random key. Set FLASK_SECRET_KEY in .env for production.")
+    logger_security.warning("FLASK_SECRET_KEY not set — using ephemeral random key. Set FLASK_SECRET_KEY in .env for production.")
 else:
-    print("[security] ✅ FLASK_SECRET_KEY loaded from environment.")
+    logger_security.info("FLASK_SECRET_KEY loaded from environment.")
 app.config["SECRET_KEY"] = _secret_key
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
@@ -119,7 +129,7 @@ def _build_allowed_origins() -> list:
     return result
 
 ALLOWED_ORIGINS = _build_allowed_origins()
-print(f"[cors] Allowed origins: {ALLOWED_ORIGINS}")
+logger.info("CORS allowed origins: %s", ALLOWED_ORIGINS)
 
 CORS(
     app,
@@ -149,18 +159,21 @@ _redis_url = os.getenv("REDIS_URL", "").strip()
 
 def _resolve_limiter_storage(redis_url: str) -> str:
     if not redis_url:
-        print("[limiter] ⚠️  REDIS_URL not set — using in-memory storage (dev mode).")
+        logger.warning("REDIS_URL not set — using in-memory rate-limit storage (dev mode).")
         return "memory://"
     # Test connectivity before committing to Redis so a bad URL doesn't crash startup
     try:
         import redis as _redis
         _client = _redis.from_url(redis_url, socket_connect_timeout=2)
         _client.ping()
-        print(f"[limiter] ✅ Redis connected: {redis_url.split('@')[-1]}")
+        logger.info("Redis connected: %s", redis_url.split('@')[-1])
         return redis_url
     except Exception as e:
-        print(f"[limiter] ⚠️  Redis unreachable ({e.__class__.__name__}: {e}) — falling back to in-memory storage.")
-        print("[limiter]    (This is expected when running locally with a Railway private Redis URL.)")
+        logger.warning(
+            "Redis unreachable (%s: %s) — falling back to in-memory storage. "
+            "This is expected when running locally with a Railway private Redis URL.",
+            e.__class__.__name__, e,
+        )
         return "memory://"
 
 _storage_uri = _resolve_limiter_storage(_redis_url)
@@ -216,11 +229,10 @@ def enforce_cors(response):
     # Security event logging
     if response.status_code in (401, 403, 429):
         user_id = getattr(request, "user_id", "unauthenticated")
-        print(
-            f"[security] HTTP {response.status_code} "
-            f"| {request.method} {request.path} "
-            f"| IP: {request.remote_addr} "
-            f"| user: {user_id}"
+        logger_security.warning(
+            "HTTP %s | %s %s | IP: %s | user: %s",
+            response.status_code, request.method, request.path,
+            request.remote_addr, user_id,
         )
 
     return response
@@ -253,9 +265,9 @@ def load_models():
             try:
                 with open(metadata_path, 'r') as f:
                     metadata = json.load(f)
-                print("✅ Model metadata loaded successfully!")
+                logger_models.info("Model metadata loaded successfully")
             except Exception as e:
-                print(f"⚠️ Error loading metadata.json: {e}")
+                logger_models.warning("Error loading metadata.json: %s", e)
 
         # Load Gatekeeper Model
         gatekeeper_path = "models/gatekeeper_autoencoder.h5"
@@ -264,21 +276,20 @@ def load_models():
                 gatekeeper_model = load_model(gatekeeper_path, compile=False)
                 gk_meta = metadata.get("gatekeeper_model", {})
                 gatekeeper_threshold = gk_meta.get("mse_threshold", 0.05)
-                print(f"✅ Gatekeeper Autoencoder loaded! (Threshold: {gatekeeper_threshold:.4f})")
+                logger_models.info("Gatekeeper Autoencoder loaded (Threshold: %.4f)", gatekeeper_threshold)
             except Exception as e:
-                print(f"⚠️ Error loading gatekeeper: {e}")
+                logger_models.warning("Error loading gatekeeper: %s", e)
 
         # Load Outbreak Forecasting Model
         forecaster_path = "models/outbreak_forecaster.pkl"
         if os.path.exists(forecaster_path):
             try:
                 malaria_forecast_model = joblib.load(forecaster_path)
-                print("✅ Generalized Outbreak Forecasting Model loaded successfully!")
+                logger_models.info("Generalized Outbreak Forecasting Model loaded successfully")
             except Exception as e:
-                print(f"❌ Error loading forecasting model: {e}")
-                traceback.print_exc()
+                logger_models.error("Error loading forecasting model", exc_info=e)
         else:
-            print(f"⚠️ Forecasting model file not found at {forecaster_path}")
+            logger_models.warning("Forecasting model file not found at %s", forecaster_path)
 
         # Load CNN Model (Production - Full Dataset)
         cnn_model_path = "models/malaria_cnn_full.h5"
@@ -286,19 +297,20 @@ def load_models():
             malaria_model = load_model(cnn_model_path)
             cnn_acc = metadata.get("cnn_model", {}).get("accuracy", "94.8%")
             MODEL_TEST_ACCURACY = cnn_acc
-            print(f"✅ CNN model loaded successfully! (Production)")
-            print(f"   Model: {cnn_model_path}")
-            print(f"   Accuracy: {cnn_acc}")
-            print(f"   Precision: {metadata.get('cnn_model', {}).get('precision', 'N/A')}")
-            print(f"   Recall: {metadata.get('cnn_model', {}).get('recall', 'N/A')}")
-            print(f"   F1-Score: {metadata.get('cnn_model', {}).get('f1_score', 'N/A')}")
+            logger_models.info(
+                "CNN model loaded (Production) — path=%s accuracy=%s precision=%s recall=%s f1=%s",
+                cnn_model_path, cnn_acc,
+                metadata.get('cnn_model', {}).get('precision', 'N/A'),
+                metadata.get('cnn_model', {}).get('recall', 'N/A'),
+                metadata.get('cnn_model', {}).get('f1_score', 'N/A'),
+            )
         elif os.path.exists("models/malaria_test_small.h5"):
             # Fallback to old model if new one not found
             malaria_model = load_model("models/malaria_test_small.h5")
             MODEL_TEST_ACCURACY = "94.2% (Legacy)"
-            print("⚠️ Using legacy CNN model (quick-fit)")
+            logger_models.warning("Using legacy CNN model (quick-fit)")
         else:
-            print("⚠️ No CNN model file found.")
+            logger_models.warning("No CNN model file found")
 
         # Load DHS Risk Index Model
         if os.path.exists("models/malaria_symptoms_dhs.pkl"):
@@ -313,24 +325,21 @@ def load_models():
                 cv_accuracy = model_meta.get("cv_accuracy", "N/A")
                 note = model_meta.get("note", "")
                 
-                print(f"✅ DHS Risk Index Model loaded successfully!")
-                print(f"   Type: {model_type}")
-                print(f"   Index Accuracy: {accuracy}")
-                print(f"   CV Accuracy: {cv_accuracy}")
-                if note:
-                    print(f"   Note: {note}")
+                logger_models.info(
+                    "DHS Risk Index Model loaded — type=%s accuracy=%s cv_accuracy=%s%s",
+                    model_type, accuracy, cv_accuracy,
+                    f" note={note}" if note else "",
+                )
                 
                 # Don't override CNN accuracy - keep CNN as primary display metric
                 # MODEL_TEST_ACCURACY is for the image diagnostic model
             except Exception as e:
-                print(f"❌ Error loading DHS Risk Index model: {e}")
-                traceback.print_exc()
+                logger_models.error("Error loading DHS Risk Index model", exc_info=e)
         else:
-            print("⚠️ DHS Risk Index model file not found.")
+            logger_models.warning("DHS Risk Index model file not found")
 
     except Exception as e:
-        print(f"❌ Error loading models: {e}")
-        traceback.print_exc()
+        logger_models.error("Error loading models", exc_info=e)
         MODEL_TEST_ACCURACY = "Error"
 
 
@@ -373,7 +382,7 @@ def track_performance(f):
             return response
         except Exception as e:
             ERROR_COUNT += 1
-            print(f"Request Error in {f.__name__}: {e}")
+            logger.error("Request error in %s: %s", f.__name__, e)
             raise e
     return decorated_function
 
@@ -451,7 +460,7 @@ CLERK_API_BASE   = "https://api.clerk.com/v1"
 # ── Startup connectivity test ──────────────────────────────────
 def _test_clerk_connection():
     if not CLERK_SECRET_KEY or CLERK_SECRET_KEY.startswith("sk_test_your"):
-        print("⚠️  [admin] CLERK_SECRET_KEY is not set — admin endpoints will not work")
+        logger_admin.warning("CLERK_SECRET_KEY is not set — admin endpoints will not work")
         return
     try:
         req = urllib.request.Request(
@@ -459,7 +468,7 @@ def _test_clerk_connection():
             headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
         )
         with urllib.request.urlopen(req) as r:
-            print(f"✅ [admin] Clerk API connected — HTTP {r.status}")
+            logger_admin.info("Clerk API connected — HTTP %s", r.status)
     except Exception:
         pass
 
@@ -499,21 +508,21 @@ def _get_caller_role(request) -> str | None:
         if not payload:
             return None, "invalid_jwt"
         user_id = payload.get("sub")
-        print(f"[admin] JWT sub={user_id!r}, CLERK_SECRET_KEY set={bool(CLERK_SECRET_KEY)}")
+        logger_admin.debug("JWT sub=%r, CLERK_SECRET_KEY set=%s", user_id, bool(CLERK_SECRET_KEY))
         if not user_id:
             return None, "no_sub_in_jwt"
         if not CLERK_SECRET_KEY:
             return None, "clerk_key_not_set"
         # Fetch fresh publicMetadata from Clerk
         data, status = _clerk_request("GET", f"/users/{user_id}")
-        print(f"[admin] Clerk GET /users/{user_id} → HTTP {status}")
+        logger_admin.debug("Clerk GET /users/%s → HTTP %s", user_id, status)
         if status != 200:
             return None, f"clerk_api_error:{status}:{data.get('errors', data)}"
         role = (data.get("public_metadata") or {}).get("role")
-        print(f"[admin] public_metadata={data.get('public_metadata')!r} → role={role!r}")
+        logger_admin.debug("public_metadata=%r → role=%r", data.get('public_metadata'), role)
         return role, "ok"
     except Exception as e:
-        print(f"[admin] _get_caller_role exception: {e}")
+        logger_admin.error("_get_caller_role exception: %s", e)
         return None, f"exception:{e}"
 
 
@@ -537,10 +546,10 @@ def _resolve_clerk_jwks_url() -> str:
             b64 += "=" * (-len(b64) % 4)
             domain = base64.urlsafe_b64decode(b64).decode("utf-8").rstrip("$")
             url = f"https://{domain}/.well-known/jwks.json"
-            print(f"[auth] Derived Clerk JWKS URL from publishable key: {url}")
+            logger_auth.info("Derived Clerk JWKS URL from publishable key: %s", url)
             return url
         except Exception as e:
-            print(f"[auth] Could not derive JWKS URL from publishable key: {e}")
+            logger_auth.warning("Could not derive JWKS URL from publishable key: %s", e)
     # Final fallback
     return "https://api.clerk.com/v1/jwks"
 
@@ -554,9 +563,9 @@ def get_clerk_public_key(kid):
             req = urllib.request.Request(CLERK_JWKS_URL)
             with urllib.request.urlopen(req) as response:
                 _clerk_jwks_cache = json.loads(response.read().decode())
-            print(f"[auth] Clerk JWKS fetched successfully ({len(_clerk_jwks_cache.get('keys', []))} keys)")
+            logger_auth.info("Clerk JWKS fetched successfully (%d keys)", len(_clerk_jwks_cache.get('keys', [])))
         except Exception as e:
-            print(f"[auth] Failed to fetch Clerk JWKS from {CLERK_JWKS_URL}: {e}")
+            logger_auth.error("Failed to fetch Clerk JWKS from %s: %s", CLERK_JWKS_URL, e)
             return None
     for key in _clerk_jwks_cache.get("keys", []):
         if key.get("kid") == kid:
@@ -651,7 +660,7 @@ def require_auth(roles=None, skip_db_check=False):
                     if not db_user:
                         return jsonify({"error": "Unauthorized", "message": "User not found in system"}), 401
                 except Exception as e:
-                    print(f"[auth] DB user lookup error: {e}")
+                    logger_auth.error("DB user lookup error: %s", e)
                     if not _sig_verified:
                         # Neither JWKS nor DB could validate — reject
                         return jsonify({"error": "Unauthorized", "message": "Could not validate identity"}), 401
@@ -689,7 +698,7 @@ def admin_get_users():
         return jsonify({}), 200
 
     caller_role, reason = _get_caller_role(request)
-    print(f"[admin] /admin/users → role={caller_role!r}, reason={reason!r}")
+    logger_admin.info("/admin/users → role=%r, reason=%r", caller_role, reason)
     if caller_role != "admin":
         return jsonify({"error": "Forbidden", "resolved_role": caller_role, "reason": reason}), 403
 
@@ -928,7 +937,7 @@ def sync_user():
         return jsonify(user_with_stats if user_with_stats else user)
 
     except Exception as e:
-        print(f"Error syncing user: {e}")
+        logger.error("Error syncing user: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/users/<clerk_id>/stats", methods=["GET"])
@@ -953,7 +962,7 @@ def get_user_stats(clerk_id):
             "forecastStats": forecast_stats
         })
     except Exception as e:
-        print(f"Error getting user stats: {e}")
+        logger.error("Error getting user stats: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1019,7 +1028,7 @@ def create_diagnosis():
         
         return jsonify(diagnosis), 201
     except Exception as e:
-        print(f"Error creating diagnosis: {e}")
+        logger.error("Error creating diagnosis: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/diagnoses/<clerk_id>", methods=["GET"])
@@ -1033,7 +1042,7 @@ def get_user_diagnoses(clerk_id):
         diagnoses = get_diagnoses_by_user(user['id'], limit=limit)
         return jsonify(serialize_datetime(diagnoses))
     except Exception as e:
-        print(f"Error getting diagnoses: {e}")
+        logger.error("Error getting diagnoses: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/diagnoses/<clerk_id>/stats", methods=["GET"])
@@ -1045,7 +1054,7 @@ def get_diagnosis_stats(clerk_id):
     try:
         return jsonify(get_diagnosis_stats_by_user(user['id']))
     except Exception as e:
-        print(f"Error getting diagnosis stats: {e}")
+        logger.error("Error getting diagnosis stats: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1113,7 +1122,7 @@ def create_forecast_record():
         
         return jsonify(forecast), 201
     except Exception as e:
-        print(f"Error creating forecast: {e}")
+        logger.error("Error creating forecast: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/forecasts/<clerk_id>", methods=["GET"])
@@ -1127,7 +1136,7 @@ def get_user_forecasts(clerk_id):
         forecasts = get_forecasts_by_user(user['id'], limit=limit)
         return jsonify(serialize_datetime(forecasts))
     except Exception as e:
-        print(f"Error getting forecasts: {e}")
+        logger.error("Error getting forecasts: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/forecasts/<clerk_id>/stats", methods=["GET"])
@@ -1139,7 +1148,7 @@ def get_forecast_stats(clerk_id):
     try:
         return jsonify(get_forecast_stats_by_user(user['id']))
     except Exception as e:
-        print(f"Error getting forecast stats: {e}")
+        logger.error("Error getting forecast stats: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1159,7 +1168,7 @@ def get_activity(clerk_id):
         activities = get_user_activity(user['id'], limit=limit)
         return jsonify(serialize_datetime(activities))
     except Exception as e:
-        print(f"Error getting activity: {e}")
+        logger.error("Error getting activity: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1260,10 +1269,16 @@ def calculate_dashboard_stats(stored_results):
         "recent_activity": recent_activity
     }
 
-@app.route("/dashboard/stats")
+@app.route("/dashboard/stats", methods=["GET", "POST"])
 def dashboard_stats():
     try:
-        clerk_id = request.args.get('clerkId')
+        # Support both GET (query params) and POST (JSON body)
+        if request.method == "POST":
+            body = request.get_json(silent=True) or {}
+            clerk_id = body.get('clerkId')
+        else:
+            body = {}
+            clerk_id = request.args.get('clerkId')
         
         # --- Database Path (authenticated user) ---
         if clerk_id and DB_AVAILABLE:
@@ -1276,7 +1291,10 @@ def dashboard_stats():
                     recent_diagnoses = get_diagnoses_by_user(user_id, limit=50)
                     forecast_stats = get_forecast_stats_by_user(user_id)
                     recent_activity_raw = get_user_activity(user_id, limit=5)
-                    print(f"[dashboard] user_id={user_id}, diagnoses={len(recent_diagnoses)}, forecast_stats={forecast_stats}, activity={len(recent_activity_raw)}")
+                    logger.debug(
+                        "Dashboard data: user_id=%s diagnoses=%d forecast_stats=%s activity=%d",
+                        user_id, len(recent_diagnoses), forecast_stats, len(recent_activity_raw),
+                    )
                     
                     # Today's diagnoses
                     today = datetime.now().date()
@@ -1357,17 +1375,19 @@ def dashboard_stats():
                         "recent_activity": recent_activity
                     })
             except Exception as e:
-                print(f"Error fetching DB stats for dashboard: {e}")
-                traceback.print_exc()
+                logger.error("Error fetching DB stats for dashboard", exc_info=True)
                 # Fallback to local storage if DB fails
                 pass
 
         # --- Fallback Path (local storage / unauthenticated) ---
-        stored_results_json = request.args.get('stored_results', '[]')
-        try:
-            stored_results = json.loads(stored_results_json)
-        except json.JSONDecodeError:
-            stored_results = []
+        if request.method == "POST":
+            stored_results = body.get('stored_results', [])
+        else:
+            stored_results_json = request.args.get('stored_results', '[]')
+            try:
+                stored_results = json.loads(stored_results_json)
+            except json.JSONDecodeError:
+                stored_results = []
         
         stats = calculate_dashboard_stats(stored_results)
         return jsonify(stats)
@@ -1444,7 +1464,7 @@ def predict_symptoms():
                     
                     df['state'] = le_state.transform(df['state'])
                 except Exception as e:
-                    print(f"State encoding error: {e}")
+                    logger_ml.warning("State encoding error: %s", e)
                     df['state'] = 0
                 
                 try:
@@ -1490,8 +1510,7 @@ def predict_symptoms():
                 })
 
             except Exception as e:
-                print(f"❌ ML Inference Error: {e}, falling back to rules.")
-                traceback.print_exc()
+                logger_ml.warning("ML Inference Error, falling back to rules", exc_info=True)
                 # Fall through to rule-based
         
         # --- Rule-Based Fallback ---
@@ -1532,7 +1551,7 @@ def predict_symptoms():
         })
 
     except Exception as e:
-        print(f"Error in symptom prediction: {e}")
+        logger.error("Error in symptom prediction: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1631,7 +1650,7 @@ def forecast_region():
                 "top_headlines": news_data['headlines']
             }
         except Exception as e:
-            print(f"Live agent error: {e}")
+            logger.warning("Live agent error: %s", e)
             hotspot_score = float(base_score)
             live_insights = None
         
@@ -1653,7 +1672,7 @@ def forecast_region():
         })
         
     except Exception as e:
-        traceback.print_exc()
+        logger.error("Error in region forecast", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1741,7 +1760,7 @@ def predict_image():
                 reconstructed = gatekeeper_model.predict(gk_array, verbose=0)
                 mse = np.mean(np.square(gk_array - reconstructed))
                 
-                print(f"[Gatekeeper] Image MSE: {mse:.5f} (Threshold: {gatekeeper_threshold:.5f})")
+                logger_ml.debug("Gatekeeper Image MSE: %.5f (Threshold: %.5f)", mse, gatekeeper_threshold)
                 
                 if mse > gatekeeper_threshold:
                     return jsonify({
@@ -1763,7 +1782,7 @@ def predict_image():
                     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                     valid_contours = [c for c in contours if cv2.contourArea(c) > 50]
                     
-                    print(f"[OpenCV Validator] Found {len(valid_contours)} cell-like contours in the image.")
+                    logger_ml.debug("OpenCV Validator found %d cell-like contours", len(valid_contours))
                     
                     if len(valid_contours) > 15:
                         return jsonify({
@@ -1774,7 +1793,7 @@ def predict_image():
                             "error": "This appears to be a full blood smear with dozens of cells. Please upload an image of a SINGLE, cropped cell for accurate diagnosis."
                         }), 400
             except Exception as cv_e:
-                print(f"[OpenCV Error] {cv_e}")
+                logger_ml.warning("OpenCV validation error: %s", cv_e)
             
             # --- Malaria Classification ---
             prediction = malaria_model.predict(img_array)
@@ -1844,7 +1863,7 @@ def generate_report():
         return response
 
     except Exception as e:
-        print(f"Error generating report: {e}")
+        logger.error("Error generating report: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1859,7 +1878,7 @@ if __name__ == "__main__":
     # on every error page, allowing arbitrary code execution on the server.
     debug_mode = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
     if debug_mode:
-        print("[security] ⚠️  Running in DEBUG mode — NEVER use this in production!")
+        logger_security.warning("Running in DEBUG mode — NEVER use this in production!")
 
-    print(f"Starting Foresee ML Inference API on {host}:{port} (debug={debug_mode})")
+    logger.info("Starting Foresee ML Inference API on %s:%d (debug=%s)", host, port, debug_mode)
     app.run(host=host, port=port, debug=debug_mode)

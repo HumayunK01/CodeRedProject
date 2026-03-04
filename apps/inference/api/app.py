@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import logging
 import joblib
 import traceback
 import numpy as np
@@ -18,6 +19,8 @@ from PIL import Image
 # NOTE: This is a FastAPI implementation of the Foresee Inference API.
 # The currently active deployment uses Flask (flask_app.py).
 # This file is maintained for potential future migration or reference.
+
+logger = logging.getLogger("foresee.api")
 
 app = FastAPI(
     title="Foresee ML Inference API",
@@ -54,30 +57,30 @@ async def load_models():
     global tabular_model, symptoms_feature_info
     
     try:
-        print("Starting Foresee API model loading process...")
+        logger.info("Starting Foresee API model loading process...")
         
         # 1. Load FAQ models
         try:
             faq_vectorizer = joblib.load("models/tfidf_vectorizer.joblib")
             faq_matrix = joblib.load("models/tfidf_matrix.joblib")
             faq_answers = joblib.load("models/answers.joblib")
-            print("✅ FAQ models loaded")
+            logger.info("FAQ models loaded")
         except FileNotFoundError:
-            print("⚠️ FAQ models not found")
+            logger.warning("FAQ models not found")
 
         # 2. Load CNN model (Image Classification)
         if os.path.exists("models/malaria_test_small.h5"):
             malaria_model = load_model("models/malaria_test_small.h5")
-            print("✅ CNN model loaded")
+            logger.info("CNN model loaded")
         else:
-            print("⚠️ CNN model file not found")
+            logger.warning("CNN model file not found")
         
         # 3. Load ARIMA model (Forecasting)
         if os.path.exists("models/malaria_forecast_arima.pkl"):
             malaria_forecast_model = joblib.load("models/malaria_forecast_arima.pkl")
-            print("✅ Forecast model loaded")
+            logger.info("Forecast model loaded")
         else:
-            print("⚠️ Forecast model file not found")
+            logger.warning("Forecast model file not found")
         
         # 4. Load Tabular Model (Symptoms)
         # Try loading the newer symptoms model first, fallback to legacy
@@ -85,18 +88,17 @@ async def load_models():
             tabular_model = joblib.load("models/malaria_symptoms_model.joblib")
             if os.path.exists("models/symptoms_feature_info.joblib"):
                 symptoms_feature_info = joblib.load("models/symptoms_feature_info.joblib")
-            print("✅ distinct symptoms model loaded")
+            logger.info("Distinct symptoms model loaded")
         elif os.path.exists("models/malaria_model.joblib"):
             tabular_model = joblib.load("models/malaria_model.joblib")
-            print("✅ Legacy tabular model loaded")
+            logger.info("Legacy tabular model loaded")
         else:
-            print("⚠️ No tabular model found")
+            logger.warning("No tabular model found")
             
-        print("Model loading complete.")
+        logger.info("Model loading complete.")
         
     except Exception as e:
-        print(f"❌ Critical error loading models: {e}")
-        traceback.print_exc()
+        logger.error("Critical error loading models", exc_info=True)
 
 # --- Health Check ---
 @app.get("/", tags=["Health"])
@@ -206,7 +208,7 @@ async def predict_image(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        traceback.print_exc()
+        logger.error("Error in image prediction", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # cleanup
@@ -292,7 +294,7 @@ async def predict_symptoms(symptoms_data: Dict[str, Any]):
     except HTTPException:
         raise
     except Exception as e:
-        traceback.print_exc()
+        logger.error("Error in symptom analysis", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Forecasting Endpoint ---

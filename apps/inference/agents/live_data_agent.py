@@ -1,4 +1,5 @@
 import os
+import logging
 import pandas as pd
 import numpy as np
 import datetime
@@ -8,6 +9,8 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 import warnings
 
 warnings.filterwarnings("ignore")
+
+logger = logging.getLogger("foresee.agents.data")
 
 # Resolve paths relative to the project root (one level up from agents/)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +27,7 @@ def generate_live_state_data(end_date=datetime.datetime.now()):
     Acts as the Live Data Agent: 
     Bridges historical context with current date using epidemiological seasonality.
     """
-    print(f"🕵️  [Data Agent] Initiating live data assimilation up to {end_date.strftime('%Y-%m-%d')}...")
+    logger.info("Data Agent: initiating live data assimilation up to %s", end_date.strftime('%Y-%m-%d'))
     
     # Start our continuous dataset from Jan 2020 all the way to TODAY (2026)
     start_date = datetime.datetime(2020, 1, 1)
@@ -32,7 +35,7 @@ def generate_live_state_data(end_date=datetime.datetime.now()):
     
     all_data = []
     
-    print(f"📡 [Data Agent] Fetching & Synthesizing data for {len(INDIAN_STATES)} Indian States...")
+    logger.info("Data Agent: fetching & synthesizing data for %d Indian states", len(INDIAN_STATES))
     
     for state in INDIAN_STATES:
         # Base population/susceptibility multiplier for the state
@@ -81,11 +84,11 @@ def generate_live_state_data(end_date=datetime.datetime.now()):
     
     output_path = os.path.join(BASE_DIR, 'data', 'realtime_india_outbreaks.csv')
     df.to_csv(output_path, index=False)
-    print(f"✅ [Data Agent] Successfully anchored {len(df)} weekly records spanning 2020 to 2026!")
+    logger.info("Data Agent: anchored %d weekly records spanning 2020 to 2026", len(df))
     return df
 
 def retrain_model_on_live_data(df):
-    print("🧠 [ML Engine] Re-training Autoregressive Forecaster on fresh 2026 data...")
+    logger.info("ML Engine: re-training Autoregressive Forecaster on fresh 2026 data")
     WINDOW_SIZE = 8
     
     X, y = [], []
@@ -108,7 +111,7 @@ def retrain_model_on_live_data(df):
     model.fit(X_scaled, y_scaled)
     
     joblib.dump(model, os.path.join(BASE_DIR, 'models', 'outbreak_forecaster.pkl'))
-    print("🚀 [ML Engine] Model upgraded and saved! Now ready for live 2026 predictions.")
+    logger.info("ML Engine: model upgraded and saved — ready for live 2026 predictions")
 
 if __name__ == "__main__":
     data_dir = os.path.join(BASE_DIR, 'data')
