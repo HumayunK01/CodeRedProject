@@ -2,11 +2,18 @@
 
 import { DiagnosisResult, SymptomsInput, ForecastResult, ForecastInput, HealthStatus, ApiError, DashboardStats } from './types';
 import { StorageManager } from './storage';
+import { getAuthToken } from './db';
 
 const BASE_URL = import.meta.env.VITE_INFER_BASE_URL || 'http://localhost:8000';
 const TIMEOUT_MS = 15000;
 
 class ApiClient {
+  /** Build an Authorization header if a Clerk session token is available. */
+  private async authHeader(): Promise<Record<string, string>> {
+    const token = await getAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   private async fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -33,8 +40,10 @@ class ApiClient {
     formData.append('file', file);
 
     try {
+      const auth = await this.authHeader();
       const response = await this.fetchWithTimeout(`${BASE_URL}/predict/image`, {
         method: 'POST',
+        headers: { ...auth },
         body: formData
       });
 
@@ -64,9 +73,10 @@ class ApiClient {
    */
   async predictSymptoms(symptoms: SymptomsInput): Promise<DiagnosisResult> {
     try {
+      const auth = await this.authHeader();
       const response = await this.fetchWithTimeout(`${BASE_URL}/predict/symptoms`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...auth },
         body: JSON.stringify(symptoms)
       });
 
@@ -94,9 +104,10 @@ class ApiClient {
 
   async forecastRegion(input: ForecastInput): Promise<ForecastResult> {
     try {
+      const auth = await this.authHeader();
       const response = await this.fetchWithTimeout(`${BASE_URL}/forecast/region`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...auth },
         body: JSON.stringify(input)
       });
 
@@ -124,7 +135,10 @@ class ApiClient {
 
   async getForecastRegions(): Promise<string[]> {
     try {
-      const response = await this.fetchWithTimeout(`${BASE_URL}/forecast/regions`);
+      const auth = await this.authHeader();
+      const response = await this.fetchWithTimeout(`${BASE_URL}/forecast/regions`, {
+        headers: { ...auth },
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch regions');
@@ -189,9 +203,10 @@ class ApiClient {
   }
   async generateReport(data: any): Promise<Blob> {
     try {
+      const auth = await this.authHeader();
       const response = await this.fetchWithTimeout(`${BASE_URL}/api/generate_report`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...auth },
         body: JSON.stringify(data)
       });
 

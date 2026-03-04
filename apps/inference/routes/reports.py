@@ -8,6 +8,7 @@ from io import BytesIO
 
 from flask import Blueprint, jsonify, request, render_template, make_response
 from xhtml2pdf import pisa
+from core.auth import require_auth
 from core.logging_config import get_logger
 
 logger = get_logger("foresee.app")
@@ -16,6 +17,7 @@ reports_bp = Blueprint("reports", __name__)
 
 
 @reports_bp.route("/api/generate_report", methods=["POST"])
+@require_auth(skip_db_check=True)
 def generate_report():
     try:
         data = request.get_json()

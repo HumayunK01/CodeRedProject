@@ -266,34 +266,63 @@ class TestForecastRoutes:
 class TestPredictSymptoms:
     """POST /predict/symptoms — rule-based fallback (model not loaded)."""
 
-    def test_no_data(self, client):
-        resp = client.post("/predict/symptoms", content_type="application/json", data="")
+    def test_no_auth_returns_401(self, client):
+        resp = client.post("/predict/symptoms", json={"fever": False})
+        assert resp.status_code == 401
+
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_data(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/symptoms",
+            headers={"Authorization": f"Bearer {token}"},
+            content_type="application/json",
+            data="",
+        )
         # Empty body → Flask raises inside generic except → 500
         assert resp.status_code in (400, 500)
 
-    def test_rule_based_low_risk(self, client):
-        resp = client.post("/predict/symptoms", json={"fever": False})
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_rule_based_low_risk(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/symptoms",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"fever": False},
+        )
         assert resp.status_code == 200
         data = resp.get_json()
         assert "Low" in data["label"]
 
-    def test_rule_based_high_risk(self, client):
-        resp = client.post("/predict/symptoms", json={
-            "fever": True,
-            "chills": True,
-            "headache": True,
-            "fatigue": True,
-            "anemia_level": 1,
-        })
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_rule_based_high_risk(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/symptoms",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "fever": True,
+                "chills": True,
+                "headache": True,
+                "fatigue": True,
+                "anemia_level": 1,
+            },
+        )
         assert resp.status_code == 200
         data = resp.get_json()
         assert "High" in data["label"]
 
-    def test_rule_based_medium_risk(self, client):
-        resp = client.post("/predict/symptoms", json={
-            "fever": True,
-            "anemia_level": 4,
-        })
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_rule_based_medium_risk(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/symptoms",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "fever": True,
+                "anemia_level": 4,
+            },
+        )
         assert resp.status_code == 200
         data = resp.get_json()
         assert "Medium" in data["label"]
@@ -302,73 +331,133 @@ class TestPredictSymptoms:
 class TestPredictImage:
     """POST /predict/image — model is None so should return 500."""
 
-    def test_no_model_loaded(self, client):
+    def test_no_auth_returns_401(self, client):
         resp = client.post(
             "/predict/image",
             data={"file": (io.BytesIO(b"fakeimg"), "cell.png")},
             content_type="multipart/form-data",
         )
+        assert resp.status_code == 401
+
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_model_loaded(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/image",
+            headers={"Authorization": f"Bearer {token}"},
+            data={"file": (io.BytesIO(b"fakeimg"), "cell.png")},
+            content_type="multipart/form-data",
+        )
         assert resp.status_code == 500
 
-    def test_no_file_provided(self, client):
-        resp = client.post("/predict/image")
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_file_provided(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/predict/image",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == 500  # model is None → first check
 
 
 class TestForecastRegion:
     """POST /forecast/region — model is None."""
 
-    def test_no_model_loaded(self, client):
+    def test_no_auth_returns_401(self, client):
         resp = client.post("/forecast/region", json={"region": "Kerala"})
+        assert resp.status_code == 401
+
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_model_loaded(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/forecast/region",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"region": "Kerala"},
+        )
         assert resp.status_code == 500
 
-    def test_no_data(self, client):
-        resp = client.post("/forecast/region", content_type="application/json", data="")
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_data(self, _pk, client):
+        token = _make_token()
+        resp = client.post(
+            "/forecast/region",
+            headers={"Authorization": f"Bearer {token}"},
+            content_type="application/json",
+            data="",
+        )
         assert resp.status_code == 500
 
 
 class TestForecastRegionsGet:
     """GET /forecast/regions — reads CSV."""
 
+    def test_no_auth_returns_401(self, client):
+        resp = client.get("/forecast/regions")
+        assert resp.status_code == 401
+
     @patch("routes.predictions.pd.read_csv")
-    def test_returns_regions(self, mock_csv, client):
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_returns_regions(self, _pk, mock_csv, client):
         import pandas as pd
         mock_csv.return_value = pd.DataFrame({"Region": ["Kerala", "Goa", "Kerala"]})
-        resp = client.get("/forecast/regions")
+        token = _make_token()
+        resp = client.get(
+            "/forecast/regions",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == 200
         data = resp.get_json()
         assert "regions" in data
         assert "Kerala" in data["regions"]
 
     @patch("routes.predictions.pd.read_csv", side_effect=FileNotFoundError("CSV not found"))
-    def test_csv_missing(self, mock_csv, client):
-        resp = client.get("/forecast/regions")
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_csv_missing(self, _pk, mock_csv, client):
+        token = _make_token()
+        resp = client.get(
+            "/forecast/regions",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == 500
 
 
 class TestGenerateReport:
     """POST /api/generate_report"""
 
+    def test_no_auth_returns_401(self, client):
+        resp = client.post("/api/generate_report", json={"patientName": "X"})
+        assert resp.status_code == 401
+
     @patch("routes.reports.pisa")
     @patch("routes.reports.render_template")
-    def test_generates_pdf(self, mock_render, mock_pisa, client):
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_generates_pdf(self, _pk, mock_render, mock_pisa, client):
         mock_render.return_value = "<html><body>Report</body></html>"
         mock_pisa_status = MagicMock()
         mock_pisa_status.err = 0
         mock_pisa.CreatePDF.return_value = mock_pisa_status
 
-        resp = client.post("/api/generate_report", json={
-            "patientName": "Test Patient",
-            "patientAge": 30,
-            "result": "Uninfected",
-            "confidence": 0.92,
-        })
+        token = _make_token()
+        resp = client.post(
+            "/api/generate_report",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "patientName": "Test Patient",
+                "patientAge": 30,
+                "result": "Uninfected",
+                "confidence": 0.92,
+            },
+        )
         assert resp.status_code == 200
         assert resp.content_type == "application/pdf"
 
-    def test_no_data(self, client):
+    @patch("core.auth.get_clerk_public_key", return_value=None)
+    def test_no_data(self, _pk, client):
+        token = _make_token()
         resp = client.post(
             "/api/generate_report",
+            headers={"Authorization": f"Bearer {token}"},
             content_type="application/json",
             data="",
         )

@@ -10,6 +10,7 @@ from collections import deque
 import numpy as np
 import pandas as pd
 from flask import Blueprint, jsonify, request
+from core.auth import require_auth
 from core.logging_config import get_logger
 from core.middleware import track_performance
 from core.config import (
@@ -29,6 +30,7 @@ predictions_bp = Blueprint("predictions", __name__)
 # ── Symptom-Based Risk Prediction ────────────────────────────────────────────
 
 @predictions_bp.route("/predict/symptoms", methods=["POST"])
+@require_auth(skip_db_check=True)
 @track_performance
 def predict_symptoms():
     """Predict malaria risk using trained DHS-based ML model.
@@ -159,6 +161,7 @@ def predict_symptoms():
 # ── Outbreak Forecasting ─────────────────────────────────────────────────────
 
 @predictions_bp.route("/forecast/regions", methods=["GET"])
+@require_auth(skip_db_check=True)
 @track_performance
 def get_forecast_regions():
     try:
@@ -170,6 +173,7 @@ def get_forecast_regions():
 
 
 @predictions_bp.route("/forecast/region", methods=["POST"])
+@require_auth(skip_db_check=True)
 @track_performance
 def forecast_region():
     import flask_app as _fa
@@ -273,6 +277,7 @@ def forecast_region():
 # ── Image-Based Diagnosis ────────────────────────────────────────────────────
 
 @predictions_bp.route("/predict/image", methods=["POST"])
+@require_auth(skip_db_check=True)
 @track_performance
 def predict_image():
     import flask_app as _fa

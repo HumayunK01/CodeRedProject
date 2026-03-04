@@ -1,0 +1,1077 @@
+openapi: 3.0.3
+info:
+  title: Foresee ML Inference API
+  description: |
+    AI-powered malaria diagnosis and outbreak forecasting API.
+
+    ## Authentication
+    Protected endpoints require a **Clerk JWT** in the `Authorization: Bearer <token>` header.
+    Tokens are verified against Clerk's JWKS endpoint.
+
+    ## Rate Limiting
+    All endpoints are rate-limited (default: 100 req/min per user or IP).
+  version: 1.0.0
+  contact:
+    name: Foresee Team
+
+servers:
+  - url: https://coderedproject-production.up.railway.app
+    description: Production (Railway)
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Core
+    description: Health checks and connectivity tests
+  - name: Admin
+    description: User management (admin-only)
+  - name: Users
+    description: User sync and stats
+  - name: Diagnoses
+    description: Malaria diagnosis records
+  - name: Forecasts
+    description: Outbreak forecast records
+  - name: Activity
+    description: User activity and dashboard statistics
+  - name: Predictions
+    description: ML inference endpoints
+  - name: Reports
+    description: PDF report generation
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk-issued JWT token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        models_loaded:
+          type: object
+          properties:
+            cnn_diagnostic_model:
+              type: boolean
+            arima_forecast_model:
+              type: boolean
+            dhs_risk_model:
+              type: boolean
+        database_connected:
+          type: boolean
+
+    UserSync:
+      type: object
+      required: [clerkId, email]
+      properties:
+        clerkId:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        firstName:
+          type: string
+          maxLength: 100
+          nullable: true
+        lastName:
+          type: string
+          maxLength: 100
+          nullable: true
+        imageUrl:
+          type: string
+          maxLength: 1000
+          nullable: true
+
+    DiagnosisCreate:
+      type: object
+      required: [clerkId, result]
+      properties:
+        clerkId:
+          type: string
+          maxLength: 64
+        result:
+          type: string
+          maxLength: 100
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        imageUrl:
+          type: string
+          maxLength: 1000
+          nullable: true
+        patientAge:
+          type: number
+          minimum: 0
+          maximum: 150
+        patientSex:
+          type: string
+          enum: [Male, Female, Other]
+          nullable: true
+        location:
+          type: string
+          maxLength: 200
+          nullable: true
+        species:
+          type: string
+          nullable: true
+        parasiteCount:
+          type: number
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        symptoms:
+          type: object
+          nullable: true
+        processingTime:
+          type: number
+          nullable: true
+        modelVersion:
+          type: string
+          nullable: true
+
+    ForecastCreate:
+      type: object
+      required: [clerkId, region]
+      properties:
+        clerkId:
+          type: string
+          maxLength: 64
+        region:
+          type: string
+          maxLength: 200
+        horizonWeeks:
+          type: number
+          minimum: 1
+          maximum: 52
+        riskLevel:
+          type: string
+          enum: [Low, Medium, High, Critical]
+          nullable: true
+        hotspotScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        predictions:
+          type: object
+          nullable: true
+        modelVersion:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        temperature:
+          type: number
+          nullable: true
+        rainfall:
+          type: number
+          nullable: true
+        humidity:
+          type: number
+          nullable: true
+
+    SymptomPredictionRequest:
+      type: object
+      properties:
+        fever:
+          type: integer
+          enum: [0, 1]
+          description: "1 = yes, 0 = no"
+        age_months:
+          type: integer
+          description: Patient age in months
+        state:
+          type: string
+          description: Indian state name
+        residence_type:
+          type: string
+          enum: [Urban, Rural]
+        slept_under_net:
+          type: integer
+          enum: [0, 1]
+        anemia_level:
+          type: integer
+          description: Anemia severity code
+        interview_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        chills:
+          type: integer
+          enum: [0, 1]
+        headache:
+          type: integer
+          enum: [0, 1]
+        fatigue:
+          type: integer
+          enum: [0, 1]
+        muscle_aches:
+          type: integer
+          enum: [0, 1]
+        nausea:
+          type: integer
+          enum: [0, 1]
+        diarrhea:
+          type: integer
+          enum: [0, 1]
+        abdominal_pain:
+          type: integer
+          enum: [0, 1]
+        cough:
+          type: integer
+          enum: [0, 1]
+        skin_rash:
+          type: integer
+          enum: [0, 1]
+
+    SymptomPredictionResponse:
+      type: object
+      properties:
+        label:
+          type: string
+          example: High Risk
+        risk_score:
+          type: number
+          format: float
+        confidence:
+          type: number
+          format: float
+        method:
+          type: string
+        model_version:
+          type: string
+
+    RegionForecastRequest:
+      type: object
+      properties:
+        region:
+          type: string
+          default: India
+        horizon_weeks:
+          type: integer
+          maximum: 12
+
+    RegionForecastResponse:
+      type: object
+      properties:
+        region:
+          type: string
+        disease:
+          type: string
+        historical:
+          type: array
+          items:
+            type: object
+            properties:
+              week:
+                type: string
+              cases:
+                type: number
+        predictions:
+          type: array
+          items:
+            type: object
+            properties:
+              week:
+                type: string
+              cases:
+                type: number
+        hotspot_score:
+          type: number
+        hotspots:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              intensity:
+                type: number
+        live_insights:
+          type: object
+          nullable: true
+          properties:
+            temperature:
+              type: number
+            humidity:
+              type: number
+            precipitation:
+              type: number
+            news_articles_found:
+              type: integer
+            top_headlines:
+              type: array
+              items:
+                type: string
+
+    ImagePredictionResponse:
+      type: object
+      properties:
+        label:
+          type: string
+          enum: [Parasitized, Uninfected, Invalid Image]
+        confidence:
+          type: number
+          format: float
+        probability:
+          type: number
+          format: float
+        threshold:
+          type: number
+          format: float
+
+    SetRoleRequest:
+      type: object
+      required: [userId, role]
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+          enum: [doctor, patient, admin]
+
+    DashboardStats:
+      type: object
+      properties:
+        today_diagnoses:
+          type: integer
+        today_positive:
+          type: integer
+        active_forecasts:
+          type: integer
+        high_risk_forecasts:
+          type: integer
+        risk_regions:
+          type: integer
+        system_health:
+          type: number
+        model_accuracy:
+          type: number
+        response_time:
+          type: string
+        data_security:
+          type: string
+        global_reach:
+          type: integer
+        recent_activity:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              title:
+                type: string
+              time:
+                type: string
+              result:
+                type: string
+              status:
+                type: string
+
+    ReportRequest:
+      type: object
+      properties:
+        patientName:
+          type: string
+        patientAge:
+          type: number
+        patientSex:
+          type: string
+        result:
+          type: string
+        confidence:
+          type: number
+        species:
+          type: string
+          nullable: true
+        parasiteCount:
+          type: number
+          nullable: true
+        symptoms:
+          type: object
+          nullable: true
+
+paths:
+  /:
+    get:
+      tags: [Core]
+      summary: API info
+      description: Returns basic API information.
+      operationId: getHome
+      responses:
+        "200":
+          description: API metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  description:
+                    type: string
+                  status:
+                    type: string
+
+  /health:
+    get:
+      tags: [Core]
+      summary: Health check
+      description: Reports model loading status and database connectivity.
+      operationId: getHealth
+      responses:
+        "200":
+          description: System health
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/db-test:
+    get:
+      tags: [Core]
+      summary: Database connectivity test
+      description: Tests PostgreSQL connection — intended for debugging only.
+      operationId: getDbTest
+      responses:
+        "200":
+          description: Database status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      description: Returns all Clerk users. Requires admin role.
+      operationId: listAdminUsers
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    email:
+                      type: string
+                    imageUrl:
+                      type: string
+                    role:
+                      type: string
+                    createdAt:
+                      type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/set-role:
+    post:
+      tags: [Admin]
+      summary: Set user role
+      description: Assigns a role to a user via Clerk metadata. Requires admin role.
+      operationId: setAdminRole
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetRoleRequest"
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  userId:
+                    type: string
+                  role:
+                    type: string
+        "400":
+          description: Invalid role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/users/sync:
+    post:
+      tags: [Users]
+      summary: Sync user from Clerk
+      description: Creates or updates a user record from Clerk data.
+      operationId: syncUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSync"
+      responses:
+        "200":
+          description: User synced
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/users/{clerk_id}/stats:
+    get:
+      tags: [Users]
+      summary: Get user stats
+      description: Returns user profile with diagnosis and forecast statistics.
+      operationId: getUserStats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                  diagnosisStats:
+                    type: object
+                  forecastStats:
+                    type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/diagnoses:
+    post:
+      tags: [Diagnoses]
+      summary: Create diagnosis
+      description: Stores a new malaria diagnosis record.
+      operationId: createDiagnosis
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiagnosisCreate"
+      responses:
+        "201":
+          description: Diagnosis created
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/diagnoses/{clerk_id}:
+    get:
+      tags: [Diagnoses]
+      summary: List user diagnoses
+      description: Returns diagnoses for the specified user, newest first.
+      operationId: listDiagnoses
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Diagnosis list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/diagnoses/{clerk_id}/stats:
+    get:
+      tags: [Diagnoses]
+      summary: Diagnosis statistics
+      description: Returns aggregated diagnosis stats for a user.
+      operationId: getDiagnosisStats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stats object
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/forecasts:
+    post:
+      tags: [Forecasts]
+      summary: Create forecast
+      description: Stores a new outbreak forecast record.
+      operationId: createForecast
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForecastCreate"
+      responses:
+        "201":
+          description: Forecast created
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/forecasts/{clerk_id}:
+    get:
+      tags: [Forecasts]
+      summary: List user forecasts
+      description: Returns forecasts for the specified user, newest first.
+      operationId: listForecasts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Forecast list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/forecasts/{clerk_id}/stats:
+    get:
+      tags: [Forecasts]
+      summary: Forecast statistics
+      description: Returns aggregated forecast stats for a user.
+      operationId: getForecastStats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stats object
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/activity/{clerk_id}:
+    get:
+      tags: [Activity]
+      summary: User activity feed
+      description: Returns recent activity items for a user.
+      operationId: getUserActivity
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clerk_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /dashboard/stats:
+    get:
+      tags: [Activity]
+      summary: Dashboard statistics (GET)
+      description: Returns dashboard statistics. Optionally pass clerkId for personalised data.
+      operationId: getDashboardStats
+      parameters:
+        - name: clerkId
+          in: query
+          schema:
+            type: string
+        - name: stored_results
+          in: query
+          description: JSON-encoded array of stored results
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+    post:
+      tags: [Activity]
+      summary: Dashboard statistics (POST)
+      description: Returns dashboard statistics with body parameters.
+      operationId: postDashboardStats
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clerkId:
+                  type: string
+                stored_results:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /predict/symptoms:
+    post:
+      tags: [Predictions]
+      summary: Symptom-based risk prediction
+      description: |
+        Predicts malaria risk from patient symptoms and demographic features
+        using the DHS-trained gradient boosting model.
+      operationId: predictSymptoms
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SymptomPredictionRequest"
+      responses:
+        "200":
+          description: Risk prediction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SymptomPredictionResponse"
+        "500":
+          description: Model not loaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /predict/image:
+    post:
+      tags: [Predictions]
+      summary: Cell image classification
+      description: |
+        Classifies a blood smear cell image as Parasitized or Uninfected using
+        the CNN model. Images are validated for file type, size, and content
+        before inference.
+      operationId: predictImage
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Cell image (max 10 MB; png/jpg/jpeg/bmp/tiff/webp)"
+      responses:
+        "200":
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImagePredictionResponse"
+        "400":
+          description: Invalid image or gatekeeper rejection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImagePredictionResponse"
+        "500":
+          description: Model not loaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /forecast/regions:
+    get:
+      tags: [Predictions]
+      summary: Available forecast regions
+      description: Returns the list of regions for which outbreak forecasts are available.
+      operationId: getRegions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Region list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  regions:
+                    type: array
+                    items:
+                      type: string
+
+  /forecast/region:
+    post:
+      tags: [Predictions]
+      summary: Regional outbreak forecast
+      description: |
+        Generates an ARIMA-based outbreak forecast for a region, including
+        historical data, predictions, hotspot scoring, and optional
+        live weather/news insights.
+      operationId: forecastRegion
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegionForecastRequest"
+      responses:
+        "200":
+          description: Forecast result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegionForecastResponse"
+        "500":
+          description: Model not loaded or forecast failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/generate_report:
+    post:
+      tags: [Reports]
+      summary: Generate PDF report
+      description: Generates a downloadable PDF diagnosis report.
+      operationId: generateReport
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportRequest"
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "500":
+          description: PDF generation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

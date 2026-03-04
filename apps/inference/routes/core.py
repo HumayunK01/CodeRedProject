@@ -6,12 +6,17 @@ import os
 import traceback
 from datetime import datetime
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, Response
 from core.logging_config import get_logger
 
 logger = get_logger("foresee.app")
 
 core_bp = Blueprint("core", __name__)
+
+
+@core_bp.route("/favicon.ico")
+def favicon():
+    return Response(status=204)
 
 
 @core_bp.route("/")

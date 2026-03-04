@@ -30,6 +30,11 @@ export function setTokenProvider(fn: () => Promise<string | null>) {
   _getTokenFn = fn;
 }
 
+/** Return the current Clerk session token (or null if unavailable). */
+export async function getAuthToken(): Promise<string | null> {
+  return _getTokenFn ? _getTokenFn() : null;
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
   const token = _getTokenFn ? await _getTokenFn() : null;
   return token

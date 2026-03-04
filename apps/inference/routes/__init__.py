@@ -13,6 +13,7 @@ from routes.forecasts import forecasts_bp
 from routes.activity import activity_bp
 from routes.predictions import predictions_bp
 from routes.reports import reports_bp
+from routes.docs import docs_bp
 
 
 def register_blueprints(app):
@@ -25,3 +26,4 @@ def register_blueprints(app):
     app.register_blueprint(activity_bp)
     app.register_blueprint(predictions_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(docs_bp)
