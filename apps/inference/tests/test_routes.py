@@ -100,7 +100,7 @@ class TestSyncUser:
     @patch("flask_app.get_user_with_stats")
     @patch("flask_app.upsert_user")
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_sync_success(self, _pk, mock_get_user, mock_upsert, mock_stats, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
         mock_upsert.return_value = {"id": "u1", "clerkId": "user_test123", "email": "a@b.com"}
@@ -125,7 +125,7 @@ class TestSyncUser:
         assert resp.status_code == 200
 
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_sync_mismatched_clerk_id(self, _pk, mock_get_user, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
 
@@ -138,7 +138,7 @@ class TestSyncUser:
         assert resp.status_code == 403
 
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_sync_no_body(self, _pk, mock_get_user, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
         token = _make_token()
@@ -157,7 +157,7 @@ class TestDiagnosisRoutes:
 
     @patch("flask_app.db_create_diagnosis")
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_create_diagnosis(self, _pk, mock_get_user, mock_create, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
         mock_create.return_value = {
@@ -182,7 +182,7 @@ class TestDiagnosisRoutes:
         assert data["result"] == "Parasitized"
 
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_create_diagnosis_validation_error(self, _pk, mock_get_user, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
 
@@ -200,7 +200,7 @@ class TestDiagnosisRoutes:
 
     @patch("flask_app.get_diagnoses_by_user")
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_get_diagnoses(self, _pk, mock_get_user, mock_get_diags, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
         mock_get_diags.return_value = [
@@ -221,7 +221,7 @@ class TestForecastRoutes:
 
     @patch("flask_app.db_create_forecast")
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_create_forecast(self, _pk, mock_get_user, mock_create, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
         mock_create.return_value = {
@@ -246,7 +246,7 @@ class TestForecastRoutes:
         assert resp.status_code == 201
 
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_create_forecast_validation_error(self, _pk, mock_get_user, client):
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
 
@@ -330,7 +330,7 @@ class TestForecastRegion:
 class TestForecastRegionsGet:
     """GET /forecast/regions — reads CSV."""
 
-    @patch("flask_app.pd.read_csv")
+    @patch("routes.predictions.pd.read_csv")
     def test_returns_regions(self, mock_csv, client):
         import pandas as pd
         mock_csv.return_value = pd.DataFrame({"Region": ["Kerala", "Goa", "Kerala"]})
@@ -340,7 +340,7 @@ class TestForecastRegionsGet:
         assert "regions" in data
         assert "Kerala" in data["regions"]
 
-    @patch("flask_app.pd.read_csv", side_effect=FileNotFoundError("CSV not found"))
+    @patch("routes.predictions.pd.read_csv", side_effect=FileNotFoundError("CSV not found"))
     def test_csv_missing(self, mock_csv, client):
         resp = client.get("/forecast/regions")
         assert resp.status_code == 500
@@ -349,8 +349,8 @@ class TestForecastRegionsGet:
 class TestGenerateReport:
     """POST /api/generate_report"""
 
-    @patch("flask_app.pisa")
-    @patch("flask_app.render_template")
+    @patch("routes.reports.pisa")
+    @patch("routes.reports.render_template")
     def test_generates_pdf(self, mock_render, mock_pisa, client):
         mock_render.return_value = "<html><body>Report</body></html>"
         mock_pisa_status = MagicMock()
@@ -380,14 +380,14 @@ class TestAdminRoutes:
     """Admin endpoints require role=admin."""
 
     @patch("flask_app.get_user_by_clerk_id")
-    @patch("flask_app.get_clerk_public_key", return_value=None)
+    @patch("core.auth.get_clerk_public_key", return_value=None)
     def test_admin_users_forbidden_for_patient(self, _pk, mock_get_user, client):
         """A regular user can't access admin routes."""
         mock_get_user.return_value = {"id": "u1", "clerkId": "user_test123"}
 
         token = _make_token()
-        # _get_caller_role will try to call Clerk API — mock it
-        with patch("flask_app._get_caller_role", return_value=("patient", "ok")):
+        # get_caller_role will try to call Clerk API — mock it
+        with patch("core.auth.get_caller_role", return_value=("patient", "ok")):
             resp = client.get(
                 "/admin/users",
                 headers={"Authorization": f"Bearer {token}"},
