@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Trash2, Microscope, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StoredResult } from "@/lib/types";
+import { StoredResult, DiagnosisResult, ForecastResult, SymptomsInput, ForecastInput } from "@/lib/types";
 import dayjs from "dayjs";
 
 interface ResultCardProps {
@@ -14,13 +14,20 @@ interface ResultCardProps {
 }
 
 export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCardProps) => {
+    // Type-narrowed accessors
+    const isDiagnosis = result.type === 'diagnosis';
+    const diagResult = result.result as DiagnosisResult;
+    const forecastResult = result.result as ForecastResult;
+    const symptomsInput = result.input as SymptomsInput;
+    const forecastInput = result.input as ForecastInput;
+
     // Helper to normalize symptoms from Array or Object (DB format)
-    const rawSymptoms = result.type === 'diagnosis' ? (result.input as any).symptoms : null;
-    const symptomsList = Array.isArray(rawSymptoms)
+    const rawSymptoms = isDiagnosis ? symptomsInput.symptoms : null;
+    const symptomsList: string[] = Array.isArray(rawSymptoms)
         ? rawSymptoms
         : (typeof rawSymptoms === 'object' && rawSymptoms !== null)
             ? Object.entries(rawSymptoms)
-                .filter(([_, v]) => v && v !== 'None' && v !== 0 && v !== false)
+                .filter(([, v]) => v && v !== 'None' && v !== 0 && v !== false)
                 .map(([k, v]) => {
                     const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                     return v === true ? label : `${label}: ${v}`;
@@ -31,9 +38,8 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
         return type === 'diagnosis' ? Microscope : TrendingUp;
     };
 
-    const getResultColor = (result: StoredResult) => {
+    const getResultColor = (result: StoredResult): "default" | "destructive" | "secondary" => {
         if (result.type === 'diagnosis') {
-            const diagResult = result.result as any;
             if (diagResult.label?.toLowerCase().includes('positive') ||
                 diagResult.label?.toLowerCase().includes('high')) {
                 return 'destructive';
@@ -69,7 +75,7 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <Badge variant={getResultColor(result) as any} className="text-[10px] uppercase font-bold px-2 py-0.5 h-5">
+                            <Badge variant={getResultColor(result)} className="text-[10px] uppercase font-bold px-2 py-0.5 h-5">
                                 {result.type}
                             </Badge>
                             <span className="text-xs text-muted-foreground font-medium">
@@ -77,9 +83,9 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                             </span>
                         </div>
                         <h4 className="font-bold text-foreground/90">
-                            {result.type === 'diagnosis'
-                                ? `Diagnosis – ${(result.result as any).label || 'Assessment'} Risk`
-                                : `Forecast – ${(result.result as any).region || 'Regional'} (${(result.result as any).predictions?.length || 4}-week outlook)`
+                            {isDiagnosis
+                                ? `Diagnosis – ${diagResult.label || 'Assessment'} Risk`
+                                : `Forecast – ${forecastResult.region || 'Regional'} (${forecastResult.predictions?.length || 4}-week outlook)`
                             }
                         </h4>
                         {result.type === 'diagnosis' && symptomsList.length > 0 && (
@@ -89,7 +95,7 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                         )}
                         {result.type === 'forecast' && (
                             <p className="text-xs text-foreground/60 mt-1 line-clamp-1">
-                                Period: {(result.result as any).predictions?.length || 0} weeks projection
+                                Period: {forecastResult.predictions?.length || 0} weeks projection
                             </p>
                         )}
                     </div>
@@ -122,25 +128,25 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                     <div className="grid md:grid-cols-2 gap-4">
                         {/* Input Data Section - Only show if there's actual data */}
                         {(result.type === 'forecast' ||
-                            (result.type === 'diagnosis' && ((result.input as any).age || (result.input as any).region || (result.input as any).symptoms?.length > 0))) && (
+                            (isDiagnosis && (symptomsInput.age || symptomsInput.region || symptomsInput.symptoms))) && (
                                 <div className="space-y-2">
                                     <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Input Data</h5>
                                     <div className="space-y-3">
-                                        {result.type === 'diagnosis' ? (
+                                        {isDiagnosis ? (
                                             <>
                                                 {/* Only show Age and Region if they have actual values (not for image-based diagnosis) */}
-                                                {((result.input as any).age || (result.input as any).region) && (
+                                                {(symptomsInput.age || symptomsInput.region) && (
                                                     <div className="grid grid-cols-2 gap-2">
-                                                        {(result.input as any).age && (
+                                                        {symptomsInput.age && (
                                                             <div className="bg-white/50 p-2 rounded-lg border border-white/60">
                                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Age</span>
-                                                                <p className="font-medium text-sm">{(result.input as any).age} Years</p>
+                                                                <p className="font-medium text-sm">{symptomsInput.age} Years</p>
                                                             </div>
                                                         )}
-                                                        {(result.input as any).region && (
+                                                        {symptomsInput.region && (
                                                             <div className="bg-white/50 p-2 rounded-lg border border-white/60">
                                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Region</span>
-                                                                <p className="font-medium text-sm">{(result.input as any).region}</p>
+                                                                <p className="font-medium text-sm">{symptomsInput.region}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -163,11 +169,11 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div className="bg-white/50 p-2 rounded-lg border border-white/60">
                                                     <span className="text-[10px] uppercase text-muted-foreground font-bold">Target Region</span>
-                                                    <p className="font-medium text-sm">{(result.input as any).region}</p>
+                                                    <p className="font-medium text-sm">{forecastInput.region}</p>
                                                 </div>
                                                 <div className="bg-white/50 p-2 rounded-lg border border-white/60">
                                                     <span className="text-[10px] uppercase text-muted-foreground font-bold">Horizon</span>
-                                                    <p className="font-medium text-sm">{(result.input as any).horizon_weeks} Weeks</p>
+                                                    <p className="font-medium text-sm">{forecastInput.horizon_weeks} Weeks</p>
                                                 </div>
                                             </div>
                                         )}
@@ -179,28 +185,28 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                         <div className="space-y-2">
                             <h5 className="text-xs font-bold uppercase text-primary tracking-wide">Analysis Results</h5>
                             <div className="space-y-3">
-                                {result.type === 'diagnosis' ? (
+                                {isDiagnosis ? (
                                     <>
                                         <div className="bg-white/50 p-3 rounded-lg border border-white/60 flex items-center justify-between">
                                             <div>
                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Risk Level</span>
-                                                <p className={`font-bold text-sm ${(result.result as any).label?.includes('High') ? 'text-destructive' :
-                                                    (result.result as any).label?.includes('Medium') ? 'text-warning' : 'text-success'
+                                                <p className={`font-bold text-sm ${diagResult.label?.includes('High') ? 'text-destructive' :
+                                                    diagResult.label?.includes('Medium') ? 'text-warning' : 'text-success'
                                                     }`}>
-                                                    {(result.result as any).label || 'Unknown'}
+                                                    {diagResult.label || 'Unknown'}
                                                 </p>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Confidence</span>
-                                                <p className="font-bold text-sm">{((result.result as any).confidence * 100).toFixed(1)}%</p>
+                                                <p className="font-bold text-sm">{((diagResult.confidence ?? 0) * 100).toFixed(1)}%</p>
                                             </div>
                                         </div>
-                                        {(result.result as any).explanations && (
+                                        {diagResult.explanations && (
                                             <div className="bg-white/50 p-3 rounded-lg border border-white/60">
                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold mb-2 block">Key Findings</span>
                                                 <ul className="text-xs space-y-1 list-disc pl-4 text-foreground/80">
-                                                    {(result.result as any).explanations.slice(0, 3).map((exp: string, i: number) => (
-                                                        <li key={i}>{exp}</li>
+                                                    {Object.values(diagResult.explanations).filter(Boolean).slice(0, 3).map((exp, i: number) => (
+                                                        <li key={i}>{String(exp)}</li>
                                                     ))}
                                                 </ul>
                                             </div>
@@ -212,29 +218,29 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                         <div className="bg-white/50 p-3 rounded-lg border border-white/60 mb-2">
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Hotspot Risk Score</span>
-                                                <span className={`font-bold text-sm ${((result.result as any).hotspot_score || 0) > 0.7 ? 'text-destructive' :
-                                                    ((result.result as any).hotspot_score || 0) > 0.4 ? 'text-warning' : 'text-success'
+                                                <span className={`font-bold text-sm ${(forecastResult.hotspot_score ?? 0) > 0.7 ? 'text-destructive' :
+                                                    (forecastResult.hotspot_score ?? 0) > 0.4 ? 'text-warning' : 'text-success'
                                                     }`}>
-                                                    {((result.result as any).hotspot_score || 0).toFixed(2)}
+                                                    {(forecastResult.hotspot_score ?? 0).toFixed(2)}
                                                 </span>
                                             </div>
                                             <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
                                                 <div
-                                                    className={`h-full transition-all ${((result.result as any).hotspot_score || 0) > 0.7 ? 'bg-destructive' :
-                                                        ((result.result as any).hotspot_score || 0) > 0.4 ? 'bg-warning' : 'bg-success'
+                                                    className={`h-full transition-all ${(forecastResult.hotspot_score ?? 0) > 0.7 ? 'bg-destructive' :
+                                                        (forecastResult.hotspot_score ?? 0) > 0.4 ? 'bg-warning' : 'bg-success'
                                                         }`}
-                                                    style={{ width: `${Math.min(((result.result as any).hotspot_score || 0) * 100, 100)}%` }}
+                                                    style={{ width: `${Math.min((forecastResult.hotspot_score ?? 0) * 100, 100)}%` }}
                                                 />
                                             </div>
                                         </div>
-                                        {(result.result as any).predictions?.length > 0 && (
+                                        {forecastResult.predictions?.length > 0 && (
                                             <div className="bg-white/50 p-3 rounded-lg border border-white/60">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="text-[10px] uppercase text-muted-foreground font-bold">Projected Case Trend</span>
                                                     <span className="text-[10px] text-muted-foreground">(Next 3 Weeks)</span>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    {(result.result as any).predictions.slice(0, 3).map((p: any, i: number) => (
+                                                    {forecastResult.predictions.slice(0, 3).map((p, i: number) => (
                                                         <div key={i} className="flex justify-between text-xs items-center">
                                                             <span className="text-foreground/70 font-medium">{p.week}</span>
                                                             <div className="flex items-center gap-2">

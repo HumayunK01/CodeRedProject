@@ -14,7 +14,7 @@ interface DownloadReportButtonProps {
         patientSex?: string;
         species?: string;
         parasiteCount?: string;
-        [key: string]: any;
+        [key: string]: string | number | boolean | undefined;
     };
     className?: string;
 }

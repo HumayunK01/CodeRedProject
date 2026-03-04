@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
@@ -48,7 +48,7 @@ export default function Admin() {
         }
     }, [user, currentRole, navigate]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const token = await getToken();
@@ -68,11 +68,11 @@ export default function Admin() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [getToken, toast]);
 
     useEffect(() => {
         if (currentRole === "admin") fetchUsers();
-    }, [currentRole]);
+    }, [currentRole, fetchUsers]);
 
     const setRole = async (userId: string, role: Role) => {
         setUpdatingId(userId);

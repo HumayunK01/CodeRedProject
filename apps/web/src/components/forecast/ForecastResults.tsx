@@ -112,11 +112,17 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
     }
   };
 
-  const combinedData: any[] = [];
+  interface CombinedDataPoint {
+    week: string;
+    historicalCases?: number;
+    predictedCases?: number;
+  }
+
+  const combinedData: CombinedDataPoint[] = [];
 
   if (results?.historical) {
     results.historical.forEach((h, index) => {
-      const point: any = { week: h.week, historicalCases: h.cases };
+      const point: CombinedDataPoint = { week: h.week, historicalCases: h.cases };
       // Connect the prediction line to the last historical point
       if (index === results.historical!.length - 1) {
         point.predictedCases = h.cases;
@@ -369,7 +375,7 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     >
                       <ForecastMap
                         region={results.region}
-                        hotspots={results.hotspots as any}
+                        hotspots={results.hotspots}
                       />
                     </motion.div>
                   )}

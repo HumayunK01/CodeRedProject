@@ -62,6 +62,7 @@ export function DbUserProvider({ children }: DbUserProviderProps) {
  * Hook to access the database user context
  * Must be used within a DbUserProvider
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCurrentUser(): DbUserContextType {
     const context = useContext(DbUserContext);
 

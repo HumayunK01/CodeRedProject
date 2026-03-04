@@ -82,6 +82,23 @@ def register_after_request(app):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
 
+        # Content-Security-Policy
+        if request.path in ("/docs", "/docs/"):
+            # Swagger UI needs CDN scripts/styles and inline script to boot
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+                "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+                "img-src 'self' data:; "
+                "frame-ancestors 'none'"
+            )
+        else:
+            # Strict policy for all API endpoints
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'none'; "
+                "frame-ancestors 'none'"
+            )
+
         # Security event logging
         if response.status_code in (401, 403, 429):
             user_id = getattr(request, "user_id", "unauthenticated")

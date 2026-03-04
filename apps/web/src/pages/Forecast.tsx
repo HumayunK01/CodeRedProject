@@ -15,7 +15,8 @@ import {
   Calendar,
   Settings,
   Info,
-  Shield
+  Shield,
+  type LucideIcon
 } from "lucide-react";
 
 // --- Sub-components (Matched to Diagnosis/Dashboard) ---
@@ -26,7 +27,7 @@ const DashboardContainer = ({ children, className = "" }: { children: React.Reac
   </section>
 );
 
-const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: any, title: string, subtitle: string, rightElement?: React.ReactNode }) => (
+const SectionHeader = ({ icon: Icon, title, subtitle, rightElement }: { icon: LucideIcon, title: string, subtitle: string, rightElement?: React.ReactNode }) => (
   <div className="flex items-center justify-between mb-6">
     <div className="flex items-center gap-3">
       <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 shadow-sm">

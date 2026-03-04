@@ -36,6 +36,9 @@ export interface SymptomsInput {
   age?: number;
   sex?: string;
   region?: string;
+
+  // DB-stored symptom map (JSON blob from persistence layer)
+  symptoms?: Record<string, unknown> | unknown[];
 }
 
 export interface ForecastInput {

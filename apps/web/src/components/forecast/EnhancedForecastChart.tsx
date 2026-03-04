@@ -33,12 +33,12 @@ export const EnhancedForecastChart = ({ data, showComparison = false }: Enhanced
   const TrendIcon = trend.direction === 'up' ? TrendingUp : 
                    trend.direction === 'down' ? TrendingDown : Minus;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-lg shadow-lg p-3">
           <p className="font-medium">{`Week: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name === 'cases' ? 'Predicted' : entry.name}: {entry.value} cases
             </p>

@@ -67,7 +67,7 @@ export interface Diagnosis {
     confidence: number | null;
     parasiteCount: number | null;
     species: string | null;
-    symptoms: any | null; // JSON type
+    symptoms: Record<string, unknown> | null; // JSON type
     modelVersion: string | null;
     processingTime: number | null;
     createdAt: Date;
@@ -102,7 +102,7 @@ export interface Report {
     userId: string;
     title: string;
     type: ReportType;
-    content: any | null; // JSON type
+    content: Record<string, unknown> | null; // JSON type
     status: ReportStatus;
     dateFrom: Date | null;
     dateTo: Date | null;
@@ -117,6 +117,6 @@ export interface SystemLog {
     level: LogLevel;
     service: string;
     message: string;
-    metadata: any | null; // JSON type
+    metadata: Record<string, unknown> | null; // JSON type
     createdAt: Date;
 }

@@ -3,10 +3,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkline } from "@/components/ui/sparkline";
-import { Info } from "lucide-react";
+import { Info, type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const MetricCard = ({ stat }: { stat: any }) => {
+interface QuickStat {
+    title: string;
+    value: number;
+    change: string;
+    trend: string;
+    icon: LucideIcon;
+    tooltip: string;
+    sparklineData: { value: number }[];
+    suffix: string;
+    source: string;
+}
+
+export const MetricCard = ({ stat }: { stat: QuickStat }) => {
     const Icon = stat.icon;
     return (
         <Card className="bg-white/40 backdrop-blur-md border border-white/60 shadow-none hover:shadow-lg hover:-translate-y-0.5 rounded-[20px] group transition-all duration-400 overflow-hidden">

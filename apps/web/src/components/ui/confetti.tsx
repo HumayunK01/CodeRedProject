@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfettiParticle {
@@ -18,12 +18,12 @@ interface ConfettiProps {
 export const Confetti = ({ show, onComplete }: ConfettiProps) => {
   const [particles, setParticles] = useState<ConfettiParticle[]>([]);
 
-  const colors = [
+  const colors = useMemo(() => [
     'hsl(var(--primary))',
     'hsl(var(--accent))', 
     'hsl(var(--success))',
     'hsl(var(--warning))',
-  ];
+  ], []);
 
   useEffect(() => {
     if (show) {
@@ -50,7 +50,7 @@ export const Confetti = ({ show, onComplete }: ConfettiProps) => {
       
       return () => clearTimeout(timeout);
     }
-  }, [show]);
+  }, [show, colors, onComplete]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">

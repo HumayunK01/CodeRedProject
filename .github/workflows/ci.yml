@@ -64,7 +64,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true  # TODO: fix 74 existing lint errors then remove this
 
       - name: Type-check
         run: npm run type-check
@@ -162,7 +161,6 @@ jobs:
 
       - name: Lint with Ruff
         run: ruff check . --output-format=github
-        continue-on-error: true  # TODO: fix existing lint issues then remove this
 
       - name: Security scan with Bandit
         run: bandit -r . -x ./tests,./notebooks,./scripts --severity-level medium -f json || true

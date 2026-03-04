@@ -6,24 +6,24 @@ import Footer from "@/components/layout/Footer";
 // Mock framer-motion
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: any) => {
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
       const { initial, animate, exit, whileInView, whileHover, whileTap, transition, viewport, variants, layout, layoutId, ...rest } = props;
       return <div {...rest}>{children}</div>;
     },
-    p: ({ children, ...props }: any) => {
+    p: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
       const { initial, animate, exit, whileInView, transition, viewport, ...rest } = props;
       return <p {...rest}>{children}</p>;
     },
-    a: ({ children, ...props }: any) => {
+    a: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
       const { initial, animate, exit, whileInView, transition, viewport, whileHover, ...rest } = props;
       return <a {...rest}>{children}</a>;
     },
-    span: ({ children, ...props }: any) => {
+    span: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
       const { initial, animate, exit, whileInView, transition, viewport, ...rest } = props;
       return <span {...rest}>{children}</span>;
     },
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 
 describe("Footer component", () => {

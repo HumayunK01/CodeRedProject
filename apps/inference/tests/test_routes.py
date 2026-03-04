@@ -45,6 +45,23 @@ class TestPublicRoutes:
         assert "models_loaded" in data
         assert "timestamp" in data
 
+    def test_security_headers_on_api(self, client):
+        """API responses include strict security headers."""
+        resp = client.get("/health")
+        assert resp.headers["X-Content-Type-Options"] == "nosniff"
+        assert resp.headers["X-Frame-Options"] == "DENY"
+        assert resp.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+        csp = resp.headers["Content-Security-Policy"]
+        assert "default-src 'none'" in csp
+        assert "frame-ancestors 'none'" in csp
+
+    def test_csp_header_on_docs(self, client):
+        """Swagger UI page gets a permissive CSP to allow CDN resources."""
+        resp = client.get("/docs")
+        csp = resp.headers["Content-Security-Policy"]
+        assert "cdn.jsdelivr.net" in csp
+        assert "'unsafe-inline'" in csp
+
     def test_dashboard_stats_unauthenticated(self, client):
         """Dashboard fallback path with empty stored results."""
         resp = client.get("/dashboard/stats")

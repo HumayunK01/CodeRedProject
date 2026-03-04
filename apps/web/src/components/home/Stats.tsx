@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 
 export const Stats = () => {
     return (
@@ -92,7 +93,7 @@ export const Stats = () => {
     );
 };
 
-const FeatureCard = ({ icon: Icon, imageSrc, title, description, delay = 0 }: { icon?: any, imageSrc?: string, title: string, description: string, delay?: number }) => {
+const FeatureCard = ({ icon: Icon, imageSrc, title, description, delay = 0 }: { icon?: LucideIcon, imageSrc?: string, title: string, description: string, delay?: number }) => {
     return (
         <div
             className="group relative overflow-hidden bg-gradient-to-br from-[#10392F] to-[#0A261F] border border-white/10 rounded-[28px] p-8 h-full min-h-[260px] hover:border-emerald-400/30 hover:shadow-2xl hover:shadow-emerald-900/20 hover:-translate-y-1 transition-all duration-300"

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { apiClient } from "@/lib/api";
+import { DashboardStats } from "@/lib/types";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
@@ -60,7 +61,7 @@ const Dashboard = () => {
       try {
         setLoading(true);
         // Pass clerkId to get real database stats
-        const stats: any = await apiClient.getDashboardStats(clerkId || undefined);
+        const stats: DashboardStats = await apiClient.getDashboardStats(clerkId || undefined);
 
         setQuickStats([
           {
@@ -245,7 +246,7 @@ const Dashboard = () => {
             />
             <div className="bg-white/40 rounded-[16px] border border-white shadow-inner-sm overflow-hidden divide-y divide-primary/5">
               {isSignedIn
-                ? recentActivity.slice(0, 3).map((activity: any, i) => <ActivityLogItem key={i} activity={activity} />)
+                ? recentActivity.slice(0, 3).map((activity: DashboardStats['recent_activity'][number], i) => <ActivityLogItem key={i} activity={activity} />)
                 : Array(3).fill(0).map((_, i) => <ActivityLogItemSkeleton key={i} />)
               }
             </div>

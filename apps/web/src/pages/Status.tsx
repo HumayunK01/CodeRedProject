@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const Status = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastCheck, setLastCheck] = useState<string | null>(null);
 
-  const checkHealth = async () => {
+  const checkHealth = useCallback(async () => {
     setIsLoading(true);
     try {
       const result = await apiClient.getHealth();
@@ -48,14 +48,14 @@ const Status = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     checkHealth();
     // Auto-refresh every 30 seconds
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [checkHealth]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -70,7 +70,7 @@ const Status = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): "default" | "destructive" | "secondary" => {
     switch (status) {
       case 'ok':
         return 'default';
@@ -185,7 +185,7 @@ const Status = () => {
               </div>
 
               {health && (
-                <Badge variant={getStatusColor(health.status) as any}>
+                <Badge variant={getStatusColor(health.status)}>
                   <motion.div
                     className="flex items-center space-x-1"
                     animate={{ opacity: [1, 0.7, 1] }}
@@ -250,7 +250,7 @@ const Status = () => {
                       >
                         {getStatusIcon(service.status)}
                       </motion.div>
-                      <Badge variant={getStatusColor(service.status) as any}>
+                      <Badge variant={getStatusColor(service.status)}>
                         <motion.div
                           className="flex items-center space-x-1"
                           animate={{ opacity: [1, 0.8, 1] }}

@@ -1,8 +1,9 @@
 
 import React from 'react';
+import type { LucideIcon } from 'lucide-react';
 
 interface SectionHeaderProps {
-    icon: any;
+    icon: LucideIcon;
     title: string;
     subtitle: string;
     rightElement?: React.ReactNode;

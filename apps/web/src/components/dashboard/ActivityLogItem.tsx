@@ -3,7 +3,15 @@ import { Microscope, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const ActivityLogItem = ({ activity }: { activity: any }) => (
+interface ActivityItem {
+    type: string;
+    title: string;
+    time: string;
+    result: string;
+    status: string;
+}
+
+export const ActivityLogItem = ({ activity }: { activity: ActivityItem }) => (
     <div className="flex items-center gap-4 px-6 py-4 hover:bg-primary/5 transition-all cursor-default group">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/5 text-primary border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">
             {activity.type === 'diagnosis' ? <Microscope className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}

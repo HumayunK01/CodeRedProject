@@ -1,8 +1,16 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { LucideIcon } from "lucide-react";
 
-export const InfrastructureMetric = ({ metric }: { metric: any }) => (
+interface MetricItem {
+    title: string;
+    value: string;
+    status: string;
+    icon: LucideIcon;
+}
+
+export const InfrastructureMetric = ({ metric }: { metric: MetricItem }) => (
     <div className="flex items-center justify-between p-5 rounded-[20px] bg-white/50 backdrop-blur-sm border border-primary/5 hover:bg-primary/5 hover:border-primary/20 transition-all group">
         <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">

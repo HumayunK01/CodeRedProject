@@ -201,7 +201,7 @@ class ApiClient {
       throw new Error('Failed to fetch dashboard statistics. Please try again.');
     }
   }
-  async generateReport(data: any): Promise<Blob> {
+  async generateReport(data: Record<string, unknown>): Promise<Blob> {
     try {
       const auth = await this.authHeader();
       const response = await this.fetchWithTimeout(`${BASE_URL}/api/generate_report`, {

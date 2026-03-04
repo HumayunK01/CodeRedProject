@@ -1,9 +1,9 @@
 
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const ActionItem = ({ to, title, desc, icon: Icon, color }: { to: string, title: string, desc: string, icon: any, color: string }) => (
+export const ActionItem = ({ to, title, desc, icon: Icon, color }: { to: string, title: string, desc: string, icon: LucideIcon, color: string }) => (
     <Link to={to} className="group/item">
         <div className="h-full p-6 rounded-[20px] bg-white/40 backdrop-blur-sm border border-white/60 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-400 flex flex-col items-center text-center gap-4">
             <div className={`w-14 h-14 flex items-center justify-center rounded-2xl ${color} border transition-all duration-500 group-hover/item:scale-110 shadow-sm`}>
