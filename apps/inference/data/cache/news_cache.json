@@ -42,10 +42,10 @@
       "headlines": [
         "7 die of jaundice in Haryana\u2019s Palwal village in 2 weeks; outbreak probe underway - The Times of India",
         "Hepatitis Outbreak Kills 4 In Haryana Village; 3 Other Deaths Under Investigation - ETV Bharat",
-        "Haryana notifies regulations to curb vector-borne diseases - Tribune India"
+        "Haryana govt taking steps to deal with virus outbreak in paddy: Agri minister | Hindustan Times - Hindustan Times"
       ]
     },
-    "timestamp": 1772744575.5960093
+    "timestamp": 1772823510.1088004
   },
   "news_Gujarat": {
     "data": {
@@ -94,5 +94,17 @@
       ]
     },
     "timestamp": 1772761970.3888865
+  },
+  "news_Assam": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Assam sees surge in malaria cases as monsoon arrive early - The Times of India",
+        "Assam Reports 26 Japanese Encephalitis Deaths, Makes Up 50% Of India's Cases - NDTV",
+        "Diarrhoea outbreak: Naidu reviews health measures - The Assam Tribune"
+      ]
+    },
+    "timestamp": 1772823559.3232558
   }
 }

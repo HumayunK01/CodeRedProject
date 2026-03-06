@@ -28,12 +28,12 @@
   },
   "nowcast_Haryana": {
     "data": {
-      "temperature": 19.5,
-      "humidity": 69.0,
+      "temperature": 20.8,
+      "humidity": 58.0,
       "precipitation": 0.0,
       "risk_multiplier": 1.0
     },
-    "timestamp": 1772744574.0389028
+    "timestamp": 1772823508.581889
   },
   "nowcast_Gujarat": {
     "data": {
@@ -70,5 +70,14 @@
       "risk_multiplier": 1.4
     },
     "timestamp": 1772761969.323308
+  },
+  "nowcast_Assam": {
+    "data": {
+      "temperature": 25.2,
+      "humidity": 59.0,
+      "precipitation": 0.0,
+      "risk_multiplier": 1.2
+    },
+    "timestamp": 1772823558.146812
   }
 }
