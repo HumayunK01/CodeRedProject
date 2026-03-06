@@ -1,6 +1,6 @@
 """
 Drift Detection Module
-Monitors prediction residuals and feature distributions 
+Monitors prediction residuals and feature distributions
 to detect concept drift and trigger model retraining.
 
 Implements:
@@ -9,8 +9,8 @@ Implements:
 - ADWIN-inspired windowed change detection
 """
 
-import logging
 import json
+import logging
 import os
 import time
 from collections import deque
@@ -18,8 +18,11 @@ from collections import deque
 import numpy as np
 
 from core.adaptive_config import (
-    DRIFT_MODE, DRIFT_RESIDUAL_THRESHOLD, DRIFT_FEATURE_THRESHOLD,
-    DRIFT_MIN_SAMPLES, DRIFT_ADWIN_DELTA,
+    DRIFT_ADWIN_DELTA,
+    DRIFT_FEATURE_THRESHOLD,
+    DRIFT_MIN_SAMPLES,
+    DRIFT_MODE,
+    DRIFT_RESIDUAL_THRESHOLD,
 )
 
 logger = logging.getLogger("foresee.drift")
@@ -33,7 +36,7 @@ class DriftDetector:
     Adaptive drift detector that monitors:
     1. Prediction residuals (actual - predicted)
     2. Feature distribution shifts
-    
+
     Uses sliding-window z-score approach with ADWIN-inspired
     adaptive windowing for aggressive mode.
     """
@@ -49,7 +52,7 @@ class DriftDetector:
     def _load_state(self):
         if os.path.exists(DRIFT_STATE_PATH):
             try:
-                with open(DRIFT_STATE_PATH, "r") as f:
+                with open(DRIFT_STATE_PATH) as f:
                     state = json.load(f)
                 self.residuals = deque(state.get("residuals", []), maxlen=self.max_window)
                 self.drift_events = state.get("drift_events", [])

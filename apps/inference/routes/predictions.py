@@ -4,22 +4,23 @@ ML prediction routes: symptom risk, image diagnosis, outbreak forecasting.
 
 import os
 import tempfile
-from datetime import datetime, timedelta
 from collections import deque
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
 from flask import Blueprint, jsonify, request
+
 from core.auth import require_auth
+from core.config import (
+    IMAGE_ALLOWED_EXTENSIONS,
+    IMAGE_ALLOWED_MIME_TYPES,
+    IMAGE_MAGIC_BYTES,
+    IMAGE_MAX_FILE_SIZE_BYTES,
+    IMAGE_MAX_FILE_SIZE_MB,
+)
 from core.logging_config import get_logger
 from core.middleware import track_performance
-from core.config import (
-    IMAGE_MAX_FILE_SIZE_MB,
-    IMAGE_MAX_FILE_SIZE_BYTES,
-    IMAGE_ALLOWED_MIME_TYPES,
-    IMAGE_ALLOWED_EXTENSIONS,
-    IMAGE_MAGIC_BYTES,
-)
 
 logger = get_logger("foresee.app")
 logger_ml = get_logger("foresee.ml")
@@ -212,11 +213,11 @@ def forecast_region():
 
         # ── Adaptive Ensemble Path ────────────────────────────────────
         if _fa.adaptive_ensemble is not None:
-            from core.feature_store import build_feature_row
             from core.adaptive_trainer import predict_with_ensemble
             from core.drift_detector import drift_detector
-            from core.simulator import simulate_intervention, compute_risk_fusion_score
             from core.explainability import explain_prediction
+            from core.feature_store import build_feature_row
+            from core.simulator import compute_risk_fusion_score, simulate_intervention
 
             ensemble = _fa.adaptive_ensemble
             predictions = []
@@ -437,8 +438,8 @@ def predict_image():
             }), 415
 
         # Lazy imports — mocked in tests
-        from tensorflow.keras.preprocessing import image as keras_image
         import cv2
+        from tensorflow.keras.preprocessing import image as keras_image
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = os.path.join(temp_dir, os.path.basename(file.filename))

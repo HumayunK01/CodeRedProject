@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
-import { ForecastResult } from "@/lib/types";
+import { ForecastInput, ForecastResult } from "@/lib/types";
 import { forecastSchema, ForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
 import { ForecastService } from "@/lib/db";
@@ -70,7 +70,10 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
     onLoadingChange(true);
 
     try {
-      const payload: Record<string, unknown> = { ...data };
+      const payload: ForecastInput = {
+        region: data.region,
+        horizon_weeks: data.horizon_weeks,
+      };
       if (scenarioEnabled && (vectorControl !== 0 || netCoverage !== 0 || reportingDelay !== 0)) {
         payload.scenario = {
           vector_control_delta: vectorControl,
@@ -78,7 +81,7 @@ export const ForecastForm = ({ onResult, onLoadingChange }: ForecastFormProps) =
           reporting_delay_delta: reportingDelay,
         };
       }
-      const result = await apiClient.forecastRegion(payload as any);
+      const result = await apiClient.forecastRegion(payload);
 
       // Store result in localStorage (for backward compatibility)
       const storedResult = {

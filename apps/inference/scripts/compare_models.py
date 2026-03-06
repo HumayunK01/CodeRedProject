@@ -3,20 +3,21 @@ Compare v1_baseline vs v2_adaptive on identical test data.
 Generates a comparison table for panel presentation.
 """
 
+import json
 import os
 import sys
-import json
+from collections import deque
+
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
-from collections import deque
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
-from core.feature_store import build_feature_row
 from core.adaptive_trainer import predict_with_ensemble
+from core.feature_store import build_feature_row
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WINDOW_SIZE = 8
@@ -82,7 +83,7 @@ def compare_models():
         v2_rmse = np.sqrt(mean_squared_error(test_cases, v2_preds))
 
         # Interval coverage (how many actuals fall within P10-P90)
-        coverage = sum(1 for a, lo, hi in zip(test_cases, v2_p10s, v2_p90s) if lo <= a <= hi)
+        coverage = sum(1 for a, lo, hi in zip(test_cases, v2_p10s, v2_p90s, strict=False) if lo <= a <= hi)
         coverage_pct = coverage / HORIZON * 100
 
         improvement = (v1_mae - v2_mae) / max(v1_mae, 1) * 100

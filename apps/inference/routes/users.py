@@ -3,9 +3,10 @@ User routes: sync & stats.
 """
 
 from flask import Blueprint, jsonify, request
-from core.logging_config import get_logger
+
 from core.auth import require_auth
-from core.utils import validate_fields, ValidationError
+from core.logging_config import get_logger
+from core.utils import ValidationError, validate_fields
 
 logger = get_logger("foresee.app")
 

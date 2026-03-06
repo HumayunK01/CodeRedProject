@@ -1,7 +1,24 @@
 __pycache__
 venv
+.venv
 .env
 .git
 .gitignore
 *.pyc
 *.pyo
+*.md
+.vscode
+.ruff_cache
+notebooks
+tests
+scripts
+htmlcov
+.coverage
+.pytest_cache
+# Large training data not needed at runtime
+data/cell_images
+data/dhs
+data/covid_19_data.csv
+data/dengue_features_train.csv
+data/dengue_features_test.csv
+data/time_series_covid_19_*

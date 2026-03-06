@@ -1,7 +1,8 @@
 import logging
-import requests
 import urllib.parse
 import xml.etree.ElementTree as ET
+
+import requests
 
 logger = logging.getLogger("foresee.agents.web")
 
@@ -31,10 +32,10 @@ def fetch_live_weather(region):
     """
     if region not in REGION_COORDS:
         return {"temperature": 28.0, "humidity": 65.0, "precipitation": 0, "risk_multiplier": 1.0}
-    
+
     lat, lon = REGION_COORDS[region]
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation&timezone=auto"
-    
+
     try:
         resp = requests.get(url, timeout=5)
         if resp.status_code == 200:
@@ -43,7 +44,7 @@ def fetch_live_weather(region):
             temp = current.get('temperature_2m', 28.0)
             humidity = current.get('relative_humidity_2m', 65.0)
             precip = current.get('precipitation', 0.0)
-            
+
             # Dengue/Malaria vectors thrive around 25-30C and high humidity (>70%), especially after rain.
             risk = 1.0
             if 25 <= temp <= 32:
@@ -52,7 +53,7 @@ def fetch_live_weather(region):
                 risk += 0.2
             if precip > 0:
                 risk += 0.3
-                
+
             return {
                 "temperature": float(temp),
                 "humidity": float(humidity),
@@ -61,26 +62,26 @@ def fetch_live_weather(region):
             }
     except Exception as e:
         logger.error("Error fetching live weather for %s: %s", region, e)
-        
+
     # Fallback to defaults
     return {"temperature": 28.0, "humidity": 65.0, "precipitation": 0.0, "risk_multiplier": 1.0}
 
 def fetch_live_news_outbreak_risk(region):
     """
-    Fetches current news headlines for the region related to outbreaks 
+    Fetches current news headlines for the region related to outbreaks
     using Google News RSS to gauge real-time public/media alarm levels.
     """
     query = f"{region} (dengue OR malaria OR outbreak OR virus)"
     encoded_query = urllib.parse.quote(query)
     url = f"https://news.google.com/rss/search?q={encoded_query}&hl=en-IN&gl=IN&ceid=IN:en"
-    
+
     try:
         resp = requests.get(url, timeout=5)
         if resp.status_code == 200:
             root = ET.fromstring(resp.content)
             items = root.findall('.//item')
             article_count = len(items)
-            
+
             risk = 1.0
             if article_count > 15:
                 risk = 1.6
@@ -88,13 +89,13 @@ def fetch_live_news_outbreak_risk(region):
                 risk = 1.3
             elif article_count > 0:
                 risk = 1.1
-                
+
             headlines = []
             for item in items[:2]:
                 title = item.find('title')
                 if title is not None:
                     headlines.append(title.text)
-                    
+
             return {
                 "article_count": article_count,
                 "risk_multiplier": float(risk),
@@ -102,5 +103,5 @@ def fetch_live_news_outbreak_risk(region):
             }
     except Exception as e:
         logger.error("Error fetching live news for %s: %s", region, e)
-        
+
     return {"article_count": 0, "risk_multiplier": 1.0, "headlines": []}

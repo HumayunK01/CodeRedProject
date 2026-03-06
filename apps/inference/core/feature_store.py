@@ -6,23 +6,24 @@ Keyed by (region, week_start). Provides fallback to cached last-good values
 when live APIs are unavailable.
 """
 
-import os
 import json
 import logging
+import os
 import time
+import urllib.parse
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import requests
-import urllib.parse
-import xml.etree.ElementTree as ET
 
 from core.adaptive_config import (
-    REGION_COORDS, CANONICAL_REGIONS,
-    WEATHER_CACHE_TTL_HOURS, NEWS_CACHE_TTL_HOURS,
-    WEATHER_CACHE_PATH, NEWS_CACHE_PATH, FEATURE_STORE_PATH,
+    NEWS_CACHE_PATH,
+    NEWS_CACHE_TTL_HOURS,
+    REGION_COORDS,
+    WEATHER_CACHE_PATH,
+    WEATHER_CACHE_TTL_HOURS,
 )
 
 logger = logging.getLogger("foresee.feature_store")
@@ -41,7 +42,7 @@ def _load_cache(cache_path):
     full_path = os.path.join(BASE_DIR, cache_path)
     if os.path.exists(full_path):
         try:
-            with open(full_path, "r") as f:
+            with open(full_path) as f:
                 return json.load(f)
         except Exception:
             pass
@@ -260,7 +261,7 @@ def build_feature_row(region, case_history, weather_data=None, news_data=None, d
     Exogenous features (for intelligence layer): weather + news.
     Returns (features_dict, freshness_info).
     """
-    from core.adaptive_config import WINDOW_SIZE, REGION_INDEX
+    from core.adaptive_config import REGION_INDEX, WINDOW_SIZE
 
     features = {}
     freshness = {"weather_fresh": False, "news_fresh": False}

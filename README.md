@@ -57,6 +57,7 @@
 - [System Architecture](#-system-architecture)
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
+- [Docker](#-docker)
 - [API Reference](#-api-reference)
 - [Security](#-security)
 - [Database Schema](#-database-schema)
@@ -421,6 +422,53 @@ npm run dev                    # runs on :8080
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 
 </details>
+
+---
+
+## 🐳 Docker
+
+Run the entire stack (frontend + backend) with a single command.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed
+
+### Quick Start
+
+```bash
+# 1. Copy the environment template and fill in your keys
+cp .env.docker.example .env.docker
+
+# 2. Build & start both services
+docker compose --env-file .env.docker up --build
+```
+
+| Service | URL | Description |
+|:--------|:----|:------------|
+| **Web** | `http://localhost:8080` | React frontend (Nginx) |
+| **Inference** | `http://localhost:8000` | Flask ML API (Gunicorn) |
+
+The frontend's Nginx config reverse-proxies `/api/*` requests to the inference container, so the browser never needs direct access to port 8000.
+
+### Useful Commands
+
+```bash
+# Start in background
+docker compose --env-file .env.docker up -d --build
+
+# View logs
+docker compose logs -f            # all services
+docker compose logs -f inference   # just the backend
+
+# Rebuild a single service
+docker compose --env-file .env.docker up --build inference
+
+# Stop everything
+docker compose down
+
+# Stop and remove volumes (model cache)
+docker compose down -v
+```
 
 ---
 

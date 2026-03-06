@@ -8,9 +8,12 @@ to generate "what-if" comparisons with uncertainty bands.
 """
 
 import logging
+
 import numpy as np
+
 from core.adaptive_config import (
-    INTERVENTION_DEFAULTS, INTERVENTION_EFFECTS, DEFAULT_HORIZON,
+    INTERVENTION_DEFAULTS,
+    INTERVENTION_EFFECTS,
 )
 
 logger = logging.getLogger("foresee.simulator")
@@ -19,13 +22,13 @@ logger = logging.getLogger("foresee.simulator")
 def simulate_intervention(baseline_predictions, intervention_params=None):
     """
     Apply intervention effects to baseline forecast trajectory.
-    
+
     Args:
-        baseline_predictions: list of dicts with keys 
+        baseline_predictions: list of dicts with keys
             {week, point, p10, p50, p90}
         intervention_params: dict of intervention deltas, e.g.
             {"vector_control_delta": 0.3, "net_coverage_delta": 0.2}
-    
+
     Returns:
         scenario_predictions: modified trajectory with uncertainty
         effect_summary: dict describing applied effects
@@ -105,7 +108,7 @@ def compute_risk_fusion_score(forecast_data, weather_data, news_data, symptom_ri
     2. Weather suitability (vector-breeding conditions)
     3. News outbreak pressure (media alarm level)
     4. Symptom risk distribution (from DHS model, optional)
-    
+
     Returns 0.0-1.0 score with component breakdown.
     """
     components = {}

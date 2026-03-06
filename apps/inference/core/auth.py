@@ -6,20 +6,20 @@ Authentication & authorisation helpers.
 - Clerk Management API helpers (role lookup, user info)
 """
 
-import os
-import json
 import base64
-import urllib.request
+import json
+import os
 import urllib.error
+import urllib.request
 from datetime import datetime
 from functools import wraps
 
 import jwt
+from flask import jsonify, request
 from jwt.algorithms import RSAAlgorithm
-from flask import request, jsonify
 
+from .config import CLERK_API_BASE, CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
 from .logging_config import get_logger
-from .config import CLERK_SECRET_KEY, CLERK_PUBLISHABLE_KEY, CLERK_API_BASE
 
 logger_auth = get_logger("foresee.auth")
 logger_admin = get_logger("foresee.admin")

@@ -1,8 +1,9 @@
 """API documentation routes: serves OpenAPI spec and Swagger UI."""
 
 import os
+
 import yaml
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, Response, jsonify
 
 docs_bp = Blueprint("docs", __name__)
 

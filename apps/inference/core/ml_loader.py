@@ -6,9 +6,9 @@ All model-related globals live here so any route can do::
     from ml_loader import malaria_model, malaria_forecast_model, …
 """
 
-import os
 import json
 import logging
+import os
 
 import joblib
 
@@ -50,7 +50,7 @@ def load_models():
         metadata_path = "models/metadata.json"
         if os.path.exists(metadata_path):
             try:
-                with open(metadata_path, "r") as f:
+                with open(metadata_path) as f:
                     metadata = json.load(f)
                 logger.info("Model metadata loaded successfully")
             except Exception as e:
@@ -125,7 +125,7 @@ def load_models():
                 adaptive_ensemble = joblib.load(ensemble_path)
                 ens_meta_path = "models/ensemble_metadata.json"
                 if os.path.exists(ens_meta_path):
-                    with open(ens_meta_path, "r") as f:
+                    with open(ens_meta_path) as f:
                         ensemble_metadata = json.load(f)
                 logger.info(
                     "Adaptive Ensemble loaded — version=%s models=%d features=%d",

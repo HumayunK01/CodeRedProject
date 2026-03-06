@@ -4,13 +4,9 @@ Tests for agents/live_web_agent.py.
 External HTTP calls are mocked so tests run offline.
 """
 
-import json
-import xml.etree.ElementTree as ET
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import MagicMock, patch
 
-from agents.live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
-
+from agents.live_web_agent import fetch_live_news_outbreak_risk, fetch_live_weather
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  fetch_live_weather

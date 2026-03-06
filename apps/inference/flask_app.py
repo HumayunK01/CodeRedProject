@@ -6,9 +6,9 @@ Re-exports symbols so existing test patches like
 
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
-from dotenv import load_dotenv
 
 load_dotenv()
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -18,31 +18,60 @@ from core.logging_config import get_logger
 logger = get_logger("foresee.app")
 logger_security = get_logger("foresee.security")
 
-from core.config import (                  # noqa: F401
-    FLASK_SECRET_KEY, DEBUG_MODE, HOST, PORT, ALLOWED_ORIGINS,
-    _build_allowed_origins, DEFAULT_RATE_LIMIT, REDIS_URL,
-    CLERK_SECRET_KEY, IMAGE_MAX_FILE_SIZE_MB, IMAGE_MAX_FILE_SIZE_BYTES,
-    IMAGE_ALLOWED_MIME_TYPES, IMAGE_ALLOWED_EXTENSIONS, IMAGE_MAGIC_BYTES,
-)
-from core.utils import (                   # noqa: F401
-    ValidationError, validate_fields, serialize_datetime,
-    format_time_ago as _format_time_ago, safe_float as _safe_float,
-)
-from core.auth import (                    # noqa: F401
-    decode_jwt_payload as _decode_jwt_payload, get_clerk_public_key,
-    clerk_request as _clerk_request, test_clerk_connection as _test_clerk_connection,
-    get_caller_role as _get_caller_role, require_auth, CLERK_JWKS_URL,
-)
-from core.middleware import track_performance  # noqa: F401
-from core.ml_loader import load_models         # noqa: F401
+import core.middleware as _middleware  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # PEP 562 — delegate mutable globals (model refs, perf counters) to owning
 # modules so mutations stay visible. Writing to flask_app.__dict__ (e.g. in
 # tests) shadows __getattr__ for that name.
 # ---------------------------------------------------------------------------
-import core.ml_loader as _ml_loader        # noqa: E402
-import core.middleware as _middleware       # noqa: E402
+import core.ml_loader as _ml_loader  # noqa: E402
+from core.auth import (  # noqa: F401
+    CLERK_JWKS_URL,
+    get_clerk_public_key,
+    require_auth,
+)
+from core.auth import (
+    clerk_request as _clerk_request,
+)
+from core.auth import (
+    decode_jwt_payload as _decode_jwt_payload,
+)
+from core.auth import (
+    get_caller_role as _get_caller_role,
+)
+from core.auth import (
+    test_clerk_connection as _test_clerk_connection,
+)
+from core.config import (  # noqa: F401
+    ALLOWED_ORIGINS,
+    CLERK_SECRET_KEY,
+    DEBUG_MODE,
+    DEFAULT_RATE_LIMIT,
+    FLASK_SECRET_KEY,
+    HOST,
+    IMAGE_ALLOWED_EXTENSIONS,
+    IMAGE_ALLOWED_MIME_TYPES,
+    IMAGE_MAGIC_BYTES,
+    IMAGE_MAX_FILE_SIZE_BYTES,
+    IMAGE_MAX_FILE_SIZE_MB,
+    PORT,
+    REDIS_URL,
+    _build_allowed_origins,
+)
+from core.middleware import track_performance  # noqa: F401
+from core.ml_loader import load_models  # noqa: F401
+from core.utils import (  # noqa: F401
+    ValidationError,
+    serialize_datetime,
+    validate_fields,
+)
+from core.utils import (
+    format_time_ago as _format_time_ago,
+)
+from core.utils import (
+    safe_float as _safe_float,
+)
 
 _DELEGATE_MAP: dict[str, object] = {
     "malaria_model": _ml_loader,
@@ -68,20 +97,31 @@ def __getattr__(name: str):
     raise AttributeError(f"module 'flask_app' has no attribute {name!r}")
 
 
-import pandas as pd                        # noqa: F401,E402
+import pandas as pd  # noqa: F401,E402
+
 try:
-    from xhtml2pdf import pisa             # noqa: F401
+    from xhtml2pdf import pisa  # noqa: F401
 except Exception:
     pisa = None  # type: ignore[assignment]
-from flask import render_template          # noqa: F401
+from flask import render_template  # noqa: F401
 
 # --- Database layer --------------------------------------------------------
 try:
     from db.database import (
-        upsert_user, get_user_with_stats, get_user_by_clerk_id,
-        create_diagnosis as db_create_diagnosis, get_diagnoses_by_user,
-        get_diagnosis_stats_by_user, create_forecast as db_create_forecast,
-        get_forecasts_by_user, get_forecast_stats_by_user, get_user_activity,
+        create_diagnosis as db_create_diagnosis,
+    )
+    from db.database import (
+        create_forecast as db_create_forecast,
+    )
+    from db.database import (
+        get_diagnoses_by_user,
+        get_diagnosis_stats_by_user,
+        get_forecast_stats_by_user,
+        get_forecasts_by_user,
+        get_user_activity,
+        get_user_by_clerk_id,
+        get_user_with_stats,
+        upsert_user,
     )
     DB_AVAILABLE = True
     logger.info("Database module loaded successfully")

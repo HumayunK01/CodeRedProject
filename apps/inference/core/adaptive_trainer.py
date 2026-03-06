@@ -13,22 +13,23 @@ Outputs:
   - models/ensemble_metadata.json (version, metrics, feature names)
 """
 
-import os
 import json
-import time
 import logging
+import os
 from datetime import datetime
-from collections import deque
 
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from core.adaptive_config import (
-    WINDOW_SIZE, DEFAULT_HORIZON, QUANTILES,
-    PROMOTION_METRIC, DRIFT_PROMOTION_THRESHOLD,
+    DEFAULT_HORIZON,
+    DRIFT_PROMOTION_THRESHOLD,
+    PROMOTION_METRIC,
+    QUANTILES,
+    WINDOW_SIZE,
 )
 from core.feature_store import build_feature_row, get_feature_names
 

@@ -1,11 +1,12 @@
-import os
-import numpy as np
-import cv2
 import glob
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
-from tensorflow.keras import layers, models
 import json
+import os
+
+import cv2
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras import layers, models
 
 # Configuration
 IMG_SIZE = (64, 64) # Smaller size for the Gatekeeper (faster, focuses on global features)
@@ -22,16 +23,16 @@ print("="*60)
 def load_data(data_dir, img_size, max_images=4000):
     """Load a subset of the NIH dataset to train the autoencoder"""
     images = []
-    
+
     # We load both classes, as both are "valid" blood smears
     for cls_name in ['Parasitized', 'Uninfected']:
         path = os.path.join(data_dir, cls_name)
         files = glob.glob(os.path.join(path, '*'))
-        
+
         # Take a subset to make training lightning fast
         subset_files = files[:max_images // 2]
         print(f"Loading {len(subset_files)} images from {cls_name}...")
-        
+
         for file_path in subset_files:
             try:
                 img = cv2.imread(file_path)
@@ -42,7 +43,7 @@ def load_data(data_dir, img_size, max_images=4000):
                 images.append(img)
             except Exception:
                 pass
-                
+
     X = np.array(images, dtype=np.float32)
     np.random.shuffle(X)
     return X
@@ -108,7 +109,7 @@ print(f"\n💾 Gatekeeper Model saved: {MODEL_SAVE_PATH}")
 # Save metadata and the crucial threshold!
 metadata = {}
 if os.path.exists(METADATA_PATH):
-    with open(METADATA_PATH, 'r') as f:
+    with open(METADATA_PATH) as f:
         metadata = json.load(f)
 
 metadata['gatekeeper_model'] = {

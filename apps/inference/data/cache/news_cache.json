@@ -82,5 +82,17 @@
       ]
     },
     "timestamp": 1772746018.2396336
+  },
+  "news_Kerala": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Nipah Virus Outbreak in Kerala - World Health Organization (WHO)",
+        "Nipah virus: Some Asia airports screen passengers after outbreak in India - BBC",
+        "Aerosol transmission link in Kerala Nipah outbreaks - Nature"
+      ]
+    },
+    "timestamp": 1772761970.3888865
   }
 }

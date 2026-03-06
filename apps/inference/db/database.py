@@ -1,11 +1,12 @@
+import json
 import os
 import uuid
-import json
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Any
+
 import psycopg
-from psycopg.rows import dict_row
 from dotenv import load_dotenv
+from psycopg.rows import dict_row
 
 load_dotenv()
 
@@ -15,18 +16,18 @@ def get_db_connection():
         raise Exception("DATABASE_URL not configured")
     return psycopg.connect(db_url, row_factory=dict_row, autocommit=True)
 
-def upsert_user(clerk_id: str, email: str, first_name: Optional[str] = None, last_name: Optional[str] = None, image_url: Optional[str] = None) -> Dict[str, Any]:
+def upsert_user(clerk_id: str, email: str, first_name: str | None = None, last_name: str | None = None, image_url: str | None = None) -> dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute('SELECT * FROM "User" WHERE "clerkId" = %s', (clerk_id,))
             existing_user = cur.fetchone()
-            
+
             now = datetime.now()
-            
+
             if existing_user:
                 cur.execute(
                     '''
-                    UPDATE "User" 
+                    UPDATE "User"
                     SET email = %s, "firstName" = %s, "lastName" = %s, "imageUrl" = %s, "updatedAt" = %s
                     WHERE "clerkId" = %s
                     RETURNING *
@@ -43,22 +44,22 @@ def upsert_user(clerk_id: str, email: str, first_name: Optional[str] = None, las
                     ''',
                     (user_id, clerk_id, email, first_name, last_name, image_url, now, now)
                 )
-            
+
             return dict(cur.fetchone())
 
-def get_user_by_clerk_id(clerk_id: str) -> Optional[Dict[str, Any]]:
+def get_user_by_clerk_id(clerk_id: str) -> dict[str, Any] | None:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute('SELECT * FROM "User" WHERE "clerkId" = %s', (clerk_id,))
             user = cur.fetchone()
             return dict(user) if user else None
 
-def get_user_with_stats(clerk_id: str) -> Optional[Dict[str, Any]]:
+def get_user_with_stats(clerk_id: str) -> dict[str, Any] | None:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT 
+                SELECT
                     u.*,
                     (SELECT COUNT(*) FROM "Diagnosis" WHERE "userId" = u.id) as diagnosis_count,
                     (SELECT COUNT(*) FROM "Forecast" WHERE "userId" = u.id) as forecast_count,
@@ -83,29 +84,29 @@ def create_diagnosis(
     user_id: str,
     result: str,
     confidence: float,
-    image_url: Optional[str] = None,
-    species: Optional[str] = None,
-    parasite_count: Optional[int] = None,
-    patient_age: Optional[int] = None,
-    patient_sex: Optional[str] = None,
-    location: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    symptoms: Optional[Dict] = None,
-    processing_time: Optional[float] = None,
-    model_version: Optional[str] = None
-) -> Dict[str, Any]:
+    image_url: str | None = None,
+    species: str | None = None,
+    parasite_count: int | None = None,
+    patient_age: int | None = None,
+    patient_sex: str | None = None,
+    location: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    symptoms: dict | None = None,
+    processing_time: float | None = None,
+    model_version: str | None = None
+) -> dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             diagnosis_id = str(uuid.uuid4())
             now = datetime.now()
             symptoms_json = json.dumps(symptoms) if symptoms else None
-            
+
             cur.execute(
                 '''
                 INSERT INTO "Diagnosis" (
-                    id, "userId", result, confidence, "imageUrl", species, 
-                    "parasiteCount", "patientAge", "patientSex", location, 
+                    id, "userId", result, confidence, "imageUrl", species,
+                    "parasiteCount", "patientAge", "patientSex", location,
                     latitude, longitude, symptoms, "processingTime", "modelVersion",
                     "createdAt", "updatedAt"
                 )
@@ -121,31 +122,31 @@ def create_diagnosis(
             )
             return dict(cur.fetchone())
 
-def get_diagnoses_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+def get_diagnoses_by_user(user_id: str, limit: int = 20) -> list[dict[str, Any]]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT * FROM "Diagnosis" 
-                WHERE "userId" = %s 
-                ORDER BY "createdAt" DESC 
+                SELECT * FROM "Diagnosis"
+                WHERE "userId" = %s
+                ORDER BY "createdAt" DESC
                 LIMIT %s
                 ''',
                 (user_id, limit)
             )
             return [dict(row) for row in cur.fetchall()]
 
-def get_diagnosis_stats_by_user(user_id: str) -> Dict[str, Any]:
+def get_diagnosis_stats_by_user(user_id: str) -> dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     COUNT(CASE WHEN result ILIKE '%%parasitized%%' OR result ILIKE '%%high%%' THEN 1 END) as positive,
                     COUNT(CASE WHEN result ILIKE '%%uninfected%%' OR result ILIKE '%%low%%' THEN 1 END) as negative,
                     MAX("createdAt") as last_diagnosis
-                FROM "Diagnosis" 
+                FROM "Diagnosis"
                 WHERE "userId" = %s
                 ''',
                 (user_id,)
@@ -162,37 +163,37 @@ def create_forecast(
     user_id: str,
     region: str,
     horizon_weeks: int,
-    predictions: List[Dict],
-    hotspot_score: Optional[float] = None,
-    risk_level: Optional[str] = None,
-    confidence: Optional[float] = None,
-    model_version: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    country: Optional[str] = None,
-    temperature: Optional[float] = None,
-    rainfall: Optional[float] = None,
-    humidity: Optional[float] = None,
-    risk_fusion_score: Optional[float] = None,
-    risk_fusion_level: Optional[str] = None,
-    drift_detected: Optional[bool] = None,
-    confidence_level: Optional[str] = None,
-    explanation_reasons: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    predictions: list[dict],
+    hotspot_score: float | None = None,
+    risk_level: str | None = None,
+    confidence: float | None = None,
+    model_version: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    country: str | None = None,
+    temperature: float | None = None,
+    rainfall: float | None = None,
+    humidity: float | None = None,
+    risk_fusion_score: float | None = None,
+    risk_fusion_level: str | None = None,
+    drift_detected: bool | None = None,
+    confidence_level: str | None = None,
+    explanation_reasons: list[str] | None = None
+) -> dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             forecast_id = str(uuid.uuid4())
             now = datetime.now()
             if risk_level and isinstance(risk_level, str):
                 risk_level = risk_level.lower()
-            
+
             end_date = now + timedelta(weeks=horizon_weeks)
-            
+
             cases = [p.get('point') or p.get('cases', 0) for p in predictions]
             cases_low = min(cases) if cases else None
             cases_high = max(cases) if cases else None
             cases_mean = sum(cases) / len(cases) if cases else None
-            
+
             import json as _json
             predictions_json = _json.dumps(predictions) if predictions else None
             reasons_json = _json.dumps(explanation_reasons) if explanation_reasons else None
@@ -223,32 +224,32 @@ def create_forecast(
             )
             return dict(cur.fetchone())
 
-def get_forecasts_by_user(user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+def get_forecasts_by_user(user_id: str, limit: int = 20) -> list[dict[str, Any]]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT * FROM "Forecast" 
-                WHERE "userId" = %s 
-                ORDER BY "createdAt" DESC 
+                SELECT * FROM "Forecast"
+                WHERE "userId" = %s
+                ORDER BY "createdAt" DESC
                 LIMIT %s
                 ''',
                 (user_id, limit)
             )
             return [dict(row) for row in cur.fetchall()]
 
-def get_forecast_stats_by_user(user_id: str) -> Dict[str, Any]:
+def get_forecast_stats_by_user(user_id: str) -> dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             now = datetime.now()
             cur.execute(
                 '''
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     COUNT(CASE WHEN "endDate" > %s THEN 1 END) as active,
                     COUNT(CASE WHEN LOWER("riskLevel"::text) IN ('high', 'critical') THEN 1 END) as high_risk,
                     MAX("createdAt") as last_forecast
-                FROM "Forecast" 
+                FROM "Forecast"
                 WHERE "userId" = %s
                 ''',
                 (now, user_id)
@@ -261,13 +262,13 @@ def get_forecast_stats_by_user(user_id: str) -> Dict[str, Any]:
                 'lastForecast': result['last_forecast'].isoformat() if result['last_forecast'] else None
             }
 
-def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+def get_user_activity(user_id: str, limit: int = 5) -> list[dict[str, Any]]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 '''
                 SELECT 'diagnosis' as type, id, result, confidence, "createdAt"
-                FROM "Diagnosis" 
+                FROM "Diagnosis"
                 WHERE "userId" = %s
                 ORDER BY "createdAt" DESC
                 LIMIT %s
@@ -275,11 +276,11 @@ def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
                 (user_id, limit)
             )
             diagnoses = [dict(row) for row in cur.fetchall()]
-            
+
             cur.execute(
                 '''
                 SELECT 'forecast' as type, id, region, "riskLevel", "createdAt"
-                FROM "Forecast" 
+                FROM "Forecast"
                 WHERE "userId" = %s
                 ORDER BY "createdAt" DESC
                 LIMIT %s
@@ -287,10 +288,10 @@ def get_user_activity(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
                 (user_id, limit)
             )
             forecasts = [dict(row) for row in cur.fetchall()]
-            
+
             activities = diagnoses + forecasts
             activities.sort(key=lambda x: x['createdAt'], reverse=True)
-            
-            
-            
+
+
+
             return activities[:limit]

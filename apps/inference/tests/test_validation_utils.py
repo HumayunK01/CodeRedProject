@@ -5,18 +5,16 @@ the calculate_dashboard_stats function.
 These are pure-function tests (no Flask client needed).
 """
 
-import json
 import base64
+import json
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-import pytest
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Import the real module (heavy deps already mocked by conftest)
 # ---------------------------------------------------------------------------
 import flask_app as fa
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  ValidationError & validate_fields

@@ -6,7 +6,8 @@ import os
 import traceback
 from datetime import datetime
 
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, Response, jsonify
+
 from core.logging_config import get_logger
 
 logger = get_logger("foresee.app")

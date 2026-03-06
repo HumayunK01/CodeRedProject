@@ -3,9 +3,10 @@ Forecast routes: create, list, stats.
 """
 
 from flask import Blueprint, jsonify, request
+
+from core.auth import get_caller_role, require_auth
 from core.logging_config import get_logger
-from core.auth import require_auth, get_caller_role
-from core.utils import validate_fields, ValidationError, serialize_datetime
+from core.utils import ValidationError, serialize_datetime, validate_fields
 
 logger = get_logger("foresee.app")
 

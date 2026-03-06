@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -25,16 +26,17 @@ NOT FOR:
 - Making treatment decisions
 """
 
-import pandas as pd
-import numpy as np
-import os
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
-from sklearn.impute import SimpleImputer
-import joblib
 import json
+import os
+
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 # DHS file path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -122,11 +124,11 @@ le_res = LabelEncoder()
 model_df['residence_type'] = le_res.fit_transform(model_df['residence_type'].astype(str))
 
 # Split data
-X = model_df[['fever', 'age_months', 'state', 'residence_type', 
+X = model_df[['fever', 'age_months', 'state', 'residence_type',
               'slept_under_net', 'anemia_level', 'interview_month']]
 y = model_df['risk_index']
 
-print(f"\n🔀 Splitting data (80/20)...")
+print("\n🔀 Splitting data (80/20)...")
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
@@ -148,7 +150,7 @@ rf_model.fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)
 
 print("\n📋 Classification Report:")
-print(classification_report(y_test, y_pred, 
+print(classification_report(y_test, y_pred,
                            target_names=['Low Risk', 'Medium Risk', 'High Risk'],
                            digits=4))
 
@@ -159,8 +161,8 @@ print(cm)
 # Plot Confusion Matrix
 print("\n📊 Generating Confusion Matrix Plot...")
 plt.figure(figsize=(10, 8))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-            xticklabels=['Low', 'Medium', 'High'], 
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Low', 'Medium', 'High'],
             yticklabels=['Low', 'Medium', 'High'])
 plt.title('DHS Model Confusion Matrix')
 plt.ylabel('True Label')
@@ -195,6 +197,7 @@ print("✅ Saved models/training_history_dhs.png (Feature Importance)")
 
 # Calculate overall accuracy
 from sklearn.metrics import accuracy_score
+
 test_acc = accuracy_score(y_test, y_pred)
 
 # Save model
@@ -206,7 +209,7 @@ model_bundle = {
     "imputer": imputer,
     "le_state": le_state,
     "le_res": le_res,
-    "features": ['fever', 'age_months', 'state', 'residence_type', 
+    "features": ['fever', 'age_months', 'state', 'residence_type',
                  'slept_under_net', 'anemia_level', 'interview_month'],
     "cols_to_impute": cols_to_impute,
     "model_type": "risk_index_calculator",  # NOT a predictor
@@ -221,7 +224,7 @@ print(f"✅ Model saved: {save_path}")
 metadata_path = "models/metadata.json"
 metadata = {}
 if os.path.exists(metadata_path):
-    with open(metadata_path, 'r') as f:
+    with open(metadata_path) as f:
         metadata = json.load(f)
 
 metadata['symptoms_model'] = {
@@ -243,7 +246,7 @@ print(f"✅ Metadata updated: {metadata_path}")
 print("\n" + "="*70)
 print("✅ TRAINING COMPLETE")
 print("="*70)
-print(f"Model Type: RISK INDEX CALCULATOR")
+print("Model Type: RISK INDEX CALCULATOR")
 print(f"Index Accuracy: {test_acc*100:.2f}%")
 print(f"Cross-Val Accuracy: {cv_scores.mean()*100:.2f}%")
 print("\n⚠️  IMPORTANT:")

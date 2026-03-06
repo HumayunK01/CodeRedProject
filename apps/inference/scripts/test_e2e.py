@@ -1,16 +1,22 @@
 """End-to-end test of the v2 adaptive forecast pipeline."""
-import sys, os, json
+import json
+import os
+import sys
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
-from core.feature_store import build_feature_row, fetch_current_weather, fetch_news_signal
+from datetime import timedelta
+
+import joblib
+import pandas as pd
+
 from core.adaptive_trainer import predict_with_ensemble
 from core.drift_detector import drift_detector
-from core.simulator import simulate_intervention, compute_risk_fusion_score
 from core.explainability import explain_prediction
-import pandas as pd, numpy as np, joblib
-from datetime import timedelta
+from core.feature_store import build_feature_row, fetch_current_weather, fetch_news_signal
+from core.simulator import compute_risk_fusion_score, simulate_intervention
 
 ensemble = joblib.load(os.path.join(BASE_DIR, 'models', 'adaptive_ensemble.pkl'))
 region = 'Delhi'
@@ -51,9 +57,7 @@ for i in range(horizon_weeks):
 
 print("\n=== FORECAST (Delhi, 8 weeks) ===")
 for p in predictions:
-    print("  %s: %5d  [%5d - %5d]  agreement=%.3f" % (
-        p['week'], p['point'], p['p10'], p['p90'], p['model_agreement']
-    ))
+    print(f"  {p['week']}: {p['point']:5d}  [{p['p10']:5d} - {p['p90']:5d}]  agreement={p['model_agreement']:.3f}")
 
 # Explainability
 last_feat, _ = build_feature_row(
@@ -67,7 +71,7 @@ print("\n=== EXPLAINABILITY ===")
 print("Confidence:", explanation['confidence_level'])
 print("Top drivers:")
 for d in explanation['top_drivers']:
-    print("  %s: %.4f" % (d['feature'], d['importance']))
+    print("  {}: {:.4f}".format(d['feature'], d['importance']))
 print("Reasons:", [r['code'] for r in explanation['reasons']])
 
 # Risk fusion
@@ -90,7 +94,7 @@ print("\n=== SCENARIO (vector control +30%) ===")
 for sp in scenario_preds[:3]:
     orig = sp.get('original_point', sp['point'])
     adj = sp.get('adjusted_point', sp['point'])
-    print("  %s: %d -> %d" % (sp['week'], orig, adj))
+    print(f"  {sp['week']}: {orig} -> {adj}")
 print("Avg reduction:", effect_summary.get('avg_reduction_pct', 'N/A'))
 
 print("\n=== ALL TESTS PASSED ===")

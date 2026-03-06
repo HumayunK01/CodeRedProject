@@ -7,7 +7,9 @@ can ``from config import …`` without touching ``os.getenv`` directly.
 
 import os
 import secrets
+
 from dotenv import load_dotenv
+
 from .logging_config import get_logger
 
 load_dotenv()
@@ -29,7 +31,7 @@ else:
 FLASK_SECRET_KEY = _secret_key
 
 DEBUG_MODE = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
-HOST = os.getenv("HOST", "0.0.0.0")
+HOST = os.getenv("HOST", "0.0.0.0")  # noqa: S104
 PORT = int(os.getenv("PORT", 8000))
 
 # ── CORS ─────────────────────────────────────────────────────────────────────

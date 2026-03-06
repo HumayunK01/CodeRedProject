@@ -5,15 +5,15 @@ Call ``register_blueprints(app)`` once in the app factory to attach every
 route group defined under ``routes/``.
 """
 
-from routes.core import core_bp
-from routes.admin import admin_bp
-from routes.users import users_bp
-from routes.diagnoses import diagnoses_bp
-from routes.forecasts import forecasts_bp
 from routes.activity import activity_bp
+from routes.admin import admin_bp
+from routes.core import core_bp
+from routes.diagnoses import diagnoses_bp
+from routes.docs import docs_bp
+from routes.forecasts import forecasts_bp
 from routes.predictions import predictions_bp
 from routes.reports import reports_bp
-from routes.docs import docs_bp
+from routes.users import users_bp
 
 
 def register_blueprints(app):

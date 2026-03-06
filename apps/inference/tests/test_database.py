@@ -14,10 +14,8 @@ Tests cover:
   - get_user_activity
 """
 
-import uuid
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-import pytest
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 
 # ---------------------------------------------------------------------------
@@ -50,7 +48,9 @@ PATCH_CONN = f"{DB_MOD}.get_db_connection"
 
 # We need to import the real module — not the mock from conftest.
 # So we re-import it directly from the file.
-import importlib.util, os, sys
+import importlib.util
+import os
+import sys
 
 _spec = importlib.util.spec_from_file_location(
     "db.database",

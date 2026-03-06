@@ -6,8 +6,9 @@ import uuid
 from datetime import datetime
 from io import BytesIO
 
-from flask import Blueprint, jsonify, request, render_template, make_response
+from flask import Blueprint, jsonify, make_response, render_template, request
 from xhtml2pdf import pisa
+
 from core.auth import require_auth
 from core.logging_config import get_logger
 

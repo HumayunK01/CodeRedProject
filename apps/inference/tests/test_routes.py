@@ -4,13 +4,11 @@ Tests for Flask API routes in flask_app.py.
 All external dependencies (DB, models, Clerk, network) are mocked.
 """
 
+import base64
 import io
 import json
-import base64
 from datetime import datetime
-from unittest.mock import patch, MagicMock
-import pytest
-
+from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # Helpers

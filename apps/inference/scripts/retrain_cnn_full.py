@@ -2,19 +2,18 @@
 CNN Model Retraining Script - Full Dataset with Augmentation
 Uses all 27,558 NIH malaria cell images with proper augmentation
 """
-import os
-import numpy as np
-import cv2
 import glob
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
+import os
+
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
-import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import joblib
 
 # Configuration
 IMG_SIZE = (128, 128)
@@ -39,12 +38,12 @@ def load_full_dataset(data_dir, img_size=(128,128)):
     images = []
     labels = []
     classes = [('Parasitized', 1), ('Uninfected', 0)]
-    
+
     for cls_name, label in classes:
         path = os.path.join(data_dir, cls_name)
         files = glob.glob(os.path.join(path, '*'))
         print(f"Loading {cls_name}: {len(files)} images...")
-        
+
         for idx, file_path in enumerate(files):
             try:
                 img = cv2.imread(file_path)
@@ -55,20 +54,20 @@ def load_full_dataset(data_dir, img_size=(128,128)):
                 img = img.astype('float32') / 255.0
                 images.append(img)
                 labels.append(label)
-                
+
                 if (idx + 1) % 5000 == 0:
                     print(f"  Processed {idx + 1}/{len(files)} images")
             except Exception as e:
                 print(f"  Error loading {file_path}: {e}")
                 continue
-    
+
     X = np.array(images, dtype=np.float32)
     y = np.array(labels, dtype=np.int32)
-    
+
     # Shuffle dataset
     idx = np.random.permutation(len(X))
     X, y = X[idx], y[idx]
-    
+
     return X, y
 
 # Load full dataset
@@ -82,7 +81,7 @@ print(f"   Class Distribution: {np.bincount(y)}")
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
-print(f"\n📊 Dataset Split:")
+print("\n📊 Dataset Split:")
 print(f"   Training: {len(X_train)} images")
 print(f"   Testing: {len(X_test)} images")
 
@@ -108,15 +107,15 @@ def create_malaria_cnn(input_shape=(128, 128, 3)):
         layers.Conv2D(32, (3,3), activation='relu', padding='same', input_shape=input_shape),
         layers.BatchNormalization(),
         layers.MaxPooling2D(2,2),
-        
+
         layers.Conv2D(64, (3,3), activation='relu', padding='same'),
         layers.BatchNormalization(),
         layers.MaxPooling2D(2,2),
-        
+
         layers.Conv2D(128, (3,3), activation='relu', padding='same'),
         layers.BatchNormalization(),
         layers.MaxPooling2D(2,2),
-        
+
         layers.Flatten(),
         layers.Dense(128, activation='relu'),
         layers.Dropout(0.5),
@@ -188,7 +187,7 @@ precision = tp / (tp + fp) if (tp + fp) > 0 else 0
 recall = tp / (tp + fn) if (tp + fn) > 0 else 0
 f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
-print(f"\n📈 Detailed Metrics:")
+print("\n📈 Detailed Metrics:")
 print(f"   True Negatives:  {tn}")
 print(f"   False Positives: {fp}")
 print(f"   False Negatives: {fn}")
@@ -240,9 +239,10 @@ print(f"\n💾 Model saved: {MODEL_SAVE_PATH}")
 
 # Update metadata
 import json
+
 metadata = {}
 if os.path.exists(METADATA_PATH):
-    with open(METADATA_PATH, 'r') as f:
+    with open(METADATA_PATH) as f:
         metadata = json.load(f)
 
 metadata['cnn_model'] = {

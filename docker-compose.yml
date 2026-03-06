@@ -1,0 +1,59 @@
+version: "3.8"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Foresee — Docker Compose
+# Run: docker compose --env-file .env.docker up --build
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Flask / ML Inference API ───────────────────────────────────────────────
+  inference:
+    build:
+      context: ./apps/inference
+      dockerfile: Dockerfile
+    container_name: foresee-inference
+    restart: unless-stopped
+    ports:
+      - "${INFERENCE_PORT:-8000}:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DEBUG=${DEBUG:-False}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - REDIS_URL=${REDIS_URL:-}
+      - DEFAULT_RATE_LIMIT=${DEFAULT_RATE_LIMIT:-100 per minute}
+    volumes:
+      # Persist model files so they survive rebuilds during dev
+      - inference-models:/app/models
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ── React / Vite Frontend (served by Nginx) ───────────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
+        VITE_INFER_BASE_URL: ${VITE_INFER_BASE_URL:-/api}
+        VITE_OPENROUTER_API_KEY: ${VITE_OPENROUTER_API_KEY:-}
+        VITE_CHATBOT_MODEL: ${VITE_CHATBOT_MODEL:-openrouter/aurora-alpha}
+    container_name: foresee-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      inference:
+        condition: service_healthy
+
+volumes:
+  inference-models:

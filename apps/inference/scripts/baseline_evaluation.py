@@ -4,12 +4,13 @@ Freezes current forecaster metrics so every upgrade is measurable.
 Run once before any model changes.
 """
 
-import os
 import json
+import os
+from collections import deque
+
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
-from collections import deque
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

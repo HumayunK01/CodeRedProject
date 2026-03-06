@@ -3,9 +3,10 @@ Admin routes: user listing & role management via Clerk Management API.
 """
 
 from flask import Blueprint, jsonify, request
-from core.logging_config import get_logger
-from core.auth import require_auth, get_caller_role, clerk_request
+
+from core.auth import clerk_request, get_caller_role, require_auth
 from core.config import CLERK_SECRET_KEY
+from core.logging_config import get_logger
 
 logger_admin = get_logger("foresee.admin")
 

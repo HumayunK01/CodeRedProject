@@ -5,6 +5,7 @@ for each adaptive forecast prediction.
 """
 
 import logging
+
 import numpy as np
 
 logger = logging.getLogger("foresee.explain")
@@ -16,7 +17,7 @@ def explain_prediction(ensemble, features_dict, prediction_result, weather_data=
     1. Top contributing features (from model importance)
     2. Human-readable reason codes
     3. Confidence assessment
-    
+
     Returns dict with drivers, reasons, and confidence info.
     """
     # Get feature importances from ensemble (pre-computed during training)
@@ -33,7 +34,7 @@ def explain_prediction(ensemble, features_dict, prediction_result, weather_data=
     # Case trend reasons (derived from lag features)
     lag1 = features_dict.get("cases_lag_1", 0)
     lag4 = features_dict.get("cases_lag_4", 0)
-    lag8 = features_dict.get("cases_lag_8", 0)
+    features_dict.get("cases_lag_8", 0)
     # lags are in log1p scale, so difference approximates log-ratio
     trend = lag1 - lag4  # positive = recent cases higher than 4 weeks ago
     if trend > 0.5:
@@ -45,7 +46,7 @@ def explain_prediction(ensemble, features_dict, prediction_result, weather_data=
 
     # Volatility from spread of log-lag values
     lags = [features_dict.get(f"cases_lag_{i+1}", 0) for i in range(8)]
-    volatility = float(np.std(lags)) if any(l > 0 for l in lags) else 0
+    volatility = float(np.std(lags)) if any(val > 0 for val in lags) else 0
     if volatility > 1.0:
         reasons.append({"code": "HIGH_VOLATILITY", "severity": "medium",
                         "text": "High case count volatility — uncertainty is elevated"})

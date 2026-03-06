@@ -5,11 +5,12 @@ All tests mock heavy dependencies (TensorFlow, DB, Clerk, ML models) so they
 run in seconds on any CI runner without GPU, database, or network.
 """
 
+import json
 import os
 import sys
-import json
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # Ensure the inference package root is importable
@@ -90,6 +91,8 @@ def app():
         mod.malaria_forecast_model = None
         mod.symptoms_model = None
         mod.gatekeeper_model = None
+        mod.adaptive_ensemble = None
+        mod.ensemble_metadata = None
 
         yield mod.app
 

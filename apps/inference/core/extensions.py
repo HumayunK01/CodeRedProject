@@ -9,8 +9,8 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from .logging_config import get_logger
 from .config import ALLOWED_ORIGINS, DEFAULT_RATE_LIMIT, REDIS_URL
+from .logging_config import get_logger
 
 logger = get_logger("foresee.extensions")
 
@@ -42,6 +42,7 @@ _storage_uri = _resolve_limiter_storage(REDIS_URL)
 def _get_user_identity():
     """Identify users for rate limiting: Clerk user ID if available, else IP."""
     from flask import request
+
     from core.auth import decode_jwt_payload
 
     auth = request.headers.get("Authorization", "")

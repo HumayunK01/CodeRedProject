@@ -5,10 +5,10 @@ Run this once whenever you update faq.csv.
 """
 
 import os
+
+import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import joblib
 
 DATA_PATH = os.path.join("data", "faq.csv")
 OUT_DIR = "models"

@@ -6,8 +6,9 @@ import time
 from functools import wraps
 
 from flask import request
-from .logging_config import get_logger
+
 from .config import ALLOWED_ORIGINS
+from .logging_config import get_logger
 
 logger = get_logger("foresee.app")
 logger_security = get_logger("foresee.security")
