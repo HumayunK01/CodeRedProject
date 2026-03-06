@@ -1,5 +1,3 @@
-version: "3.8"
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Foresee — Docker Compose
 # Run: docker compose --env-file .env.docker up --build

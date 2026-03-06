@@ -5,8 +5,10 @@ import { AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Hotspot {
-  name: string;
+  name?: string;
   intensity: number;
+  lat: number;
+  lng: number;
 }
 
 interface ForecastMapProps {
@@ -48,15 +50,7 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
   const center: [number, number] = REGION_COORDS[region] || [20.5937, 78.9629];
   const zoom = REGION_COORDS[region] && region !== "India" && region !== "Global" ? 6 : 4;
 
-  // Generate synthetic coordinates for the hotspots scattered radially around the regional center
-  const generateSpacedPoints = (center: [number, number], idx: number, total: number) => {
-    const radius = 1.5; // Offset multiplier
-    const angle = (idx / total) * (2 * Math.PI);
-    return [
-      center[0] + radius * Math.sin(angle),
-      center[1] + radius * Math.cos(angle)
-    ] as [number, number];
-  };
+
 
   return (
     <div className="w-full h-80 lg:h-96 rounded-xl overflow-hidden border border-border relative z-0">
@@ -85,9 +79,10 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
           </Popup>
         </CircleMarker>
 
-        {/* Render Extrapolated Hotspots as animated alert rings */}
+        {/* Render Hotspots using real coordinates */}
         {hotspots && hotspots.map((hotspot, idx) => {
-          const coords = generateSpacedPoints(center, idx, hotspots.length);
+          // Use real lat/lng from backend
+          const coords: [number, number] = [hotspot.lat, hotspot.lng];
           // Scale color: High risk = Red, Medium = Orange, Low = Blue
           const hexColor = hotspot.intensity > 0.7 ? '#ef4444' : hotspot.intensity > 0.4 ? '#f59e0b' : '#3b82f6';
 
@@ -95,7 +90,7 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
             <CircleMarker
               key={idx}
               center={coords}
-              radius={hotspot.intensity * 30 + 10} // The higher the intensity, the larger the heatmap circle
+              radius={hotspot.intensity * 30 + 10}
               pathOptions={{
                 color: hexColor,
                 fillColor: hexColor,
@@ -104,22 +99,32 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
               }}
             >
               <Popup className="custom-popup">
-                <div className="p-1 min-w-[150px]">
+                <div className="p-1 min-w-[170px]">
                   <div className="flex items-center gap-2 border-b pb-2 mb-2">
                     <AlertTriangle className="h-4 w-4" style={{ color: hexColor }} />
-                    <h4 className="font-bold text-sm m-0 leading-none">{hotspot.name}</h4>
+                    <h4 className="font-bold text-sm m-0 leading-none">{hotspot.name || `Hotspot #${idx+1}`}</h4>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-muted-foreground mr-2 font-medium">Risk Level</span>
-                    <Badge variant="outline" style={{ borderColor: hexColor, color: hexColor }}>
-                      {(hotspot.intensity * 100).toFixed(0)}%
-                    </Badge>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <span className="text-xs text-muted-foreground font-medium">Risk Level: <Badge variant="outline" style={{ borderColor: hexColor, color: hexColor }}>{(hotspot.intensity * 100).toFixed(0)}%</Badge></span>
+                    <span className="text-xs text-muted-foreground font-medium">Lat: {hotspot.lat.toFixed(4)}, Lng: {hotspot.lng.toFixed(4)}</span>
                   </div>
                 </div>
               </Popup>
             </CircleMarker>
           );
         })}
+        {/* Legend */}
+        <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'rgba(255,255,255,0.85)', borderRadius: 8, padding: '8px 14px', fontSize: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 14, height: 14, background: '#ef4444', borderRadius: '50%', display: 'inline-block', marginRight: 4, opacity: 0.7 }}></span> High Risk
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+            <span style={{ width: 14, height: 14, background: '#f59e0b', borderRadius: '50%', display: 'inline-block', marginRight: 4, opacity: 0.7 }}></span> Medium Risk
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+            <span style={{ width: 14, height: 14, background: '#3b82f6', borderRadius: '50%', display: 'inline-block', marginRight: 4, opacity: 0.7 }}></span> Low Risk
+          </div>
+        </div>
       </MapContainer>
     </div>
   );

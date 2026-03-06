@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "description": "Foresee - Diagnose Today, Predict Tomorrow | AI-Powered Malaria Diagnosis & Outbreak Forecasting",
   "scripts": {
+    "start": "concurrently -n api,web -c blue,green \"cd apps/inference && python flask_app.py\" \"npm run dev --prefix apps/web\"",
     "dev": "npm run dev --prefix apps/web",
+    "dev:api": "cd apps/inference && python flask_app.py",
+    "dev:web": "npm run dev --prefix apps/web",
     "build": "npm run build --prefix apps/web",
     "build:dev": "npm run build:dev --prefix apps/web",
     "lint": "npm run lint --prefix apps/web",
@@ -19,7 +22,12 @@
     "db:migrate:deploy": "npm run migrate:deploy --prefix apps/database",
     "db:studio": "npm run studio --prefix apps/database",
     "db:seed": "npm run seed --prefix apps/database",
-    "db:verify": "npm run verify --prefix apps/database"
+    "db:verify": "npm run verify --prefix apps/database",
+    "docker:up": "docker compose --env-file .env.docker up --build -d",
+    "docker:down": "docker compose --env-file .env.docker down",
+    "docker:logs": "docker compose --env-file .env.docker logs -f",
+    "docker:restart": "docker compose --env-file .env.docker restart",
+    "docker:status": "docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\""
   },
   "engines": {
     "node": ">=18.0.0",
@@ -40,5 +48,8 @@
     "monorepo"
   ],
   "author": "OutbreakLens Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

@@ -65,6 +65,13 @@ export interface ForecastPrediction {
   cases?: number;
 }
 
+export interface ForecastHotspot {
+  name?: string;
+  intensity: number;
+  lat: number;
+  lng: number;
+}
+
 export interface ForecastResult {
   region: string;
   disease?: string;
@@ -75,10 +82,7 @@ export interface ForecastResult {
   }[];
   predictions: ForecastPrediction[];
   hotspot_score?: number;
-  hotspots?: {
-    name: string;
-    intensity: number;
-  }[];
+  hotspots?: ForecastHotspot[];
   live_insights?: {
     temperature: number;
     humidity: number;
