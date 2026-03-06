@@ -10,12 +10,12 @@
   },
   "nowcast_Maharashtra": {
     "data": {
-      "temperature": 21.2,
-      "humidity": 57.0,
+      "temperature": 23.0,
+      "humidity": 47.0,
       "precipitation": 0.0,
       "risk_multiplier": 1.0
     },
-    "timestamp": 1772743189.7230797
+    "timestamp": 1772822973.0659256
   },
   "nowcast_Karnataka": {
     "data": {
@@ -37,12 +37,12 @@
   },
   "nowcast_Gujarat": {
     "data": {
-      "temperature": 20.2,
-      "humidity": 79.0,
+      "temperature": 21.4,
+      "humidity": 62.0,
       "precipitation": 0.0,
-      "risk_multiplier": 1.2
+      "risk_multiplier": 1.0
     },
-    "timestamp": 1772745913.3405035
+    "timestamp": 1772822762.4635246
   },
   "nowcast_Bihar": {
     "data": {

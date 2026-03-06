@@ -274,11 +274,13 @@ def forecast_region():
             drift_status = drift_detector.get_status_summary()
 
             # Hotspots (enhanced with risk fusion)
+            # Scale so the three zones always span a meaningful risk range:
+            # Northern = highest-risk sub-zone (boosted), Central = baseline, Southern = lowest
             hotspot_score = risk_fusion["fused_risk_score"]
             hotspots = [
-                {"name": f"Northern {region}", "intensity": round(hotspot_score * 0.9, 2)},
-                {"name": f"Central {region}", "intensity": round(hotspot_score * 0.6, 2)},
-                {"name": f"Southern {region}", "intensity": round(hotspot_score * 0.7, 2)},
+                {"name": f"Northern {region}", "intensity": round(min(hotspot_score * 1.4, 1.0), 2)},
+                {"name": f"Central {region}",  "intensity": round(min(hotspot_score * 0.95, 1.0), 2)},
+                {"name": f"Southern {region}", "intensity": round(max(hotspot_score * 0.5, 0.05), 2)},
             ]
 
             # Live insights
@@ -366,9 +368,9 @@ def forecast_region():
         }
 
         hotspots = [
-            {"name": f"Northern {region}", "intensity": round(hotspot_score * 0.9, 2)},
-            {"name": f"Central {region}", "intensity": round(hotspot_score * 0.6, 2)},
-            {"name": f"Southern {region}", "intensity": round(hotspot_score * 0.7, 2)},
+            {"name": f"Northern {region}", "intensity": round(min(hotspot_score * 1.4, 1.0), 2)},
+            {"name": f"Central {region}",  "intensity": round(min(hotspot_score * 0.95, 1.0), 2)},
+            {"name": f"Southern {region}", "intensity": round(max(hotspot_score * 0.5, 0.05), 2)},
         ]
 
         return jsonify({

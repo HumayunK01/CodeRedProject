@@ -275,33 +275,30 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                 <CardContent className="space-y-4">
                   {/* Big risk number */}
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
-                    <div className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center ${
-                      results.risk_fusion.risk_level.toLowerCase() === 'critical' ? 'bg-destructive/10 ring-2 ring-destructive/20' :
+                    <div className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center ${results.risk_fusion.risk_level.toLowerCase() === 'critical' ? 'bg-destructive/10 ring-2 ring-destructive/20' :
                       results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'bg-destructive/10' :
-                      results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'bg-amber-500/10' :
-                      'bg-emerald-500/10'
-                    }`}>
-                      <p className={`text-2xl font-black leading-none ${
-                        results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive' :
-                        results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'text-amber-600' :
-                        'text-emerald-600'
+                        results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'bg-amber-500/10' :
+                          'bg-emerald-500/10'
                       }`}>
+                      <p className={`text-2xl font-black leading-none ${results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive' :
+                        results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'text-amber-600' :
+                          'text-emerald-600'
+                        }`}>
                         {(results.risk_fusion.fused_risk_score * 100).toFixed(0)}%
                       </p>
-                      <p className={`text-[10px] font-bold uppercase mt-0.5 ${
-                        results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive/70' :
+                      <p className={`text-[10px] font-bold uppercase mt-0.5 ${results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive/70' :
                         results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'text-amber-600/70' :
-                        'text-emerald-600/70'
-                      }`}>
+                          'text-emerald-600/70'
+                        }`}>
                         {results.risk_fusion.risk_level}
                       </p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed text-center sm:text-left">
                         {results.risk_fusion.risk_level.toLowerCase() === 'critical' ? 'Immediate attention recommended. Multiple factors point to significantly elevated outbreak risk in this region.' :
-                         results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'Several indicators suggest elevated risk of disease activity. Stay informed and follow public health guidance.' :
-                         results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'Some factors indicate moderate risk. Continue monitoring — conditions could change.' :
-                         'Current indicators suggest low risk in this region. No immediate concerns detected.'}
+                          results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'Several indicators suggest elevated risk of disease activity. Stay informed and follow public health guidance.' :
+                            results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'Some factors indicate moderate risk. Continue monitoring — conditions could change.' :
+                              'Current indicators suggest low risk in this region. No immediate concerns detected.'}
                       </p>
                     </div>
                   </div>
@@ -318,19 +315,17 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                         <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1.5">{comp.label}</p>
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1.5">
                           <div
-                            className={`h-1.5 rounded-full transition-all duration-700 ${
-                              comp.color === 'blue' ? 'bg-blue-500' :
+                            className={`h-1.5 rounded-full transition-all duration-700 ${comp.color === 'blue' ? 'bg-blue-500' :
                               comp.color === 'amber' ? 'bg-amber-500' :
-                              comp.color === 'red' ? 'bg-red-500' : 'bg-purple-500'
-                            }`}
+                                comp.color === 'red' ? 'bg-red-500' : 'bg-purple-500'
+                              }`}
                             style={{ width: `${Math.min(comp.value * 100, 100)}%` }}
                           />
                         </div>
-                        <p className={`text-xs font-bold ${
-                          comp.color === 'blue' ? 'text-blue-600' :
+                        <p className={`text-xs font-bold ${comp.color === 'blue' ? 'text-blue-600' :
                           comp.color === 'amber' ? 'text-amber-600' :
-                          comp.color === 'red' ? 'text-red-600' : 'text-purple-600'
-                        }`}>
+                            comp.color === 'red' ? 'text-red-600' : 'text-purple-600'
+                          }`}>
                           {(comp.value * 100).toFixed(0)}%
                         </p>
                       </div>
@@ -343,12 +338,10 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                 <CardContent className="py-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 sm:p-2.5 rounded-xl flex-shrink-0 ${
-                        results.hotspot_score > 0.7 ? 'bg-destructive/10' : results.hotspot_score > 0.4 ? 'bg-amber-500/10' : 'bg-emerald-500/10'
-                      }`}>
-                        <AlertTriangle className={`h-5 w-5 ${
-                          results.hotspot_score > 0.7 ? 'text-destructive' : results.hotspot_score > 0.4 ? 'text-amber-500' : 'text-emerald-500'
-                        }`} />
+                      <div className={`p-2 sm:p-2.5 rounded-xl flex-shrink-0 ${results.hotspot_score > 0.7 ? 'bg-destructive/10' : results.hotspot_score > 0.4 ? 'bg-amber-500/10' : 'bg-emerald-500/10'
+                        }`}>
+                        <AlertTriangle className={`h-5 w-5 ${results.hotspot_score > 0.7 ? 'text-destructive' : results.hotspot_score > 0.4 ? 'text-amber-500' : 'text-emerald-500'
+                          }`} />
                       </div>
                       <div>
                         <p className="font-semibold text-primary">How Likely Is an Outbreak?</p>
@@ -505,7 +498,7 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
                       <ul className="space-y-1 text-[11px] text-foreground/80 list-disc pl-4">
                         {results.live_insights.top_headlines.map((headline, idx) => (
-                          <li key={idx} className="truncate tracking-tight" title={headline}>{headline}</li>
+                          <li key={idx} className="leading-snug tracking-tight">{headline}</li>
                         ))}
                       </ul>
                     ) : (
@@ -574,15 +567,15 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       };
                       const label = friendlyNames[driver.feature.replace(/_/g, ' ')] || driver.feature.replace(/_/g, ' ');
                       return (
-                      <div key={idx} className="flex items-center justify-between">
-                        <span className="text-xs text-foreground/70 truncate mr-2">{label}</span>
-                        <div className="flex items-center gap-2 min-w-[80px]">
-                          <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                            <div className="h-1.5 rounded-full bg-primary transition-all duration-700" style={{ width: `${Math.min(driver.importance * 100, 100)}%` }} />
+                        <div key={idx} className="flex items-center justify-between">
+                          <span className="text-xs text-foreground/70 truncate mr-2">{label}</span>
+                          <div className="flex items-center gap-2 min-w-[80px]">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                              <div className="h-1.5 rounded-full bg-primary transition-all duration-700" style={{ width: `${Math.min(driver.importance * 100, 100)}%` }} />
+                            </div>
+                            <span className="text-[10px] font-bold text-primary w-10 text-right">{(driver.importance * 100).toFixed(0)}%</span>
                           </div>
-                          <span className="text-[10px] font-bold text-primary w-10 text-right">{(driver.importance * 100).toFixed(0)}%</span>
                         </div>
-                      </div>
                       );
                     })}
                   </div>
@@ -601,22 +594,49 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <p className="text-xs text-muted-foreground italic">Nothing unusual detected — all factors are within normal ranges.</p>
                     )}
 
-                    {/* Top headlines */}
-                    {results.live_insights?.top_headlines && results.live_insights.top_headlines.length > 0 && (
-                      <div className="pt-2 border-t border-border/40 space-y-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <Newspaper className="h-3 w-3 text-foreground/40" />
-                          <p className="text-[10px] uppercase font-bold text-foreground/40">Related Headlines</p>
-                        </div>
-                        <ul className="space-y-1 text-[11px] text-foreground/70 list-disc pl-4">
-                          {results.live_insights.top_headlines.slice(0, 5).map((headline, idx) => (
-                            <li key={idx} className="leading-snug" title={headline}>
-                              {headline}
-                            </li>
-                          ))}
-                        </ul>
+                    {/* Model Reliability */}
+                    <div className="pt-2 border-t border-border/40 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Info className="h-3 w-3 text-foreground/40" />
+                        <p className="text-[10px] uppercase font-bold text-foreground/40">Model Reliability</p>
                       </div>
-                    )}
+                      <div className="space-y-1.5">
+                        {results.explanation.confidence_level && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-foreground/60">Confidence</span>
+                            <Badge
+                              variant={results.explanation.confidence_level === 'high' ? 'default' : results.explanation.confidence_level === 'moderate' ? 'secondary' : 'destructive'}
+                              className="text-[10px] capitalize"
+                            >
+                              {results.explanation.confidence_level}
+                            </Badge>
+                          </div>
+                        )}
+                        {results.explanation.model_agreement !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-foreground/60">Model Agreement</span>
+                            <span className="text-xs font-bold text-primary">{(results.explanation.model_agreement * 100).toFixed(0)}%</span>
+                          </div>
+                        )}
+                        {results.explanation.interval_relative_width !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-foreground/60">Prediction Spread</span>
+                            <span className="text-xs font-bold text-foreground/70">{(results.explanation.interval_relative_width * 100).toFixed(0)}%</span>
+                          </div>
+                        )}
+                        {results.drift_status && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-foreground/60">Pattern Stability</span>
+                            <Badge
+                              variant={results.drift_status.drift_detected ? 'destructive' : 'outline'}
+                              className="text-[10px]"
+                            >
+                              {results.drift_status.drift_detected ? 'Shifting' : 'Stable'}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

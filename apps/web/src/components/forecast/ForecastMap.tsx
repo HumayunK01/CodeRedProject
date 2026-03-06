@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 interface Hotspot {
   name?: string;
   intensity: number;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
 }
 
 interface ForecastMapProps {
@@ -81,8 +81,11 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
 
         {/* Render Hotspots using real coordinates */}
         {hotspots && hotspots.map((hotspot, idx) => {
-          // Use real lat/lng from backend
-          const coords: [number, number] = [hotspot.lat, hotspot.lng];
+          // Use real lat/lng from backend, or fallback to an offset from the center
+          const lat = hotspot.lat ?? (center[0] + (idx === 0 ? 0.8 : idx === 1 ? -0.5 : -1.2));
+          const lng = hotspot.lng ?? (center[1] + (idx === 0 ? -1.0 : idx === 1 ? 1.2 : -0.2));
+          const coords: [number, number] = [lat, lng];
+
           // Scale color: High risk = Red, Medium = Orange, Low = Blue
           const hexColor = hotspot.intensity > 0.7 ? '#ef4444' : hotspot.intensity > 0.4 ? '#f59e0b' : '#3b82f6';
 
@@ -102,11 +105,11 @@ export const ForecastMap = ({ region, hotspots }: ForecastMapProps) => {
                 <div className="p-1 min-w-[170px]">
                   <div className="flex items-center gap-2 border-b pb-2 mb-2">
                     <AlertTriangle className="h-4 w-4" style={{ color: hexColor }} />
-                    <h4 className="font-bold text-sm m-0 leading-none">{hotspot.name || `Hotspot #${idx+1}`}</h4>
+                    <h4 className="font-bold text-sm m-0 leading-none">{hotspot.name || `Hotspot #${idx + 1}`}</h4>
                   </div>
                   <div className="flex flex-col gap-1 mt-2">
                     <span className="text-xs text-muted-foreground font-medium">Risk Level: <Badge variant="outline" style={{ borderColor: hexColor, color: hexColor }}>{(hotspot.intensity * 100).toFixed(0)}%</Badge></span>
-                    <span className="text-xs text-muted-foreground font-medium">Lat: {hotspot.lat.toFixed(4)}, Lng: {hotspot.lng.toFixed(4)}</span>
+                    <span className="text-xs text-muted-foreground font-medium">Lat: {lat.toFixed(4)}, Lng: {lng.toFixed(4)}</span>
                   </div>
                 </div>
               </Popup>
