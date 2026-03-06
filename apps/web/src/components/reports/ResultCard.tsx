@@ -240,17 +240,20 @@ export const ResultCard = ({ result, isSelected, onClick, onDelete }: ResultCard
                                                     <span className="text-[10px] text-muted-foreground">(Next 3 Weeks)</span>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    {forecastResult.predictions.slice(0, 3).map((p, i: number) => (
+                                                    {forecastResult.predictions.slice(0, 3).map((p, i: number) => {
+                                                        const caseCount = p.point ?? p.cases ?? 0;
+                                                        return (
                                                         <div key={i} className="flex justify-between text-xs items-center">
                                                             <span className="text-foreground/70 font-medium">{p.week}</span>
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-16 h-1.5 bg-primary/10 rounded-full overflow-hidden">
-                                                                    <div className="h-full bg-primary/40" style={{ width: `${Math.min((p.cases / 3000000) * 100, 100)}%` }}></div>
+                                                                    <div className="h-full bg-primary/40" style={{ width: `${Math.min((caseCount / 3000000) * 100, 100)}%` }}></div>
                                                                 </div>
-                                                                <span className="font-mono font-medium min-w-[60px] text-right">{p.cases.toLocaleString()}</span>
+                                                                <span className="font-mono font-medium min-w-[60px] text-right">{caseCount.toLocaleString()}</span>
                                                             </div>
                                                         </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}

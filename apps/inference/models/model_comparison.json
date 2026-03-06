@@ -1,0 +1,57 @@
+{
+  "regions": {
+    "Maharashtra": {
+      "v1_mae": 133.8,
+      "v1_rmse": 184.3,
+      "v2_mae": 285.8,
+      "v2_rmse": 326.4,
+      "improvement_pct": -113.6,
+      "interval_coverage": 100.0
+    },
+    "Delhi": {
+      "v1_mae": 551.6,
+      "v1_rmse": 785.5,
+      "v2_mae": 370.4,
+      "v2_rmse": 440.4,
+      "improvement_pct": 32.9,
+      "interval_coverage": 100.0
+    },
+    "Kerala": {
+      "v1_mae": 247.0,
+      "v1_rmse": 282.4,
+      "v2_mae": 264.0,
+      "v2_rmse": 292.4,
+      "improvement_pct": -6.9,
+      "interval_coverage": 87.5
+    },
+    "Karnataka": {
+      "v1_mae": 983.9,
+      "v1_rmse": 1084.4,
+      "v2_mae": 425.9,
+      "v2_rmse": 533.4,
+      "improvement_pct": 56.7,
+      "interval_coverage": 87.5
+    },
+    "Tamil Nadu": {
+      "v1_mae": 108.4,
+      "v1_rmse": 126.1,
+      "v2_mae": 74.9,
+      "v2_rmse": 101.4,
+      "improvement_pct": 30.9,
+      "interval_coverage": 100.0
+    },
+    "Uttar Pradesh": {
+      "v1_mae": 171.5,
+      "v1_rmse": 184.7,
+      "v2_mae": 94.2,
+      "v2_rmse": 120.9,
+      "improvement_pct": 45.0,
+      "interval_coverage": 87.5
+    }
+  },
+  "v1_avg_mae": 366.0,
+  "v2_avg_mae": 252.5,
+  "regions_improved": 4,
+  "total_regions": 6,
+  "avg_interval_coverage": 93.8
+}

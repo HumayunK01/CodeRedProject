@@ -1,0 +1,86 @@
+{
+  "news_Delhi": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "November malaria cases in Delhi highest in four years, steep drop in dengue infections - The Hindu",
+        "Union Health Minister Shri J P Nadda Chairs High-Level Review Meeting on Dengue Preparedness in Delhi and NCR - PIB",
+        "Nipah virus: Some Asia airports screen passengers after outbreak in India - BBC"
+      ]
+    },
+    "timestamp": 1772739835.1332705
+  },
+  "news_Maharashtra": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Maharashtra sees sharp rise in malaria this year;54 cases so far in Pune city, up from 23 in 2024 - The Times of India",
+        "Maharashtra Reaffirms \u20b9600 Cap on Dengue Test Amid Monsoon Spike - The Indian Practitioner",
+        "Maharashtra: In Remote, Gadchiroli Tribal Villages, Climate Change is Breeding Malaria - newsclick.in"
+      ]
+    },
+    "timestamp": 1772743191.2333028
+  },
+  "news_Karnataka": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "About Kyasanur Forest Disease | KFD - Centers for Disease Control and Prevention | CDC (.gov)",
+        "Entrepreneur calls Bengaluru\u2019s work culture the \u2018Bangalore virus\u2019 - newskarnataka.com",
+        "Karnataka recorded zero dengue deaths in 2025, says Health Ministry - The New Indian Express"
+      ]
+    },
+    "timestamp": 1772743928.6193252
+  },
+  "news_Haryana": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "7 die of jaundice in Haryana\u2019s Palwal village in 2 weeks; outbreak probe underway - The Times of India",
+        "Hepatitis Outbreak Kills 4 In Haryana Village; 3 Other Deaths Under Investigation - ETV Bharat",
+        "Haryana notifies regulations to curb vector-borne diseases - Tribune India"
+      ]
+    },
+    "timestamp": 1772744575.5960093
+  },
+  "news_Gujarat": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "India: Typhoid outbreak in Gandhinagar, Gujarat - Outbreak News Today",
+        "HMPV case reported in Gujarat - News On AIR",
+        "Number of malaria cases across Gujarat in India from 2014 to 2023 - Statista"
+      ]
+    },
+    "timestamp": 1772745914.9935691
+  },
+  "news_Bihar": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Bird Flu Outbreak In Darbhanga: Bihar On High Alert - NDTV",
+        "Diarrhoea outbreak kills two in Bihar, over 70 fall sick - The Hindu",
+        "Bihar on Bird Flu Alert as 5,000 Chickens Die in Gaya Ahead of Holi - Patna Press"
+      ]
+    },
+    "timestamp": 1772745940.9866102
+  },
+  "news_Odisha": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Odisha Minister Says No Nipah Virus Scare, Bengal Situation Being Monitored - NDTV",
+        "Association of intermediate monocytes with dengue severity among the pediatric population of Odisha, India - Nature",
+        "Odisha moves back into malaria territory again - The New Indian Express"
+      ]
+    },
+    "timestamp": 1772746018.2396336
+  }
+}

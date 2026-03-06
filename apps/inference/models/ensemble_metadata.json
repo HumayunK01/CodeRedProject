@@ -1,0 +1,46 @@
+{
+  "version": "v2_20260306_011007",
+  "trained_at": "2026-03-06T01:10:07.221217",
+  "training_samples": 4710,
+  "feature_names": [
+    "cases_lag_1",
+    "cases_lag_2",
+    "cases_lag_3",
+    "cases_lag_4",
+    "cases_lag_5",
+    "cases_lag_6",
+    "cases_lag_7",
+    "cases_lag_8",
+    "week_sin",
+    "week_cos",
+    "region_id"
+  ],
+  "feature_count": 11,
+  "backtest_metrics": {
+    "mae": 1134.14,
+    "rmse": 2560.26
+  },
+  "feature_importance": {
+    "week_sin": 0.4856,
+    "cases_lag_1": 0.3368,
+    "week_cos": 0.206,
+    "cases_lag_2": 0.0953,
+    "cases_lag_3": 0.0504,
+    "cases_lag_4": 0.041,
+    "cases_lag_6": 0.0392,
+    "region_id": 0.0374,
+    "cases_lag_5": 0.0369,
+    "cases_lag_7": 0.0358,
+    "cases_lag_8": 0.0298
+  },
+  "models": [
+    "histgbr_primary",
+    "histgbr_alt",
+    "quantile_p10",
+    "quantile_p50",
+    "quantile_p90"
+  ],
+  "window_size": 8,
+  "horizon": 8,
+  "promotion_metric": "mae"
+}

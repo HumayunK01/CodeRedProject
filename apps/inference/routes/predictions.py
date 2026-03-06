@@ -179,15 +179,13 @@ def forecast_region():
     import flask_app as _fa
 
     try:
-        if _fa.malaria_forecast_model is None:
-            return jsonify({"error": "Forecast model not loaded"}), 500
-
         data = request.get_json()
         if not data:
             return jsonify({"error": "No forecast data provided"}), 400
 
         region = data.get("region", "India")
-        horizon_weeks = min(data.get("horizon_weeks", 4), 12)
+        horizon_weeks = min(data.get("horizon_weeks", 8), 12)
+        scenario_params = data.get("scenario", None)
 
         df = pd.read_csv("data/realtime_india_outbreaks.csv")
         region_df = df[df["Region"] == region].copy()
@@ -196,10 +194,133 @@ def forecast_region():
             return jsonify({"error": f"Not enough historical data for {region}. Need at least 8 weeks."}), 400
 
         region_df["Date"] = pd.to_datetime(region_df["Date"])
+        region_df = region_df.sort_values("Date")
         region_cases = region_df["New_Cases"].values
         last_date = region_df["Date"].iloc[-1]
 
         WINDOW_SIZE = 8
+
+        # ── Fetch live exogenous signals ──────────────────────────────
+        from core.feature_store import fetch_current_weather, fetch_news_signal
+        weather_data = fetch_current_weather(region)
+        news_data = fetch_news_signal(region)
+
+        freshness = {
+            "weather_fresh": weather_data.get("fresh", False),
+            "news_fresh": news_data.get("fresh", False),
+        }
+
+        # ── Adaptive Ensemble Path ────────────────────────────────────
+        if _fa.adaptive_ensemble is not None:
+            from core.feature_store import build_feature_row
+            from core.adaptive_trainer import predict_with_ensemble
+            from core.drift_detector import drift_detector
+            from core.simulator import simulate_intervention, compute_risk_fusion_score
+            from core.explainability import explain_prediction
+
+            ensemble = _fa.adaptive_ensemble
+            predictions = []
+            forecast_vals = []
+
+            current_cases = list(region_cases[-WINDOW_SIZE:])
+
+            for i in range(horizon_weeks):
+                week_date = last_date + timedelta(weeks=i + 1)
+                features, _ = build_feature_row(
+                    region, current_cases, weather_data, news_data, date=week_date
+                )
+                result = predict_with_ensemble(ensemble, features)
+
+                pred_entry = {
+                    "week": week_date.strftime("%Y-%m-%d"),
+                    "point": result["point"],
+                    "p10": result["p10"],
+                    "p50": result["p50"],
+                    "p90": result["p90"],
+                    "model_agreement": result["model_agreement"],
+                }
+                predictions.append(pred_entry)
+                forecast_vals.append(result["point"])
+
+                # Slide window with point prediction
+                current_cases.append(result["point"])
+                current_cases = current_cases[-WINDOW_SIZE:]
+
+            # Historical data for chart
+            historical = []
+            for _, row in region_df.tail(12).iterrows():
+                historical.append({
+                    "week": row["Date"].strftime("%Y-%m-%d"),
+                    "cases": int(row["New_Cases"]),
+                })
+
+            # Explainability
+            last_features, _ = build_feature_row(
+                region, list(region_cases[-WINDOW_SIZE:]), weather_data, news_data,
+                date=last_date + timedelta(weeks=1)
+            )
+            last_pred_result = predict_with_ensemble(ensemble, last_features)
+            explanation = explain_prediction(
+                ensemble, last_features, last_pred_result, weather_data, news_data
+            )
+
+            # Risk fusion score
+            risk_fusion = compute_risk_fusion_score(
+                {"predictions": predictions}, weather_data, news_data
+            )
+
+            # Drift status
+            drift_status = drift_detector.get_status_summary()
+
+            # Hotspots (enhanced with risk fusion)
+            hotspot_score = risk_fusion["fused_risk_score"]
+            hotspots = [
+                {"name": f"Northern {region}", "intensity": round(hotspot_score * 0.9, 2)},
+                {"name": f"Central {region}", "intensity": round(hotspot_score * 0.6, 2)},
+                {"name": f"Southern {region}", "intensity": round(hotspot_score * 0.7, 2)},
+            ]
+
+            # Live insights
+            live_insights = {
+                "temperature": weather_data.get("temperature", None),
+                "humidity": weather_data.get("humidity", None),
+                "precipitation": weather_data.get("precipitation", None),
+                "news_articles_found": news_data.get("article_count", 0),
+                "top_headlines": news_data.get("headlines", []),
+            }
+
+            # Build response
+            response = {
+                "region": region,
+                "disease": "Aggregate Endemic",
+                "model_version": ensemble.get("version", "v2_adaptive"),
+                "historical": historical,
+                "predictions": predictions,
+                "hotspot_score": round(hotspot_score, 2),
+                "hotspots": hotspots,
+                "live_insights": live_insights,
+                "freshness": freshness,
+                "risk_fusion": risk_fusion,
+                "drift_status": drift_status,
+                "explanation": explanation,
+            }
+
+            # Intervention scenario (if requested)
+            if scenario_params:
+                scenario_preds, effect_summary = simulate_intervention(
+                    predictions, scenario_params
+                )
+                response["scenario"] = {
+                    "predictions": scenario_preds,
+                    "effect_summary": effect_summary,
+                }
+
+            return jsonify(response)
+
+        # ── Legacy Fallback (v1 model) ────────────────────────────────
+        if _fa.malaria_forecast_model is None:
+            return jsonify({"error": "No forecast model loaded"}), 500
+
         current_window = deque(region_cases[-WINDOW_SIZE:], maxlen=WINDOW_SIZE)
 
         predictions = []
@@ -232,26 +353,16 @@ def forecast_region():
         avg_cases = np.mean(forecast_val)
         base_score = min(1.0, max(0.1, avg_cases / MAX_EXPECTED_CASES))
 
-        try:
-            from agents.live_web_agent import fetch_live_weather, fetch_live_news_outbreak_risk
+        live_multiplier = weather_data.get("risk_multiplier", 1.0) * news_data.get("news_risk_score", 1.0)
+        hotspot_score = float(min(1.0, base_score * live_multiplier))
 
-            weather_data = fetch_live_weather(region)
-            news_data = fetch_live_news_outbreak_risk(region)
-
-            live_multiplier = weather_data["risk_multiplier"] * news_data["risk_multiplier"]
-            hotspot_score = float(min(1.0, base_score * live_multiplier))
-
-            live_insights = {
-                "temperature": weather_data["temperature"],
-                "humidity": weather_data["humidity"],
-                "precipitation": weather_data["precipitation"],
-                "news_articles_found": news_data["article_count"],
-                "top_headlines": news_data["headlines"],
-            }
-        except Exception as e:
-            logger.warning("Live agent error: %s", e)
-            hotspot_score = float(base_score)
-            live_insights = None
+        live_insights = {
+            "temperature": weather_data.get("temperature"),
+            "humidity": weather_data.get("humidity"),
+            "precipitation": weather_data.get("precipitation"),
+            "news_articles_found": news_data.get("article_count", 0),
+            "top_headlines": news_data.get("headlines", []),
+        }
 
         hotspots = [
             {"name": f"Northern {region}", "intensity": round(hotspot_score * 0.9, 2)},
@@ -262,11 +373,13 @@ def forecast_region():
         return jsonify({
             "region": region,
             "disease": "Aggregate Endemic",
+            "model_version": "v1_legacy",
             "historical": historical,
             "predictions": predictions,
             "hotspot_score": round(hotspot_score, 2),
             "hotspots": hotspots,
             "live_insights": live_insights,
+            "freshness": freshness,
         })
 
     except Exception as e:

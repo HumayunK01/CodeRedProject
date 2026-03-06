@@ -25,12 +25,17 @@ gatekeeper_threshold: float = 0.05
 SYMPTOM_MODEL_NAME: str = "Malaria Risk Screening (DHS-Based)"
 MODEL_TEST_ACCURACY: str = "Pending"
 
+# ── Adaptive Ensemble References ─────────────────────────────────────────────
+adaptive_ensemble = None
+ensemble_metadata = None
+
 
 def load_models():
     """Load ML models from disk into the module-level globals."""
     global malaria_model, malaria_forecast_model, symptoms_model
     global SYMPTOM_MODEL_NAME, MODEL_TEST_ACCURACY
     global gatekeeper_model, gatekeeper_threshold
+    global adaptive_ensemble, ensemble_metadata
 
     # These imports are deferred so this module can be imported without TF
     try:
@@ -112,6 +117,26 @@ def load_models():
                 logger.error("Error loading DHS Risk Index model", exc_info=e)
         else:
             logger.warning("DHS Risk Index model file not found")
+
+        # ── Adaptive Ensemble ────────────────────────────────────────────
+        ensemble_path = "models/adaptive_ensemble.pkl"
+        if os.path.exists(ensemble_path):
+            try:
+                adaptive_ensemble = joblib.load(ensemble_path)
+                ens_meta_path = "models/ensemble_metadata.json"
+                if os.path.exists(ens_meta_path):
+                    with open(ens_meta_path, "r") as f:
+                        ensemble_metadata = json.load(f)
+                logger.info(
+                    "Adaptive Ensemble loaded — version=%s models=%d features=%d",
+                    adaptive_ensemble.get("version", "unknown"),
+                    len(adaptive_ensemble.get("quantile", {})) + 2,
+                    len(adaptive_ensemble.get("feature_names", [])),
+                )
+            except Exception as e:
+                logger.warning("Error loading adaptive ensemble: %s", e)
+        else:
+            logger.info("Adaptive ensemble not yet trained — will use legacy forecaster")
 
     except Exception as e:
         logger.error("Error loading models", exc_info=e)

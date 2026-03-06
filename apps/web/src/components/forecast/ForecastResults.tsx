@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ForecastResult } from "@/lib/types";
+import { ForecastResult, ForecastPrediction } from "@/lib/types";
 import { ForecastChart } from "./ForecastChart";
 import { ForecastMap } from "./ForecastMap";
 import {
@@ -20,7 +20,13 @@ import {
   CloudRain,
   Thermometer,
   Newspaper,
-  Zap
+  Zap,
+  Shield,
+  Brain,
+  Activity,
+  CheckCircle,
+  XCircle,
+  Info
 } from "lucide-react";
 
 interface ForecastResultsProps {
@@ -31,48 +37,40 @@ interface ForecastResultsProps {
 export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) => {
   const [activeTab, setActiveTab] = useState<'chart' | 'map'>('chart');
 
+  /** Get case count from either v2 `point` or v1 `cases` field */
+  const getCases = (pred: ForecastPrediction): number => pred.point ?? pred.cases ?? 0;
+
+  const isV2 = results?.model_version?.startsWith('v2');
+
   const handleExportChart = () => {
-    // This would implement chart export functionality
     console.log('Export chart functionality would be implemented here');
   };
 
-  const getTrendDirection = (predictions: { week: string; cases: number }[]) => {
+  const getTrendDirection = (predictions: ForecastPrediction[]) => {
     if (predictions.length < 2) return 'stable';
 
-    // Handle case where first value is zero to avoid division by zero
-    const first = predictions[0].cases;
-    const last = predictions[predictions.length - 1].cases;
+    const first = getCases(predictions[0]);
+    const last = getCases(predictions[predictions.length - 1]);
 
-    // If first value is zero, look at the overall trend of the data
     if (first === 0) {
       let positiveTrends = 0;
       let negativeTrends = 0;
 
       for (let i = 1; i < predictions.length; i++) {
-        const change = predictions[i].cases - predictions[i - 1].cases;
-        if (change > 0) {
-          positiveTrends++;
-        } else if (change < 0) {
-          negativeTrends++;
-        }
+        const change = getCases(predictions[i]) - getCases(predictions[i - 1]);
+        if (change > 0) positiveTrends++;
+        else if (change < 0) negativeTrends++;
       }
 
-      // If no trends at all (all values are the same), it's stable
       if (positiveTrends === 0 && negativeTrends === 0) return 'stable';
-
-      // If more positive than negative trends, it's increasing
       if (positiveTrends > negativeTrends) return 'increasing';
       if (negativeTrends > positiveTrends) return 'decreasing';
-
-      // If equal positive and negative trends, look at overall direction
       if (last > first) return 'increasing';
       if (last < first) return 'decreasing';
       return 'stable';
     }
 
-    // Normal percentage change calculation
     const change = ((last - first) / first) * 100;
-
     if (change > 10) return 'increasing';
     if (change < -10) return 'decreasing';
     return 'stable';
@@ -116,24 +114,20 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
     week: string;
     historicalCases?: number;
     predictedCases?: number;
+    p10?: number;
+    p90?: number;
   }
 
   const combinedData: CombinedDataPoint[] = [];
 
-  if (results?.historical) {
-    results.historical.forEach((h, index) => {
-      const point: CombinedDataPoint = { week: h.week, historicalCases: h.cases };
-      // Connect the prediction line to the last historical point
-      if (index === results.historical!.length - 1) {
-        point.predictedCases = h.cases;
-      }
-      combinedData.push(point);
-    });
-  }
-
   if (results?.predictions) {
     results.predictions.forEach(p => {
-      combinedData.push({ week: p.week, predictedCases: p.cases });
+      combinedData.push({
+        week: p.week,
+        predictedCases: getCases(p),
+        p10: p.p10,
+        p90: p.p90,
+      });
     });
   }
 
@@ -155,9 +149,9 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Generating Forecast</h3>
+                    <h3 className="font-semibold mb-2">Analyzing Your Region</h3>
                     <p className="text-sm text-muted-foreground">
-                      Processing epidemiological data and running ML models...
+                      Checking weather, news, and disease patterns to estimate what may happen next...
                     </p>
                   </div>
                 </div>
@@ -172,81 +166,198 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="space-y-6"
+            className="space-y-5"
           >
-            {/* Summary Cards */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center space-x-2 text-foreground/60">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">Region</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-primary">{results.region}</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center space-x-2 text-foreground/60">
-                    <Calendar className="h-4 w-4" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">Forecast Period</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-primary">
-                    {results.predictions.length} week{results.predictions.length !== 1 ? 's' : ''}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center space-x-2 text-foreground/60">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">Trend</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl">
-                      {getTrendIcon(getTrendDirection(results.predictions))}
-                    </span>
+            {/* ── Section 1: Summary Header ─────────────────────────────── */}
+            <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm overflow-hidden">
+              <CardContent className="py-3 sm:py-4">
+                {/* Top row: Region, Period, Trend */}
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <MapPin className="h-4 w-4 text-primary" />
+                    </div>
                     <div>
-                      <p className={`text-lg font-bold ${getTrendColor(getTrendDirection(results.predictions))}`}>
-                        {getTrendDirection(results.predictions)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground leading-none">
-                        {getTrendDirection(results.predictions) === 'decreasing' && 'risk is expected to decline'}
-                        {getTrendDirection(results.predictions) === 'increasing' && 'risk is expected to rise'}
-                        {getTrendDirection(results.predictions) === 'stable' && 'no significant change'}
+                      <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none">Region</p>
+                      <p className="text-base font-bold text-primary leading-tight">{results.region}</p>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-border hidden sm:block" />
+
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Calendar className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none">Looking Ahead</p>
+                      <p className="text-sm sm:text-base font-bold text-primary leading-tight">
+                        {results.predictions.length} week{results.predictions.length !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
+
+                  <div className="h-8 w-px bg-border hidden sm:block" />
+
+                  <div className="flex items-center gap-2">
+                    {getTrendIcon(getTrendDirection(results.predictions))}
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none">Trend</p>
+                      <p className={`text-base font-bold capitalize leading-tight ${getTrendColor(getTrendDirection(results.predictions))}`}>
+                        {getTrendDirection(results.predictions)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {results.disease && (
+                    <>
+                      <div className="h-8 w-px bg-border hidden sm:block" />
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-primary/10">
+                          <Activity className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none">Disease</p>
+                          <p className="text-base font-bold text-primary leading-tight">{results.disease}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Badges row */}
+                {isV2 && results.explanation && (
+                  <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border/50">
+                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary text-[10px] px-2 py-0.5">
+                      <Activity className="h-3 w-3 mr-1" />
+                      Enhanced AI Model
+                    </Badge>
+                    <Badge
+                      variant={results.explanation.confidence_level === 'high' ? 'default' : results.explanation.confidence_level === 'moderate' ? 'secondary' : 'destructive'}
+                      className="text-[10px] px-2 py-0.5"
+                    >
+                      <Shield className="h-3 w-3 mr-1" />
+                      {results.explanation.confidence_level === 'high' ? 'High certainty' : results.explanation.confidence_level === 'moderate' ? 'Moderate certainty' : 'Low certainty'}
+                    </Badge>
+                    {results.drift_status && (
+                      <Badge
+                        variant={results.drift_status.drift_detected ? 'destructive' : 'outline'}
+                        className="text-[10px] px-2 py-0.5"
+                      >
+                        {results.drift_status.drift_detected ? (
+                          <><XCircle className="h-3 w-3 mr-1" />Patterns shifting</>
+                        ) : (
+                          <><CheckCircle className="h-3 w-3 mr-1" />Patterns stable</>
+                        )}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Section 2: Overall Risk ────────────────────────────────── */}
+            {results.risk_fusion ? (
+              <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Shield className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-primary">Overall Risk Assessment</CardTitle>
+                      <CardDescription className="text-xs">
+                        We combine disease trends, weather, news, and symptoms into one risk score.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Big risk number */}
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
+                    <div className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center ${
+                      results.risk_fusion.risk_level.toLowerCase() === 'critical' ? 'bg-destructive/10 ring-2 ring-destructive/20' :
+                      results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'bg-destructive/10' :
+                      results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'bg-amber-500/10' :
+                      'bg-emerald-500/10'
+                    }`}>
+                      <p className={`text-2xl font-black leading-none ${
+                        results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive' :
+                        results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'text-amber-600' :
+                        'text-emerald-600'
+                      }`}>
+                        {(results.risk_fusion.fused_risk_score * 100).toFixed(0)}%
+                      </p>
+                      <p className={`text-[10px] font-bold uppercase mt-0.5 ${
+                        results.risk_fusion.risk_level.toLowerCase() === 'critical' || results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'text-destructive/70' :
+                        results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'text-amber-600/70' :
+                        'text-emerald-600/70'
+                      }`}>
+                        {results.risk_fusion.risk_level}
+                      </p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed text-center sm:text-left">
+                        {results.risk_fusion.risk_level.toLowerCase() === 'critical' ? 'Immediate attention recommended. Multiple factors point to significantly elevated outbreak risk in this region.' :
+                         results.risk_fusion.risk_level.toLowerCase() === 'high' ? 'Several indicators suggest elevated risk of disease activity. Stay informed and follow public health guidance.' :
+                         results.risk_fusion.risk_level.toLowerCase() === 'medium' ? 'Some factors indicate moderate risk. Continue monitoring — conditions could change.' :
+                         'Current indicators suggest low risk in this region. No immediate concerns detected.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Component breakdown */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {[
+                      { label: "Disease Trend", desc: "Are cases going up or down?", value: results.risk_fusion.components.forecast_trend, color: "blue" },
+                      { label: "Weather Risk", desc: "Is weather favoring disease spread?", value: results.risk_fusion.components.weather_suitability, color: "amber" },
+                      { label: "News Alerts", desc: "Are there outbreak reports?", value: results.risk_fusion.components.news_pressure, color: "red" },
+                      { label: "Reported Symptoms", desc: "Are people reporting symptoms?", value: results.risk_fusion.components.symptom_risk ?? 0, color: "purple" },
+                    ].map((comp, i) => (
+                      <div key={i} className="bg-white/60 rounded-xl p-2.5 text-center group cursor-default" title={comp.desc}>
+                        <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1.5">{comp.label}</p>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1.5">
+                          <div
+                            className={`h-1.5 rounded-full transition-all duration-700 ${
+                              comp.color === 'blue' ? 'bg-blue-500' :
+                              comp.color === 'amber' ? 'bg-amber-500' :
+                              comp.color === 'red' ? 'bg-red-500' : 'bg-purple-500'
+                            }`}
+                            style={{ width: `${Math.min(comp.value * 100, 100)}%` }}
+                          />
+                        </div>
+                        <p className={`text-xs font-bold ${
+                          comp.color === 'blue' ? 'text-blue-600' :
+                          comp.color === 'amber' ? 'text-amber-600' :
+                          comp.color === 'red' ? 'text-red-600' : 'text-purple-600'
+                        }`}>
+                          {(comp.value * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Hotspot Score */}
-            {results.hotspot_score !== undefined && (
-              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
+            ) : results.hotspot_score !== undefined && (
+              <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm">
                 <CardContent className="py-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 rounded-lg bg-warning/10">
-                        <AlertTriangle className="h-5 w-5 text-warning" />
+                      <div className={`p-2 sm:p-2.5 rounded-xl flex-shrink-0 ${
+                        results.hotspot_score > 0.7 ? 'bg-destructive/10' : results.hotspot_score > 0.4 ? 'bg-amber-500/10' : 'bg-emerald-500/10'
+                      }`}>
+                        <AlertTriangle className={`h-5 w-5 ${
+                          results.hotspot_score > 0.7 ? 'text-destructive' : results.hotspot_score > 0.4 ? 'text-amber-500' : 'text-emerald-500'
+                        }`} />
                       </div>
                       <div>
-                        <p className="font-semibold text-primary">Regional Risk Score</p>
+                        <p className="font-semibold text-primary">How Likely Is an Outbreak?</p>
                         <p className="text-sm text-foreground/60">
-                          This represents the likelihood of increased outbreak activity during the selected period.
+                          Based on patterns in this region, here's how likely disease activity could increase.
                         </p>
                       </div>
                     </div>
-
-                    <div className="text-right">
+                    <div className="text-right sm:text-right self-end sm:self-auto">
                       <Badge
                         variant={results.hotspot_score > 0.7 ? 'destructive' : results.hotspot_score > 0.4 ? 'default' : 'secondary'}
                         className="text-lg px-3 py-1"
@@ -262,98 +373,45 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
               </Card>
             )}
 
-            {/* Live Agent Insights */}
-            {results.live_insights && (
-              <Card className="bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center space-x-2 text-foreground/60">
-                    <Zap className="h-4 w-4" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">Live Web Agent Intelligence</span>
-                  </div>
-                  <CardDescription className="text-xs mt-1 text-muted-foreground">
-                    Real-time data scraped specifically for {results.region} right now.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 gap-4">
-                  {/* Weather Info */}
-                  <div className="bg-white/40 backdrop-blur-sm border border-white/60 p-3 rounded-xl flex flex-col justify-center space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Thermometer className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Temperature</span>
-                      </div>
-                      <span className="text-sm font-bold text-primary">{results.live_insights.temperature}°C</span>
+            {/* ── Section 3: Projected Cases (Chart + Stats) ─────────────── */}
+            <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-md">
+              <CardHeader className="pb-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <BarChart3 className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Humidity (Precip)</span>
-                      </div>
-                      <span className="text-sm font-bold text-primary">{results.live_insights.humidity}% ({(results.live_insights.precipitation || 0).toFixed(1)}mm)</span>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-primary">Projected Cases Over Time</CardTitle>
+                      <CardDescription className="text-xs">
+                        How many cases we expect each week. {combinedData.some(d => d.p10) && 'The shaded area shows the range of possibilities.'}
+                      </CardDescription>
                     </div>
                   </div>
-
-                  {/* News Info */}
-                  <div className="bg-white/40 backdrop-blur-sm border border-white/60 p-3 rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Newspaper className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Live News Monitor</span>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] bg-white/50 border-white/60 text-primary">
-                        {results.live_insights.news_articles_found} Articles
-                      </Badge>
-                    </div>
-                    {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
-                      <ul className="space-y-1 text-[11px] text-foreground/80 list-disc pl-4">
-                        {results.live_insights.top_headlines.map((headline, idx) => (
-                          <li key={idx} className="truncate tracking-tight" title={headline}>{headline}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic tracking-tight">No current outbreak alarms found in recent news.</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Visualization Tabs */}
-            <Card className="bg-white/60 backdrop-blur-md border border-white/60 shadow-md">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-bold text-primary">Forecast Visualization</CardTitle>
-                    <CardDescription>
-                      This chart shows the projected number of cases over time based on current patterns.
-                    </CardDescription>
-                  </div>
-
-                  <div className="flex items-center space-x-2 bg-secondary/30 p-1 rounded-lg">
+                  <div className="flex items-center space-x-1 bg-secondary/30 p-0.5 rounded-lg self-end sm:self-auto">
                     <Button
                       variant={activeTab === 'chart' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setActiveTab('chart')}
-                      className={activeTab === 'chart' ? 'shadow-sm' : ''}
+                      className={`h-7 text-xs ${activeTab === 'chart' ? 'shadow-sm' : ''}`}
                     >
-                      <BarChart3 className="mr-2 h-4 w-4" />
+                      <BarChart3 className="mr-1.5 h-3 w-3" />
                       Chart
                     </Button>
-
                     <Button
                       variant={activeTab === 'map' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setActiveTab('map')}
-                      className={activeTab === 'map' ? 'shadow-sm' : ''}
+                      className={`h-7 text-xs ${activeTab === 'map' ? 'shadow-sm' : ''}`}
                     >
-                      <Map className="mr-2 h-4 w-4" />
+                      <Map className="mr-1.5 h-3 w-3" />
                       Map
                     </Button>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="space-y-4">
                 <AnimatePresence mode="wait">
                   {activeTab === 'chart' ? (
                     <motion.div
@@ -380,26 +438,220 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Inline stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {[
+                    { label: "Worst Week", value: results.predictions.reduce((max, pred) => getCases(pred) > getCases(max) ? pred : max).week },
+                    { label: "Highest Cases", value: Math.max(...results.predictions.map(p => getCases(p))) },
+                    { label: "Total Expected", value: results.predictions.reduce((sum, pred) => sum + getCases(pred), 0) },
+                    { label: "Avg. Per Week", value: Math.round(results.predictions.reduce((sum, pred) => sum + getCases(pred), 0) / results.predictions.length) }
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white/60 border border-white/80 p-2 sm:p-3 rounded-xl text-center">
+                      <p className="text-[9px] sm:text-[10px] uppercase font-bold text-foreground/40 mb-0.5">{stat.label}</p>
+                      <p className="text-sm sm:text-base font-bold text-primary truncate">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Summary Statistics */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-foreground/50 ml-1">Key forecast highlights for quick reference</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: "Peak Week", value: results.predictions.reduce((max, pred) => pred.cases > max.cases ? pred : max).week },
-                  { label: "Peak Cases", value: Math.max(...results.predictions.map(p => p.cases)) },
-                  { label: "Total Predicted", value: results.predictions.reduce((sum, pred) => sum + pred.cases, 0) },
-                  { label: "Average Weekly", value: Math.round(results.predictions.reduce((sum, pred) => sum + pred.cases, 0) / results.predictions.length) }
-                ].map((stat, i) => (
-                  <div key={i} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-xl text-center">
-                    <p className="text-xs uppercase font-bold text-foreground/40 mb-1">{stat.label}</p>
-                    <p className="text-lg font-bold text-primary">{stat.value}</p>
+            {/* ── Section 4: Current Conditions (Weather + News) ─────────── */}
+            {results.live_insights && (
+              <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Zap className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-primary">Current Conditions</CardTitle>
+                      <CardDescription className="text-xs">
+                        Live weather and news for {results.region} that may affect disease spread.
+                      </CardDescription>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Weather */}
+                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Thermometer className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Temperature</span>
+                      </div>
+                      <span className="text-sm font-bold text-primary">{results.live_insights.temperature}°C</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CloudRain className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Humidity & Rainfall</span>
+                      </div>
+                      <span className="text-sm font-bold text-primary">{results.live_insights.humidity}% ({(results.live_insights.precipitation || 0).toFixed(1)}mm)</span>
+                    </div>
+                  </div>
+
+                  {/* News */}
+                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Newspaper className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Recent Health News</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-white/50 border-white/60 text-primary">
+                        {results.live_insights.news_articles_found} Articles
+                      </Badge>
+                    </div>
+                    {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
+                      <ul className="space-y-1 text-[11px] text-foreground/80 list-disc pl-4">
+                        {results.live_insights.top_headlines.map((headline, idx) => (
+                          <li key={idx} className="truncate tracking-tight" title={headline}>{headline}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic tracking-tight">No outbreak-related news found right now — that's a good sign.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── Section 5: Why This Forecast ───────────────────────────── */}
+            {results.explanation && (
+              <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Brain className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-primary">Why This Forecast?</CardTitle>
+                      <CardDescription className="text-xs">
+                        Here's what influenced this prediction and any special conditions we detected.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Key Factors */}
+                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-2">
+                    <p className="text-[10px] uppercase font-bold text-foreground/40">Key Factors</p>
+                    {results.explanation.top_drivers.slice(0, 5).map((driver, idx) => {
+                      const friendlyNames: Record<string, string> = {
+                        'temperature': 'Temperature',
+                        'humidity': 'Humidity',
+                        'precipitation': 'Rainfall',
+                        'cases lag 1': 'Last week\'s cases',
+                        'cases lag 2': 'Cases 2 weeks ago',
+                        'cases lag 3': 'Cases 3 weeks ago',
+                        'cases lag 4': 'Cases a month ago',
+                        'cases lag 5': 'Cases 5 weeks ago',
+                        'cases lag 6': 'Cases 6 weeks ago',
+                        'cases lag 7': 'Cases 7 weeks ago',
+                        'cases lag 8': 'Cases 2 months ago',
+                        'week sin': 'Week of the year',
+                        'week cos': 'Seasonal timing',
+                        'month sin': 'Time of year',
+                        'month cos': 'Seasonal cycle',
+                        'region id': 'Region',
+                        'temp c mean': 'Average temperature',
+                        'humidity mean': 'Average humidity',
+                        'precip mm sum': 'Total rainfall',
+                        'weather risk': 'Weather-related risk',
+                        'news count': 'Number of news reports',
+                        'news risk score': 'News alert level',
+                        'missing weather': 'Weather data availability',
+                        'missing news': 'News data availability',
+                        'trend': 'Overall trend',
+                        'rolling mean 4': 'Recent 4-week average',
+                        'rolling std 4': 'How much cases vary',
+                        'rolling mean 8': 'Recent 8-week average',
+                        'rolling std 8': 'Longer-term variability',
+                        'news pressure': 'News reports',
+                        'pop density': 'Population density',
+                        'cases diff 1': 'Weekly change in cases',
+                        'is monsoon': 'Monsoon season',
+                      };
+                      const label = friendlyNames[driver.feature.replace(/_/g, ' ')] || driver.feature.replace(/_/g, ' ');
+                      return (
+                      <div key={idx} className="flex items-center justify-between">
+                        <span className="text-xs text-foreground/70 truncate mr-2">{label}</span>
+                        <div className="flex items-center gap-2 min-w-[80px]">
+                          <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full bg-primary transition-all duration-700" style={{ width: `${Math.min(driver.importance * 100, 100)}%` }} />
+                          </div>
+                          <span className="text-[10px] font-bold text-primary w-10 text-right">{(driver.importance * 100).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
+                  {/* What We Noticed */}
+                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-3">
+                    <p className="text-[10px] uppercase font-bold text-foreground/40">What We Noticed</p>
+                    {results.explanation.reasons.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {results.explanation.reasons.map((reason, idx) => (
+                          <Badge key={idx} variant={reason.severity === 'high' ? 'destructive' : reason.severity === 'medium' ? 'default' : 'outline'} className="text-[10px]">
+                            {reason.text || reason.code.replace(/_/g, ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">Nothing unusual detected — all factors are within normal ranges.</p>
+                    )}
+
+                    {/* Top headlines */}
+                    {results.live_insights?.top_headlines && results.live_insights.top_headlines.length > 0 && (
+                      <div className="pt-2 border-t border-border/40 space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Newspaper className="h-3 w-3 text-foreground/40" />
+                          <p className="text-[10px] uppercase font-bold text-foreground/40">Related Headlines</p>
+                        </div>
+                        <ul className="space-y-1 text-[11px] text-foreground/70 list-disc pl-4">
+                          {results.live_insights.top_headlines.slice(0, 5).map((headline, idx) => (
+                            <li key={idx} className="leading-snug" title={headline}>
+                              {headline}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── Section 6: What If Measures Are Taken ──────────────────── */}
+            {results.scenario && (
+              <Card className="bg-white/50 backdrop-blur-sm border border-white/60 shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                      <Activity className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-primary">What If Measures Are Taken?</CardTitle>
+                      <CardDescription className="text-xs">
+                        If health interventions are applied, here's how much they could reduce cases.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 text-center">
+                      <p className="text-[10px] uppercase font-bold text-emerald-700/60 mb-1">Cases Prevented</p>
+                      <p className="text-2xl font-bold text-emerald-600">{Math.round(results.scenario.effect_summary.cases_averted)}</p>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 text-center">
+                      <p className="text-[10px] uppercase font-bold text-emerald-700/60 mb-1">Reduction</p>
+                      <p className="text-2xl font-bold text-emerald-600">{Math.abs(results.scenario.effect_summary.pct_change).toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         ) : (
           /* Empty State */
@@ -408,7 +660,7 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col items-center justify-center p-8 text-center h-full min-h-[500px] lg:min-h-full border-2 border-dashed border-primary/10 rounded-[24px]"
+            className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center h-full min-h-[400px] sm:min-h-[500px] lg:min-h-full border-2 border-dashed border-primary/10 rounded-[24px]"
           >
             <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
               <TrendingUp className="h-8 w-8 text-primary/40" />

@@ -245,9 +245,15 @@ export const ForecastService = {
     region: string,
     horizonWeeks: number,
     mlResult: {
-      predictions: { week: string; cases: number }[];
+      predictions: { week: string; cases?: number; point?: number; p10?: number; p50?: number; p90?: number; model_agreement?: number }[];
       hotspot_score?: number;
       riskLevel?: string;
+      risk_fusion?: { score?: number; level?: string };
+      drift_status?: { detected?: boolean };
+      explanation?: { reasons?: string[] };
+      model_version?: string;
+      confidence?: number;
+      confidence_level?: string;
       live_insights?: {
         temperature: number;
         precipitation: number;
@@ -256,6 +262,12 @@ export const ForecastService = {
     }
   ) => {
     try {
+      // Normalize predictions: always send `cases` for the DB layer
+      const normalizedPredictions = mlResult.predictions.map(p => ({
+        week: p.week,
+        cases: p.point ?? p.cases ?? 0,
+      }));
+
       const response = await fetch(`${API_BASE_URL}/api/forecasts`, {
         method: "POST",
         headers: await authHeaders(),
@@ -263,12 +275,19 @@ export const ForecastService = {
           clerkId,
           region,
           horizonWeeks,
-          predictions: mlResult.predictions,
+          predictions: normalizedPredictions,
           hotspotScore: mlResult.hotspot_score,
           riskLevel: mlResult.riskLevel,
+          confidence: mlResult.confidence,
+          modelVersion: mlResult.model_version,
           temperature: mlResult.live_insights?.temperature,
           rainfall: mlResult.live_insights?.precipitation,
           humidity: mlResult.live_insights?.humidity,
+          riskFusionScore: mlResult.risk_fusion?.score,
+          riskFusionLevel: mlResult.risk_fusion?.level,
+          driftDetected: mlResult.drift_status?.detected,
+          confidenceLevel: mlResult.confidence_level,
+          explanationReasons: mlResult.explanation?.reasons,
         }),
       });
 

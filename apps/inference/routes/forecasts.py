@@ -66,6 +66,11 @@ def create_forecast_record():
             temperature=data.get("temperature"),
             rainfall=data.get("rainfall"),
             humidity=data.get("humidity"),
+            risk_fusion_score=data.get("riskFusionScore"),
+            risk_fusion_level=data.get("riskFusionLevel"),
+            drift_detected=data.get("driftDetected"),
+            confidence_level=data.get("confidenceLevel"),
+            explanation_reasons=data.get("explanationReasons"),
         )
 
         if forecast:

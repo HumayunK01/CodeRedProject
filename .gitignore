@@ -1,6 +1,8 @@
 data_private/
 *.dta
 *.zip
+.agents
+skills-lock.json
 
 # Logs
 logs

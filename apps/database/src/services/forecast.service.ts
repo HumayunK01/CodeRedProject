@@ -26,6 +26,13 @@ export interface CreateForecastInput {
     humidity?: number | null;
     modelVersion?: string | null;
     confidence?: number | null;
+    hotspotScore?: number | null;
+    riskFusionScore?: number | null;
+    riskFusionLevel?: string | null;
+    driftDetected?: boolean | null;
+    confidenceLevel?: string | null;
+    explanationReasons?: unknown | null;
+    predictions?: unknown | null;
 }
 
 export interface UpdateForecastInput {
@@ -45,6 +52,13 @@ export interface UpdateForecastInput {
     humidity?: number | null;
     modelVersion?: string | null;
     confidence?: number | null;
+    hotspotScore?: number | null;
+    riskFusionScore?: number | null;
+    riskFusionLevel?: string | null;
+    driftDetected?: boolean | null;
+    confidenceLevel?: string | null;
+    explanationReasons?: unknown | null;
+    predictions?: unknown | null;
 }
 
 export interface ForecastFilters {
@@ -92,6 +106,13 @@ export class ForecastService {
                 humidity: data.humidity ? new Decimal(data.humidity) : null,
                 modelVersion: data.modelVersion,
                 confidence: data.confidence ? new Decimal(data.confidence) : null,
+                hotspotScore: data.hotspotScore ?? null,
+                riskFusionScore: data.riskFusionScore ?? null,
+                riskFusionLevel: data.riskFusionLevel ?? null,
+                driftDetected: data.driftDetected ?? null,
+                confidenceLevel: data.confidenceLevel ?? null,
+                explanationReasons: data.explanationReasons ?? undefined,
+                predictions: data.predictions ?? undefined,
             },
         });
     }
@@ -334,11 +355,16 @@ export class ForecastService {
         region: string,
         horizonWeeks: number,
         mlResult: {
-            predictions: { week: string; cases: number }[];
+            predictions: { week: string; cases?: number; point?: number; p10?: number; p50?: number; p90?: number; model_agreement?: number }[];
             hotspot_score?: number;
             riskLevel?: RiskLevel;
             modelVersion?: string;
             confidence?: number;
+            riskFusionScore?: number;
+            riskFusionLevel?: string;
+            driftDetected?: boolean;
+            confidenceLevel?: string;
+            explanationReasons?: string[];
         },
         metadata?: {
             latitude?: number;
@@ -354,7 +380,7 @@ export class ForecastService {
         endDate.setDate(endDate.getDate() + horizonWeeks * 7);
 
         // Calculate case statistics from predictions
-        const cases = mlResult.predictions.map((p) => p.cases);
+        const cases = mlResult.predictions.map((p) => p.point ?? p.cases ?? 0);
         const casesLow = cases.length > 0 ? Math.min(...cases) : null;
         const casesHigh = cases.length > 0 ? Math.max(...cases) : null;
         const casesMean = cases.length > 0 ? cases.reduce((a, b) => a + b, 0) / cases.length : null;
@@ -371,6 +397,13 @@ export class ForecastService {
             casesMean,
             modelVersion: mlResult.modelVersion,
             confidence: mlResult.confidence,
+            hotspotScore: mlResult.hotspot_score,
+            riskFusionScore: mlResult.riskFusionScore,
+            riskFusionLevel: mlResult.riskFusionLevel,
+            driftDetected: mlResult.driftDetected,
+            confidenceLevel: mlResult.confidenceLevel,
+            explanationReasons: mlResult.explanationReasons,
+            predictions: mlResult.predictions,
             latitude: metadata?.latitude,
             longitude: metadata?.longitude,
             country: metadata?.country,

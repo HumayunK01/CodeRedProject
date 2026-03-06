@@ -42,12 +42,18 @@ export const forecastResultSchema = z.object({
   region: z.string(),
   predictions: z.array(z.object({
     week: z.string(),
-    cases: z.number().min(0),
+    cases: z.number().min(0).optional(),
+    point: z.number().min(0).optional(),
+    p10: z.number().optional(),
+    p50: z.number().optional(),
+    p90: z.number().optional(),
+    model_agreement: z.number().optional(),
   })),
   hotspot_score: z.number().min(0).max(1).optional(),
   hotspots: z.array(z.object({
-    lat: z.number(),
-    lng: z.number(),
+    name: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
     intensity: z.number().min(0).max(1),
   })).optional(),
 });

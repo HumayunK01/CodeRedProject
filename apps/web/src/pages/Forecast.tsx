@@ -114,7 +114,7 @@ const Forecast = () => {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-foreground">Access Your Forecasts</h2>
               <p className="text-muted-foreground">
-                Sign in to create and view advanced epidemiological predictive models.
+                Sign in to see disease forecasts and risk assessments for your region.
               </p>
             </div>
             <SignInButton mode="modal">
@@ -127,18 +127,18 @@ const Forecast = () => {
       )}
 
       {/* Header Section */}
-      <section className="mx-2 mt-4 relative overflow-hidden">
-        <div className="relative px-6 py-12 lg:p-16 rounded-[24px] bg-primary border border-white/10 flex flex-col justify-center overflow-hidden shadow-2xl">
+      <section className="mx-2 sm:mx-2 mt-2 sm:mt-4 relative overflow-hidden">
+        <div className="relative px-4 py-8 sm:px-6 sm:py-12 lg:p-16 rounded-[20px] sm:rounded-[24px] bg-primary border border-white/10 flex flex-col justify-center overflow-hidden shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" />
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl opacity-40" />
 
           <div className="relative z-10 max-w-6xl mx-auto text-center space-y-4">
-            <h1 className="text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-medium tracking-tight text-white leading-[1.1]">
               Forecast
             </h1>
-            <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
-              Predict future outbreak trends using our advanced epidemiological models throughout specific regions.
+            <p className="text-sm sm:text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
+              See how disease risk may change in your region over the coming weeks.
             </p>
           </div>
         </div>
@@ -148,12 +148,12 @@ const Forecast = () => {
       < ClinicalAdvisory />
 
       {/* Main Layout Grid */}
-      <div className="mx-2 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch relative">
+      <div className="mx-2 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Column 1: Forecast Parameters (Sidebar) */}
         <div className="lg:col-span-4 space-y-4 relative z-0">
-          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8 lg:sticky lg:top-4">
+          <DashboardContainer className="bg-white/90 p-3 sm:p-4 md:p-6 lg:p-8 lg:sticky lg:top-4">
             <SectionHeader
               icon={Settings}
               title="Configuration"
@@ -162,7 +162,7 @@ const Forecast = () => {
 
             <div className="mb-6">
               <p className="text-sm text-foreground/60 leading-relaxed">
-                Select a target region and time horizon to generate predictive models.
+                Choose a region and how far ahead you'd like to look.
               </p>
             </div>
 
@@ -177,7 +177,7 @@ const Forecast = () => {
 
         {/* Column 2: Forecast Results (Main Area) */}
         <div className="lg:col-span-8 space-y-4 relative z-0 lg:mt-0">
-          <DashboardContainer className="bg-white/90 p-4 md:p-6 lg:p-8 h-full flex flex-col">
+          <DashboardContainer className="bg-white/90 p-3 sm:p-4 md:p-6 lg:p-8 h-full flex flex-col">
             <div className="space-y-1 mb-6 shrink-0">
               <SectionHeader
                 icon={TrendingUp}

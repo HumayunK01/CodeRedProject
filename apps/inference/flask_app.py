@@ -52,6 +52,8 @@ _DELEGATE_MAP: dict[str, object] = {
     "gatekeeper_threshold": _ml_loader,
     "SYMPTOM_MODEL_NAME": _ml_loader,
     "MODEL_TEST_ACCURACY": _ml_loader,
+    "adaptive_ensemble": _ml_loader,
+    "ensemble_metadata": _ml_loader,
     "SUCCESS_COUNT": _middleware,
     "ERROR_COUNT": _middleware,
     "REQUEST_TIMES": _middleware,

@@ -172,7 +172,12 @@ def create_forecast(
     country: Optional[str] = None,
     temperature: Optional[float] = None,
     rainfall: Optional[float] = None,
-    humidity: Optional[float] = None
+    humidity: Optional[float] = None,
+    risk_fusion_score: Optional[float] = None,
+    risk_fusion_level: Optional[str] = None,
+    drift_detected: Optional[bool] = None,
+    confidence_level: Optional[str] = None,
+    explanation_reasons: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -183,27 +188,37 @@ def create_forecast(
             
             end_date = now + timedelta(weeks=horizon_weeks)
             
-            cases = [p['cases'] for p in predictions]
+            cases = [p.get('point') or p.get('cases', 0) for p in predictions]
             cases_low = min(cases) if cases else None
             cases_high = max(cases) if cases else None
             cases_mean = sum(cases) / len(cases) if cases else None
             
+            import json as _json
+            predictions_json = _json.dumps(predictions) if predictions else None
+            reasons_json = _json.dumps(explanation_reasons) if explanation_reasons else None
+
             cur.execute(
                 '''
                 INSERT INTO "Forecast" (
                     id, "userId", region, location, "startDate", "endDate",
                     "riskLevel", "casesLow", "casesHigh", "casesMean",
                     confidence, "modelVersion", latitude, longitude, country,
-                    temperature, rainfall, humidity, "createdAt", "updatedAt"
+                    temperature, rainfall, humidity,
+                    "hotspotScore", "riskFusionScore", "riskFusionLevel",
+                    "driftDetected", "confidenceLevel", "explanationReasons",
+                    predictions, "createdAt", "updatedAt"
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *
                 ''',
                 (
                     forecast_id, user_id, region, region, now, end_date,
                     risk_level, cases_low, cases_high, cases_mean,
                     confidence, model_version, latitude, longitude, country,
-                    temperature, rainfall, humidity, now, now
+                    temperature, rainfall, humidity,
+                    hotspot_score, risk_fusion_score, risk_fusion_level,
+                    drift_detected, confidence_level, reasons_json,
+                    predictions_json, now, now
                 )
             )
             return dict(cur.fetchone())

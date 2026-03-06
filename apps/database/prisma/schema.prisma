@@ -109,6 +109,15 @@ model Forecast {
   modelVersion String?
   confidence   Decimal?
 
+  // v2 adaptive ensemble fields
+  hotspotScore        Float?
+  riskFusionScore     Float?
+  riskFusionLevel     String?
+  driftDetected       Boolean?
+  confidenceLevel     String?
+  explanationReasons  Json?
+  predictions         Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
