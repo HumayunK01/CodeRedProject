@@ -8,9 +8,10 @@ import { StoredResult } from "@/lib/types";
 interface ReportsStatsProps {
     results: StoredResult[];
     isSignedIn: boolean;
+    isLoading?: boolean;
 }
 
-export const ReportsStats = ({ results, isSignedIn }: ReportsStatsProps) => {
+export const ReportsStats = ({ results, isSignedIn, isLoading = false }: ReportsStatsProps) => {
 
     const stats = [
         {
@@ -39,6 +40,8 @@ export const ReportsStats = ({ results, isSignedIn }: ReportsStatsProps) => {
         }
     ];
 
+    const showSkeleton = !isSignedIn || isLoading;
+
     return (
         <div>
             <SectionHeader
@@ -50,13 +53,7 @@ export const ReportsStats = ({ results, isSignedIn }: ReportsStatsProps) => {
                 A summary of all stored assessments and forecasts for quick reference.
             </p>
             <div className="grid grid-cols-2 gap-4">
-                {isSignedIn ? stats.map((stat, i) => (
-                    <div key={i} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-xl text-center hover:bg-white/60 transition-colors duration-300 group">
-                        <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} opacity-80 group-hover:opacity-100 transition-all`} strokeWidth={1.5} />
-                        <p className="text-xs uppercase font-bold text-foreground/60 mb-1 tracking-wider">{stat.title}</p>
-                        <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                    </div>
-                )) : (
+                {showSkeleton ? (
                     Array(4).fill(0).map((_, i) => (
                         <div key={i} className="bg-white/40 border border-white/60 p-4 rounded-xl text-center">
                             <Skeleton className="h-8 w-8 mx-auto mb-3 rounded-lg bg-gray-200" />
@@ -64,7 +61,13 @@ export const ReportsStats = ({ results, isSignedIn }: ReportsStatsProps) => {
                             <Skeleton className="h-6 w-12 mx-auto bg-gray-200" />
                         </div>
                     ))
-                )}
+                ) : stats.map((stat, i) => (
+                    <div key={i} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-xl text-center hover:bg-white/60 transition-colors duration-300 group">
+                        <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} opacity-80 group-hover:opacity-100 transition-all`} strokeWidth={1.5} />
+                        <p className="text-xs uppercase font-bold text-foreground/60 mb-1 tracking-wider">{stat.title}</p>
+                        <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );
