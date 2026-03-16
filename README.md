@@ -246,19 +246,19 @@ flowchart TD
     Stage1 --> Input1[Input Features:<br/>• Fever history<br/>• Age, Sex<br/>• Region<br/>• Bed net usage<br/>• Anemia level]
     
     Input1 --> Model1[DHS-based<br/>Random Forest]
-    Model1 --> Risk{Low / Medium / High}<br/>Risk Score}
+    Model1 --> Risk{"Low / Medium / High<br/>Risk Score"}
     
     Risk -->|Low| Self["🔵 Self-care<br/>guidance"]
     Risk -->|Medium| Monitor["🟡 Monitor &<br/>re-test in 48h"]
     Risk -->|High| Stage2["🔴 STAGE 2<br/>Diagnostic Confirmation"]
     
     Stage2 --> Guard[Autoencoder<br/>OOD Gatekeeper]
-    Guard --> Valid{Valid blood<br/>smear image?}
+    Guard --> Valid{"Valid blood<br/>smear image?"}
     
     Valid -->|No| Reject["🚫 REJECT<br/>Non-medical image"]
     Valid -->|Yes| CNN[9-layer CNN<br/>Malaria Detector]
     
-    CNN --> Result{Parasitized /<br/>Uninfected}
+    CNN --> Result{"Parasitized /<br/>Uninfected"}
     Result --> Paras["🔴 Positive<br/>+ Confidence %"]
     Result --> Uninf["🟢 Negative<br/>+ Confidence %"]
     
