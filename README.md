@@ -39,7 +39,7 @@
 
 <div align="center">
 
-| Landing Page | Diagnosis Dashboard | Forecasting & Analytics |
+| Landing Page | Responsive Website | Mobile First Design |
 |:---:|:---:|:---:|
 | ![Landing](apps/web/public/preview.jpg) | ![Diagnosis](apps/web/public/preview1.jpg) | ![Forecast](apps/web/public/preview2%20(1).jpg) |
 
