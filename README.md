@@ -44,7 +44,7 @@
 
 <div align="center">
 
-[![Lines of Code](https://img.shields.io/tokei/lines/github/HumayunK01/CodeRedProject?style=flat-square&label=Lines%20of%20Code)](https://github.com/HumayunK01/CodeRedProject)
+[![Repo Size](https://img.shields.io/github/repo-size/HumayunK01/CodeRedProject?style=flat-square&label=Repo%20Size)](https://github.com/HumayunK01/CodeRedProject)
 [![Code Size](https://img.shields.io/github/languages/code-size/HumayunK01/CodeRedProject?style=flat-square&label=Code%20Size)](https://github.com/HumayunK01/CodeRedProject)
 [![Top Language](https://img.shields.io/github/languages/top/HumayunK01/CodeRedProject?style=flat-square&label=Top%20Language)](https://github.com/HumayunK01/CodeRedProject)
 [![Contributors](https://img.shields.io/github/contributors/HumayunK01/CodeRedProject?style=flat-square&label=Contributors)](https://github.com/HumayunK01/CodeRedProject/graphs/contributors)
