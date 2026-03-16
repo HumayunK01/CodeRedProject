@@ -82,28 +82,209 @@ Seasonal time-series forecasting for regional case predictions with 95% confiden
 
 ## 🏗️ System Architecture
 
+```mermaid
+flowchart TB
+    subgraph Client["🌐 Client Layer - React Frontend"]
+        direction LR
+        Web[React + Vite<br/>Tailwind + shadcn/ui] --- Auth[Clerk Auth<br/>JWT Tokens]
+        UI[Recharts<br/>Leaflet Maps] --- State[TanStack Query<br/>React Context]
+    end
+
+    subgraph API["🔮 API Layer - Flask Backend"]
+        direction TB
+        
+        subgraph ML["🤖 ML Models"]
+            CNN[CNN Parasite<br/>Detector] --- AE[Autoencoder<br/>Gatekeeper]
+            RF[Random Forest<br/>Risk Screening] --- ARIMA[ARIMA<br/>Forecaster]
+        end
+        
+        subgraph Security["🛡️ Security Layers"]
+            CORS[CORS<br/>Allowlist] --- RL[Rate<br/>Limiting]
+            RL --- JWT[RS256 JWT<br/>Verification]
+            JWT --- RBAC[Role-Based<br/>Access Control]
+        end
+        
+        Routes[API Routes<br/>predictions, diagnoses<br/>forecasts, reports]
+    end
+
+    subgraph DB["🗄️ Database Layer"]
+        PG[(Neon PostgreSQL<br/>Prisma ORM)]
+        Tables[User | Diagnosis<br/>Forecast | Report]
+    end
+
+    Client -- HTTPS + JWT --> API
+    Routes --> ML
+    Routes --> Security
+    API -- psycopg3 --> PG
+    PG --- Tables
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         🌐 CLIENT LAYER                              │
-│            React 18 · Vite · Tailwind CSS · Clerk Auth             │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │ HTTPS + JWT Bearer
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         🔮 API LAYER (Flask)                        │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐            │
-│  │   CNN +     │  │    DHS       │  │     ARIMA      │            │
-│  │   Autoencoder│  │  Random Forest │  │   Forecaster   │            │
-│  └─────────────┘  └──────────────┘  └────────────────┘            │
-│                                                                     │
-│  Auth: RS256 JWKS · Rate Limiting · RBAC · 7-Layer Security        │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │ psycopg 3
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      🗄️ DATABASE LAYER                             │
-│              Neon PostgreSQL · Prisma ORM                          │
-└─────────────────────────────────────────────────────────────────────┘
+
+### Request Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Web as React App
+    participant API as Flask API
+    participant ML as ML Models
+    participant DB as PostgreSQL
+
+    User->>Web: Upload Image / Submit Symptoms
+    Web->>API: POST /predict (JWT Bearer)
+    
+    API->>API: 1. CORS Check
+    API->>API: 2. Rate Limit Check
+    API->>API: 3. JWT Verification
+    
+    alt Image Diagnosis
+        API->>ML: OOD Gatekeeper Check
+        ML-->>API: Valid/Invali
+        API->>ML: CNN Inference
+        ML-->>API: Parasitized/Uninfected
+    else Symptom Screening
+        API->>ML: Random Forest Prediction
+        ML-->>API: Risk Score
+    end
+    
+    API->>DB: Save Diagnosis Record
+    DB-->>API: Confirmation
+    API-->>Web: JSON Response
+    Web-->>User: Display Results
+```
+
+### Database Schema
+
+```mermaid
+erDiagram
+    USER {
+        string id PK
+        string clerkId UK
+        string email UK
+        string firstName
+        string lastName
+        string imageUrl
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    DIAGNOSIS {
+        string id PK
+        string userId FK
+        int patientAge
+        string patientSex
+        string location
+        decimal latitude
+        decimal longitude
+        string imageUrl
+        string result
+        decimal confidence
+        int parasiteCount
+        string species
+        json symptoms
+        string modelVersion
+        int processingTime
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FORECAST {
+        string id PK
+        string userId FK
+        string location
+        decimal latitude
+        decimal longitude
+        string region
+        string country
+        datetime startDate
+        datetime endDate
+        string riskLevel
+        int casesLow
+        int casesHigh
+        decimal casesMean
+        decimal temperature
+        decimal rainfall
+        decimal humidity
+        string modelVersion
+        decimal confidence
+        float hotspotScore
+        float riskFusionScore
+        string riskFusionLevel
+        bool driftDetected
+        string confidenceLevel
+        json explanationReasons
+        json predictions
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    REPORT {
+        string id PK
+        string userId FK
+        string title
+        string type
+        json content
+        string status
+        datetime dateFrom
+        datetime dateTo
+        string location
+        datetime publishedAt
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    USER ||--o{ DIAGNOSIS : "creates"
+    USER ||--o{ FORECAST : "creates"
+    USER ||--o{ REPORT : "creates"
+```
+
+### Two-Stage Clinical Workflow
+
+```mermaid
+flowchart TD
+    Start([Patient / Clinician]) --> Stage1["🔬 STAGE 1<br/>Epidemiological Risk Screening"]
+    
+    Stage1 --> Input1[Input Features:<br/>• Fever history<br/>• Age, Sex<br/>• Region<br/>• Bed net usage<br/>• Anemia level]
+    
+    Input1 --> Model1[DHS-based<br/>Random Forest]
+    Model1 --> Risk{Low / Medium / High}<br/>Risk Score}
+    
+    Risk -->|Low| Self["🔵 Self-care<br/>guidance"]
+    Risk -->|Medium| Monitor["🟡 Monitor &<br/>re-test in 48h"]
+    Risk -->|High| Stage2["🔴 STAGE 2<br/>Diagnostic Confirmation"]
+    
+    Stage2 --> Guard[Autoencoder<br/>OOD Gatekeeper]
+    Guard --> Valid{Valid blood<br/>smear image?}
+    
+    Valid -->|No| Reject["🚫 REJECT<br/>Non-medical image"]
+    Valid -->|Yes| CNN[9-layer CNN<br/>Malaria Detector]
+    
+    CNN --> Result{Parasitized /<br/>Uninfected}
+    Result --> Paras["🔴 Positive<br/>+ Confidence %"]
+    Result --> Uninf["🟢 Negative<br/>+ Confidence %"]
+    
+    Stage1 -.->|High Risk| Stage2
+    
+    subgraph Results[Results & Actions]
+        Guidance["📋 AI Clinical<br/>Guidance"]
+        Save["💾 Save to<br/>PostgreSQL"]
+        PDF["📄 Generate<br/>PDF Report"]
+        Dashboard["📊 Update<br/>Dashboard"]
+    end
+    
+    Self --> Results
+    Monitor --> Results
+    Paras --> Results
+    Uninf --> Results
+    Reject --> End([End])
+    
+    Results --> End
+
+    style Stage1 fill:#e1f5fe
+    style Stage2 fill:#ffebee
+    style Risk fill:#fff3e0
+    style Guard fill:#f3e5f5
+    style CNN fill:#e8f5e9
+    style Results fill:#fffde7
 ```
 
 ---
