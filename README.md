@@ -109,7 +109,7 @@ flowchart TB
 
     subgraph DB["🗄️ Database Layer"]
         PG[(Neon PostgreSQL<br/>Prisma ORM)]
-        Tables[User | Diagnosis<br/>Forecast | Report]
+        Tables[User / Diagnosis<br/>Forecast / Report]
     end
 
     Client -- HTTPS + JWT --> API
