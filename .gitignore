@@ -3,6 +3,7 @@ data_private/
 *.zip
 .agents
 skills-lock.json
+.qoder
 
 # Logs
 logs
