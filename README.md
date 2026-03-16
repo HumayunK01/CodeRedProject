@@ -10,6 +10,11 @@
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
+
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/HumayunK01/CodeRedProject/.github/workflows/ci.yml?label=CI%2FCD&style=flat-square)](https://github.com/HumayunK01/CodeRedProject/actions)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/HumayunK01/CodeRedProject?style=flat-square)](https://github.com/HumayunK01/CodeRedProject/commits)
 
 ---
 
@@ -32,6 +37,23 @@
 | 94.85% CNN Accuracy | ARIMA Time-Series | OOD Image Filtering | Real-time Dashboards |
 | 27,558 NIH Images | 1-4 Week Predictions | 7-Layer Security | Interactive Maps |
 | DHS Risk Screening | Hotspot Detection | RBAC Access Control | PDF Reports |
+
+---
+
+## 📈 Project Stats
+
+<div align="center">
+
+[![Lines of Code](https://img.shields.io/tokei/lines/github/HumayunK01/CodeRedProject?style=flat-square&label=Lines%20of%20Code)](https://github.com/HumayunK01/CodeRedProject)
+[![Code Size](https://img.shields.io/github/languages/code-size/HumayunK01/CodeRedProject?style=flat-square&label=Code%20Size)](https://github.com/HumayunK01/CodeRedProject)
+[![Top Language](https://img.shields.io/github/languages/top/HumayunK01/CodeRedProject?style=flat-square&label=Top%20Language)](https://github.com/HumayunK01/CodeRedProject)
+[![Contributors](https://img.shields.io/github/contributors/HumayunK01/CodeRedProject?style=flat-square&label=Contributors)](https://github.com/HumayunK01/CodeRedProject/graphs/contributors)
+
+| TypeScript | Python | CSS | Other |
+|:----------:|:------:|:---:|:-----:|
+| ~45% | ~40% | ~10% | ~5% |
+
+</div>
 
 ---
 
@@ -478,28 +500,17 @@ FORESEE/
 
 ---
 
-## 👥 Team
+## 🙏 Acknowledgments
 
 <div align="center">
 
-| Khan Humayun Majid | Ansari Zoha | Ansari Adnan |
-|:---:|:---:|:---:|
-| ![Humayun](https://github.com/HumayunK01.png) | ![Zoha](https://github.com/ZohaAnsari04.png) | ![Adnan](https://github.com/addy1805.png) |
-| **ML Engineering & Backend** | **Frontend & UI/UX** | **Data Science** |
-| Model architecture • API • Security | React • Design System | Dataset • Validation |
+### Data Sources & Partners
 
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/HumayunK01/CodeRedProject)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/devhumayun)
+| [![NIH](https://img.shields.io/badge/NIH-Malaria%20Dataset-20558A?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMSAxNy45M2MtMy45NS0uNDktNy0zLjg1LTctNy45MyAwLS42Mi4wOC0xLjIxLjIxLTEuNzhMOSAxNXYxYzAgMS4xLjkgMiAyIDJ2MS45M3ptNi45LTMuMTlMMTMgMTNWMmMwLTEuMS0uOS0yLTItMnMtMiAuOS0yIDJ2MTBsLTQuODkgNC44OUM2LjEyIDE4LjA3IDYgMTcuMDUgNiAxNmMwLTMuMzEgMi42OS02IDYtNnM2IDIuNjkgNiA2YzAgMS4wNS0uMjcgMi4wNC0uNzQgMi45MXoiLz48L3N2Zz4=&logoColor=white)](https://lhncbc.nlm.nih.gov/LHC-downloads/downloads.html) | [![WHO](https://img.shields.io/badge/WHO-Global%20Malaria%20Programme-0093D5?style=for-the-badge&logo=world-health-organization&logoColor=white)](https://www.who.int/teams/global-malaria-programme) | [![DHS](https://img.shields.io/badge/DHS-Health%20Surveys-2E5C8A?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNiAxMWMuNTUgMCAxIC40NSAxIDFzLS40NSAxLTEgMS0xLS40NS0xLTEgLjQ1LTEgMS0xem0tOCAwYy41NSAwIDEgLjQ1IDEgMXMtLjQ1IDEtMSAxLTEtLjQ1LTEtMSAuNDUtMSAxLTF6bTQuMDMgNi4yNmMtLjg1IDEuMi0xLjc0IDIuMDgtMi40MyAyLjYyLS42OS0uNTQtMS41OC0xLjQyLTIuNDMtMi42MkM2LjczIDE2LjE4IDYgMTQuMTMgNiAxMnMyLjY5LTYuMTggNi02LjE4IDYgMi4wNSA2IDQuMTgtMi42OSA2LjE4LTYgNi4xOHptLTcuMDctMi4zN0w0IDEybDIuOTMgMi4zN2MtLjU1LS44My0uOTMtMS44My0uOTMtMi45M3MuMzgtMi4xLjkyLTIuOTN6bTkuMDUgMi45M0wyMCAxMmwtMi45My0yLjM3Yy41NC44My45MiAxLjgzLjkyIDIuOTNzLS4zOCAyLjEtLjkyIDIuOTN6Ii8+PC9zdmc+&logoColor=white)](https://dhsprogram.com/) |
+|:---:|:---:|:---:|
+| **27,558 annotated blood smear images** | **Epidemiological guidelines** | **Feature engineering reference** |
 
 </div>
-
----
-
-## 🙏 Acknowledgments
-
-- [NIH Malaria Cell Images Dataset](https://lhncbc.nlm.nih.gov/LHC-downloads/downloads.html) - 27,558 annotated blood smear images
-- [WHO Global Malaria Programme](https://www.who.int/teams/global-malaria-programme) - Epidemiological guidelines
-- [Demographic and Health Surveys (DHS)](https://dhsprogram.com/) - Feature engineering reference
 
 ---
 
