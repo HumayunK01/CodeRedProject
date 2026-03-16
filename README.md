@@ -78,6 +78,12 @@ outbreak_forecaster.pkl · statsmodels
 ```
 Seasonal time-series forecasting for regional case predictions with 95% confidence intervals.
 
+### 5. 🎯 Adaptive Ensemble Forecaster
+```
+adaptive_ensemble.pkl · Gradient Boosting + Weather/News Signals
+```
+Advanced ensemble model combining multiple base learners with live weather data and news sentiment analysis for improved outbreak prediction accuracy.
+
 ---
 
 ## 🏗️ System Architecture
@@ -232,6 +238,15 @@ erDiagram
         datetime updatedAt
     }
 
+    SYSTEMLOG {
+        string id PK
+        string level
+        string service
+        string message
+        json metadata
+        datetime createdAt
+    }
+
     USER ||--o{ DIAGNOSIS : "creates"
     USER ||--o{ FORECAST : "creates"
     USER ||--o{ REPORT : "creates"
@@ -278,13 +293,6 @@ flowchart TD
     Reject --> End([End])
     
     Results --> End
-
-    style Stage1 fill:#e1f5fe
-    style Stage2 fill:#ffebee
-    style Risk fill:#fff3e0
-    style Guard fill:#f3e5f5
-    style CNN fill:#e8f5e9
-    style Results fill:#fffde7
 ```
 
 ---
