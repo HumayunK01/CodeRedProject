@@ -34,8 +34,8 @@
 
 | 🔬 Diagnosis | 📈 Forecasting | 🛡️ Safety | 📊 Analytics |
 |:---:|:---:|:---:|:---:|
-| 94.85% CNN Accuracy | ARIMA Time-Series | OOD Image Filtering | Real-time Dashboards |
-| 27,558 NIH Images | 1-4 Week Predictions | 7-Layer Security | Interactive Maps |
+| 94.85% CNN Accuracy | Gradient Boosting Forecast | OOD Image Filtering | Real-time Dashboards |
+| 27,558 NIH Images | 1-12 Week Predictions | 7-Layer Security | Interactive Maps |
 | DHS Risk Screening | Hotspot Detection | RBAC Access Control | PDF Reports |
 
 ---
@@ -94,11 +94,11 @@ gatekeeper_autoencoder.h5 · Convolutional Autoencoder
 ```
 Out-of-distribution detection to reject invalid/non-medical images before CNN analysis.
 
-### 4. 📈 ARIMA Outbreak Forecaster
+### 4. 📈 Gradient Boosting Outbreak Forecaster
 ```
-outbreak_forecaster.pkl · statsmodels
+outbreak_forecaster.pkl · scikit-learn (HistGradientBoostingRegressor)
 ```
-Seasonal time-series forecasting for regional case predictions with 95% confidence intervals.
+Sliding-window (8-week lookback) autoregressive forecaster predicting weekly case counts across regions. Uses `log1p` scaling to stabilise variance across countries with vastly different population sizes, and rolls the window forward for multi-week horizons (1–12 weeks).
 
 ### 5. 🎯 Adaptive Ensemble Forecaster
 ```
@@ -123,7 +123,7 @@ flowchart TB
         
         subgraph ML["🤖 ML Models"]
             CNN[CNN Parasite<br/>Detector] --- AE[Autoencoder<br/>Gatekeeper]
-            RF[Random Forest<br/>Risk Screening] --- ARIMA[ARIMA<br/>Forecaster]
+            RF[Random Forest<br/>Risk Screening] --- GBM[HistGradient<br/>Forecaster]
         end
         
         subgraph Security["🛡️ Security Layers"]
@@ -327,8 +327,7 @@ flowchart TD
 | Python 3.11 | Runtime |
 | Flask 3.0 | Web Framework |
 | TensorFlow 2.15 | Deep Learning |
-| scikit-learn | ML Models |
-| statsmodels | Time-Series |
+| scikit-learn | ML Models, Ensemble & Forecasting |
 | PostgreSQL | Database |
 
 ### Frontend
