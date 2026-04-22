@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +15,7 @@ import { StorageManager } from "@/lib/storage";
 import { ForecastService } from "@/lib/db";
 import { useCurrentUser } from "@/components/providers/DbUserProvider";
 import { RegionMultiSelect } from "@/components/forecast/RegionMultiSelect";
+import { RegionSingleSelect } from "@/components/forecast/RegionSingleSelect";
 import {
   TrendingUp,
   MapPin,
@@ -347,38 +347,10 @@ export const ForecastForm = ({ onResult, onLoadingChange, onComparisonResult, on
           </div>
 
           {/* Region Selection */}
-          {!comparisonMode ? (
-            <FormField
-              control={form.control}
-              name="region"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2 text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">
-                    <MapPin className="h-3.5 w-3.5" />
-                    Target Region
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full h-11 bg-white/50 border-primary/10 hover:bg-white/70 hover:border-primary/30 focus:ring-0 focus:border-primary/30 rounded-xl transition-all">
-                        <SelectValue placeholder="Select region" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-xl border-primary/10 bg-white/95 backdrop-blur-xl">
-                      {regions.map((region) => (
-                        <SelectItem key={region} value={region} className="focus:bg-primary/5 focus:text-primary cursor-pointer">
-                          {region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-foreground/50 font-medium ml-1">The forecast will be generated using historical data for this location.</p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : (
+          {comparisonMode ? (
             <div className="space-y-2">
-              <FormLabel className="text-xs text-foreground/60 uppercase tracking-wider font-semibold">
+              <FormLabel className="flex items-center gap-2 text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">
+                <MapPin className="h-3.5 w-3.5" />
                 Regions to Compare (2–5)
               </FormLabel>
               <RegionMultiSelect
@@ -389,6 +361,29 @@ export const ForecastForm = ({ onResult, onLoadingChange, onComparisonResult, on
               />
               <p className="text-[10px] text-foreground/50 font-medium ml-1">Select 2–5 regions to compare their risk profiles side-by-side.</p>
             </div>
+          ) : (
+            <FormField
+              control={form.control}
+              name="region"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2 text-xs text-foreground/60 uppercase tracking-wider font-semibold mb-2">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Target Region
+                  </FormLabel>
+                  <FormControl>
+                    <RegionSingleSelect
+                      regions={regions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select a region…"
+                    />
+                  </FormControl>
+                  <p className="text-[10px] text-foreground/50 font-medium ml-1">The forecast will be generated using historical data for this location.</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
 
           {/* Time Horizon */}

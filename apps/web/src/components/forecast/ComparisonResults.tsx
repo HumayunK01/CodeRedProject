@@ -122,12 +122,20 @@ const ComparisonOverviewChart = ({ items }: { items: RankedForecastResult[] }) =
   if (chartData.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-white/60 bg-white/60 backdrop-blur-sm p-4 sm:p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-          Risk Score Comparison
-        </h3>
+    <div className="rounded-2xl border border-gray-200/60 bg-white p-5 sm:p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-primary/5 border border-primary/10">
+            <BarChart3 className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <h3 className="text-sm font-semibold text-foreground tracking-tight">
+            Risk Score Comparison
+          </h3>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-sm bg-primary" />
+          <span>Risk Score (%)</span>
+        </div>
       </div>
       <div className="h-56 sm:h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -135,39 +143,52 @@ const ComparisonOverviewChart = ({ items }: { items: RankedForecastResult[] }) =
             data={chartData}
             margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
           >
+            <defs>
+              <linearGradient id="primaryBarGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.55} />
+              </linearGradient>
+              <linearGradient id="primaryBarGradientSafest" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.7} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} vertical={false} />
             <XAxis
               dataKey="region"
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: "#6b7280" }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 10, fill: "#6b7280" }}
               axisLine={false}
               tickLine={false}
               domain={[0, 100]}
               width={35}
-              label={{ value: 'Risk %', angle: -90, position: 'insideLeft', style: { fontSize: 10, fill: '#666' } }}
             />
             <RechartsTooltip
-              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+              cursor={{ fill: "hsl(var(--primary) / 0.05)" }}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg">
-                    <p className="font-semibold text-xs">{d.fullRegion}</p>
-                    <p className="text-xs text-muted-foreground">Rank #{d.rank}</p>
-                    <p className="text-xs">Risk: <strong>{d.riskScore}%</strong></p>
-                    <p className="text-xs">Level: <strong>{d.riskLevel}</strong></p>
+                  <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-lg">
+                    <p className="font-semibold text-xs text-foreground">{d.fullRegion}</p>
+                    <p className="text-[10px] text-muted-foreground">Rank #{d.rank} · {d.riskLevel}</p>
+                    <p className="text-xs mt-1">
+                      Risk Score: <span className="font-bold text-primary">{d.riskScore}%</span>
+                    </p>
                   </div>
                 );
               }}
             />
-            <Bar dataKey="riskScore" radius={[8, 8, 0, 0]}>
+            <Bar dataKey="riskScore" radius={[10, 10, 0, 0]}>
               {chartData.map((entry, idx) => (
-                <Cell key={idx} fill={getRiskPalette(entry.riskLevel).hex} />
+                <Cell
+                  key={idx}
+                  fill={entry.rank === 1 ? "url(#primaryBarGradientSafest)" : "url(#primaryBarGradient)"}
+                />
               ))}
             </Bar>
           </BarChart>
