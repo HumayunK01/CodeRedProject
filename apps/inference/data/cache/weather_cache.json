@@ -64,12 +64,12 @@
   },
   "nowcast_Kerala": {
     "data": {
-      "temperature": 26.5,
-      "humidity": 91.0,
+      "temperature": 29.8,
+      "humidity": 78.0,
       "precipitation": 0.0,
       "risk_multiplier": 1.4
     },
-    "timestamp": 1772761969.323308
+    "timestamp": 1776870538.43743
   },
   "nowcast_Assam": {
     "data": {
