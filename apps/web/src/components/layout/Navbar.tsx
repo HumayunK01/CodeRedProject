@@ -66,14 +66,18 @@ export const Navbar = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
-  const navItems = [
-    { name: "Home", path: "/", icon: Home },
-    { name: "Dashboard", path: "/dashboard", icon: Activity },
-    { name: "Diagnosis", path: "/diagnosis", icon: Microscope },
-    { name: "Forecast", path: "/forecast", icon: TrendingUp },
-    { name: "Reports", path: "/reports", icon: FileText },
-    ...(isAdmin ? [{ name: "Admin", path: "/admin", icon: ShieldCheck }] : []),
-  ];
+  const onAdminRoute = location.pathname.startsWith("/admin");
+
+  const navItems = onAdminRoute
+    ? [{ name: "Admin", path: "/admin", icon: ShieldCheck }]
+    : [
+        { name: "Home", path: "/", icon: Home },
+        { name: "Dashboard", path: "/dashboard", icon: Activity },
+        { name: "Diagnosis", path: "/diagnosis", icon: Microscope },
+        { name: "Forecast", path: "/forecast", icon: TrendingUp },
+        { name: "Reports", path: "/reports", icon: FileText },
+        ...(isAdmin ? [{ name: "Admin", path: "/admin", icon: ShieldCheck }] : []),
+      ];
 
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 pointer-events-none ${scrolled ? "pt-2" : "pt-4"}`}>
@@ -152,13 +156,15 @@ export const Navbar = () => {
               {/* Role Badge — styled to match the navbar design language */}
               <div className="flex items-center gap-1.5">
                 <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
-                  {isDoctor
-                    ? <Stethoscope className="w-3.5 h-3.5 text-primary" />
-                    : <User className="w-3.5 h-3.5 text-primary" />
+                  {isAdmin
+                    ? <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                    : isDoctor
+                      ? <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                      : <User className="w-3.5 h-3.5 text-primary" />
                   }
                 </div>
                 <span className="text-sm font-semibold tracking-wide text-primary">
-                  {isDoctor ? "Doctor" : "Patient"}
+                  {isAdmin ? "Admin" : isDoctor ? "Doctor" : "Patient"}
                 </span>
               </div>
               <UserButton
@@ -248,13 +254,15 @@ export const Navbar = () => {
                           <div className="flex flex-col gap-0.5">
                             <span className="text-sm font-semibold text-foreground">My Account</span>
                             <div className="flex items-center gap-1">
-                              {isDoctor
-                                ? <Stethoscope className="w-3 h-3 text-primary" />
-                                : <User className="w-3 h-3 text-foreground/40" />
+                              {isAdmin
+                                ? <ShieldCheck className="w-3 h-3 text-primary" />
+                                : isDoctor
+                                  ? <Stethoscope className="w-3 h-3 text-primary" />
+                                  : <User className="w-3 h-3 text-foreground/40" />
                               }
-                              <span className={`text-xs font-semibold ${isDoctor ? "text-primary" : "text-foreground/40"
+                              <span className={`text-xs font-semibold ${isAdmin || isDoctor ? "text-primary" : "text-foreground/40"
                                 }`}>
-                                {isDoctor ? "Doctor" : "Patient"}
+                                {isAdmin ? "Admin" : isDoctor ? "Doctor" : "Patient"}
                               </span>
                             </div>
                           </div>

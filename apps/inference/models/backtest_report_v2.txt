@@ -1,0 +1,24 @@
+Adaptive Ensemble Retraining — v2 Report
+================================================
+Version: v2_20260422_113944
+Training samples: 4710
+Features: 13
+Training time: 7.8s
+
+Previous metrics:
+  {'mae': 1132.01, 'rmse': 2577.36}
+
+New metrics:
+  {}
+
+Top features:
+  cases_lag_1           0.4149
+  week_sin              0.4128
+  week_cos              0.2061
+  cases_lag_2           0.0702
+  cases_lag_3           0.0426
+  region_id             0.0352
+  cases_lag_4           0.0329
+  cases_lag_5           0.0324
+  cases_lag_6           0.0312
+  cases_ratio_4w        0.0299

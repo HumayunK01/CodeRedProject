@@ -1,6 +1,6 @@
 {
-  "version": "v2_20260306_011007",
-  "trained_at": "2026-03-06T01:10:07.221217",
+  "version": "v2_20260422_113944",
+  "trained_at": "2026-04-22T11:39:44.381373",
   "training_samples": 4710,
   "feature_names": [
     "cases_lag_1",
@@ -11,27 +11,31 @@
     "cases_lag_6",
     "cases_lag_7",
     "cases_lag_8",
+    "cases_slope_4w",
+    "cases_ratio_4w",
     "week_sin",
     "week_cos",
     "region_id"
   ],
-  "feature_count": 11,
+  "feature_count": 13,
   "backtest_metrics": {
-    "mae": 1134.14,
-    "rmse": 2560.26
+    "mae": 1132.01,
+    "rmse": 2577.36
   },
   "feature_importance": {
-    "week_sin": 0.4856,
-    "cases_lag_1": 0.3368,
-    "week_cos": 0.206,
-    "cases_lag_2": 0.0953,
-    "cases_lag_3": 0.0504,
-    "cases_lag_4": 0.041,
-    "cases_lag_6": 0.0392,
-    "region_id": 0.0374,
-    "cases_lag_5": 0.0369,
-    "cases_lag_7": 0.0358,
-    "cases_lag_8": 0.0298
+    "cases_lag_1": 0.4149,
+    "week_sin": 0.4128,
+    "week_cos": 0.2061,
+    "cases_lag_2": 0.0702,
+    "cases_lag_3": 0.0426,
+    "region_id": 0.0352,
+    "cases_lag_4": 0.0329,
+    "cases_lag_5": 0.0324,
+    "cases_lag_6": 0.0312,
+    "cases_ratio_4w": 0.0299,
+    "cases_lag_7": 0.0294,
+    "cases_slope_4w": 0.0278,
+    "cases_lag_8": 0.027
   },
   "models": [
     "histgbr_primary",

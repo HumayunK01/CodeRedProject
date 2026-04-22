@@ -276,6 +276,24 @@ def build_feature_row(region, case_history, weather_data=None, news_data=None, d
             val = float(case_history[idx]) if abs(idx) <= len(case_history) else 0.0
             features[f"cases_lag_{i+1}"] = float(np.log1p(val))
 
+    # Trend features — tell the model WHERE cases are heading, not just where they are.
+    # Without these, gradient boosting regresses toward mean on every autoregressive
+    # step and long-horizon forecasts collapse downward.
+    recent = np.array([float(x) for x in case_history[-min(len(case_history), WINDOW_SIZE):]])
+    if len(recent) >= 4:
+        # Linear slope over last 4 weeks (normalized by mean so slope is scale-free)
+        last4 = recent[-4:]
+        x = np.arange(len(last4), dtype=float)
+        mean4 = float(np.mean(last4)) + 1e-6
+        slope = float(np.polyfit(x, last4, 1)[0]) / mean4
+        # Ratio of latest vs 4-week baseline (>1 means rising, <1 means falling)
+        ratio = float(last4[-1] / mean4)
+    else:
+        slope = 0.0
+        ratio = 1.0
+    features["cases_slope_4w"] = slope
+    features["cases_ratio_4w"] = ratio
+
     # Seasonality features (cyclic encoding of week-of-year)
     if date is not None:
         if hasattr(date, 'isocalendar'):
@@ -322,11 +340,12 @@ def build_feature_row(region, case_history, weather_data=None, news_data=None, d
 
 def get_feature_names():
     """Return ordered list of CORE feature names used for model training.
-    Includes case lags + seasonality + region identity.
+    Includes case lags + trend signals + seasonality + region identity.
     Weather/news features are used in the intelligence layer only.
     """
     from core.adaptive_config import WINDOW_SIZE
     names = [f"cases_lag_{i+1}" for i in range(WINDOW_SIZE)]
+    names += ["cases_slope_4w", "cases_ratio_4w"]
     names += ["week_sin", "week_cos", "region_id"]
     return names
 

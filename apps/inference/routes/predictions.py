@@ -249,7 +249,7 @@ def forecast_region():
                 # Blend 70% point prediction with 30% recent rolling mean to
                 # anchor the window and slow the collapse over many weeks.
                 rolling_mean = float(np.mean(current_cases[-4:]))
-                blended_val = max(0.0, result["point"] * 0.70 + rolling_mean * 0.30)
+                blended_val = max(0.0, result["point"] * 0.50 + rolling_mean * 0.50)
 
                 # Add a tiny amount of noise so long forecasts don't flatten to
                 # a perfectly straight line (looks more realistic)

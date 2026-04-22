@@ -24,9 +24,7 @@ import {
   Shield,
   Brain,
   Activity,
-  CheckCircle,
-  XCircle,
-  Info
+  Info,
 } from "lucide-react";
 
 interface ForecastResultsProps {
@@ -39,8 +37,6 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
 
   /** Get case count from either v2 `point` or v1 `cases` field */
   const getCases = (pred: ForecastPrediction): number => pred.point ?? pred.cases ?? 0;
-
-  const isV2 = results?.model_version?.startsWith('v2');
 
   const handleExportChart = () => {
     console.log('Export chart functionality would be implemented here');
@@ -225,34 +221,6 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                   )}
                 </div>
 
-                {/* Badges row */}
-                {isV2 && results.explanation && (
-                  <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border/50">
-                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary text-[10px] px-2 py-0.5">
-                      <Activity className="h-3 w-3 mr-1" />
-                      Enhanced AI Model
-                    </Badge>
-                    <Badge
-                      variant={results.explanation.confidence_level === 'high' ? 'default' : results.explanation.confidence_level === 'moderate' ? 'secondary' : 'destructive'}
-                      className="text-[10px] px-2 py-0.5"
-                    >
-                      <Shield className="h-3 w-3 mr-1" />
-                      {results.explanation.confidence_level === 'high' ? 'High certainty' : results.explanation.confidence_level === 'moderate' ? 'Moderate certainty' : 'Low certainty'}
-                    </Badge>
-                    {results.drift_status && (
-                      <Badge
-                        variant={results.drift_status.drift_detected ? 'destructive' : 'outline'}
-                        className="text-[10px] px-2 py-0.5"
-                      >
-                        {results.drift_status.drift_detected ? (
-                          <><XCircle className="h-3 w-3 mr-1" />Patterns shifting</>
-                        ) : (
-                          <><CheckCircle className="h-3 w-3 mr-1" />Patterns stable</>
-                        )}
-                      </Badge>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -265,9 +233,9 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <Shield className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-bold text-primary">Overall Risk Assessment</CardTitle>
+                      <CardTitle className="text-sm font-bold text-primary">How Risky Is It Right Now?</CardTitle>
                       <CardDescription className="text-xs">
-                        We combine disease trends, weather, news, and symptoms into one risk score.
+                        A simple score that tells you how worried to be, based on cases, weather, and news combined.
                       </CardDescription>
                     </div>
                   </div>
@@ -303,33 +271,87 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     </div>
                   </div>
 
-                  {/* Component breakdown */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {[
-                      { label: "Disease Trend", desc: "Are cases going up or down?", value: results.risk_fusion.components.forecast_trend, color: "blue" },
-                      { label: "Weather Risk", desc: "Is weather favoring disease spread?", value: results.risk_fusion.components.weather_suitability, color: "amber" },
-                      { label: "News Alerts", desc: "Are there outbreak reports?", value: results.risk_fusion.components.news_pressure, color: "red" },
-                      { label: "Reported Symptoms", desc: "Are people reporting symptoms?", value: results.risk_fusion.components.symptom_risk ?? 0, color: "purple" },
-                    ].map((comp, i) => (
-                      <div key={i} className="bg-white/60 rounded-xl p-2.5 text-center group cursor-default" title={comp.desc}>
-                        <p className="text-[10px] uppercase font-bold text-foreground/40 mb-1.5">{comp.label}</p>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1.5">
-                          <div
-                            className={`h-1.5 rounded-full transition-all duration-700 ${comp.color === 'blue' ? 'bg-blue-500' :
-                              comp.color === 'amber' ? 'bg-amber-500' :
-                                comp.color === 'red' ? 'bg-red-500' : 'bg-purple-500'
-                              }`}
-                            style={{ width: `${Math.min(comp.value * 100, 100)}%` }}
-                          />
+                  {/* Component breakdown — plain English status instead of raw % */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(() => {
+                      const describe = (value: number, labels: [string, string, string, string]) => {
+                        if (value >= 0.75) return { text: labels[0], tone: 'high' as const };
+                        if (value >= 0.5) return { text: labels[1], tone: 'medium' as const };
+                        if (value >= 0.25) return { text: labels[2], tone: 'low' as const };
+                        return { text: labels[3], tone: 'low' as const };
+                      };
+                      const items = [
+                        {
+                          icon: TrendingUp,
+                          title: "Disease Cases",
+                          ...describe(results.risk_fusion.components.forecast_trend, [
+                            "Rising sharply",
+                            "Climbing",
+                            "Holding steady",
+                            "Going down",
+                          ]),
+                        },
+                        {
+                          icon: CloudRain,
+                          title: "Weather",
+                          ...describe(results.risk_fusion.components.weather_suitability, [
+                            "Very favorable for spread",
+                            "Somewhat favorable",
+                            "Not a big factor",
+                            "Unfavorable — good news",
+                          ]),
+                        },
+                        {
+                          icon: Newspaper,
+                          title: "News Reports",
+                          ...describe(results.risk_fusion.components.news_pressure, [
+                            "Many outbreak stories",
+                            "A few outbreak stories",
+                            "Quiet in the news",
+                            "No relevant reports",
+                          ]),
+                        },
+                        {
+                          icon: Activity,
+                          title: "Symptoms Reported",
+                          ...describe(results.risk_fusion.components.symptom_risk ?? 0, [
+                            "Unusually high",
+                            "Slightly elevated",
+                            "Normal levels",
+                            "Very few reports",
+                          ]),
+                        },
+                      ];
+                      return items.map((item, i) => (
+                        <div
+                          key={i}
+                          className={`rounded-xl p-3 flex items-center gap-3 border ${item.tone === 'high'
+                            ? 'bg-destructive/5 border-destructive/20'
+                            : item.tone === 'medium'
+                              ? 'bg-amber-500/5 border-amber-500/20'
+                              : 'bg-emerald-500/5 border-emerald-500/20'
+                            }`}
+                        >
+                          <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${item.tone === 'high'
+                            ? 'bg-destructive/10 text-destructive'
+                            : item.tone === 'medium'
+                              ? 'bg-amber-500/10 text-amber-600'
+                              : 'bg-emerald-500/10 text-emerald-600'
+                            }`}>
+                            <item.icon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none mb-1">{item.title}</p>
+                            <p className={`text-sm font-semibold leading-tight ${item.tone === 'high'
+                              ? 'text-destructive'
+                              : item.tone === 'medium'
+                                ? 'text-amber-700'
+                                : 'text-emerald-700'
+                              }`}>{item.text}</p>
+                          </div>
                         </div>
-                        <p className={`text-xs font-bold ${comp.color === 'blue' ? 'text-blue-600' :
-                          comp.color === 'amber' ? 'text-amber-600' :
-                            comp.color === 'red' ? 'text-red-600' : 'text-purple-600'
-                          }`}>
-                          {(comp.value * 100).toFixed(0)}%
-                        </p>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -458,52 +480,100 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <Zap className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-bold text-primary">Current Conditions</CardTitle>
+                      <CardTitle className="text-sm font-bold text-primary">What's Happening Right Now</CardTitle>
                       <CardDescription className="text-xs">
-                        Live weather and news for {results.region} that may affect disease spread.
+                        Today's weather and recent news from {results.region} — things that can help or hurt disease spread.
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Weather */}
-                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Thermometer className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Temperature</span>
+                <CardContent className="space-y-3">
+                  {/* One-line plain English summary of current conditions */}
+                  {(() => {
+                    const temp = results.live_insights.temperature ?? 0;
+                    const humidity = results.live_insights.humidity ?? 0;
+                    const rain = results.live_insights.precipitation ?? 0;
+                    const warm = temp >= 22 && temp <= 32;
+                    const humid = humidity >= 70;
+                    const rainy = rain >= 5;
+                    const favorable = (warm && humid) || (warm && rainy);
+                    return (
+                      <div className={`rounded-xl p-3 border text-sm ${favorable ? 'bg-amber-500/5 border-amber-500/20 text-amber-800' : 'bg-emerald-500/5 border-emerald-500/20 text-emerald-800'}`}>
+                        <p className="leading-relaxed">
+                          <strong className="font-semibold">In short:</strong>{' '}
+                          {favorable
+                            ? "Warm and humid conditions — these tend to help diseases like malaria spread."
+                            : "Conditions are not especially favorable for disease spread right now."}
+                        </p>
                       </div>
-                      <span className="text-sm font-bold text-primary">{results.live_insights.temperature}°C</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Humidity & Rainfall</span>
-                      </div>
-                      <span className="text-sm font-bold text-primary">{results.live_insights.humidity}% ({(results.live_insights.precipitation || 0).toFixed(1)}mm)</span>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
-                  {/* News */}
-                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Newspaper className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Recent Health News</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Weather */}
+                    <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Thermometer className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none mb-1">Temperature</p>
+                          <p className="text-sm font-semibold text-primary leading-tight">
+                            {results.live_insights.temperature}°C
+                            <span className="ml-2 text-xs font-normal text-foreground/60">
+                              {(results.live_insights.temperature ?? 0) >= 30 ? '· Hot'
+                                : (results.live_insights.temperature ?? 0) >= 22 ? '· Warm'
+                                  : (results.live_insights.temperature ?? 0) >= 15 ? '· Mild'
+                                    : '· Cool'}
+                            </span>
+                          </p>
+                        </div>
                       </div>
-                      <Badge variant="outline" className="text-[10px] bg-white/50 border-white/60 text-primary">
-                        {results.live_insights.news_articles_found} Articles
-                      </Badge>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <CloudRain className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none mb-1">Humidity & Rain</p>
+                          <p className="text-sm font-semibold text-primary leading-tight">
+                            {results.live_insights.humidity}% humid
+                            <span className="ml-2 text-xs font-normal text-foreground/60">
+                              {(results.live_insights.precipitation ?? 0) >= 10 ? '· Heavy rain'
+                                : (results.live_insights.precipitation ?? 0) >= 2 ? '· Some rain'
+                                  : '· Dry'}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
-                      <ul className="space-y-1 text-[11px] text-foreground/80 list-disc pl-4">
-                        {results.live_insights.top_headlines.map((headline, idx) => (
-                          <li key={idx} className="leading-snug tracking-tight">{headline}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic tracking-tight">No outbreak-related news found right now — that's a good sign.</p>
-                    )}
+
+                    {/* News */}
+                    <div className="bg-white/60 border border-white/80 p-3 rounded-xl">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Newspaper className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none mb-1">Recent Health News</p>
+                          <p className="text-sm font-semibold text-primary leading-tight">
+                            {results.live_insights.news_articles_found === 0
+                              ? "No outbreak stories"
+                              : results.live_insights.news_articles_found === 1
+                                ? "1 outbreak story"
+                                : `${results.live_insights.news_articles_found} outbreak stories`}
+                          </p>
+                        </div>
+                      </div>
+                      {results.live_insights.top_headlines && results.live_insights.top_headlines.length > 0 ? (
+                        <ul className="space-y-1 text-[11px] text-foreground/70 list-disc pl-4 mt-1">
+                          {results.live_insights.top_headlines.slice(0, 3).map((headline, idx) => (
+                            <li key={idx} className="leading-snug tracking-tight">{headline}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic tracking-tight">Nothing concerning in the news right now — a good sign.</p>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -518,66 +588,77 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <Brain className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-bold text-primary">Why This Forecast?</CardTitle>
+                      <CardTitle className="text-sm font-bold text-primary">What's Behind This Prediction?</CardTitle>
                       <CardDescription className="text-xs">
-                        Here's what influenced this prediction and any special conditions we detected.
+                        The main things we looked at, and anything unusual we noticed while making this forecast.
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Key Factors */}
-                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-foreground/40">Key Factors</p>
-                    {results.explanation.top_drivers.slice(0, 5).map((driver, idx) => {
-                      const friendlyNames: Record<string, string> = {
-                        'temperature': 'Temperature',
-                        'humidity': 'Humidity',
-                        'precipitation': 'Rainfall',
-                        'cases lag 1': 'Last week\'s cases',
-                        'cases lag 2': 'Cases 2 weeks ago',
-                        'cases lag 3': 'Cases 3 weeks ago',
-                        'cases lag 4': 'Cases a month ago',
-                        'cases lag 5': 'Cases 5 weeks ago',
-                        'cases lag 6': 'Cases 6 weeks ago',
-                        'cases lag 7': 'Cases 7 weeks ago',
-                        'cases lag 8': 'Cases 2 months ago',
-                        'week sin': 'Week of the year',
-                        'week cos': 'Seasonal timing',
-                        'month sin': 'Time of year',
-                        'month cos': 'Seasonal cycle',
-                        'region id': 'Region',
-                        'temp c mean': 'Average temperature',
-                        'humidity mean': 'Average humidity',
-                        'precip mm sum': 'Total rainfall',
-                        'weather risk': 'Weather-related risk',
-                        'news count': 'Number of news reports',
-                        'news risk score': 'News alert level',
-                        'missing weather': 'Weather data availability',
-                        'missing news': 'News data availability',
-                        'trend': 'Overall trend',
-                        'rolling mean 4': 'Recent 4-week average',
-                        'rolling std 4': 'How much cases vary',
-                        'rolling mean 8': 'Recent 8-week average',
-                        'rolling std 8': 'Longer-term variability',
-                        'news pressure': 'News reports',
-                        'pop density': 'Population density',
-                        'cases diff 1': 'Weekly change in cases',
-                        'is monsoon': 'Monsoon season',
+                  {/* Key Factors — plain English, no percentages */}
+                  <div className="bg-white/60 border border-white/80 p-3 rounded-xl">
+                    <p className="text-[10px] uppercase font-bold text-foreground/40 mb-2">What We Looked At</p>
+                    {(() => {
+                      const drivers = results.explanation.top_drivers.slice(0, 5);
+                      const categorize = (feature: string): { group: string; plain: string } => {
+                        const f = feature.toLowerCase().replace(/_/g, ' ');
+                        if (f.includes('cases lag') || f.includes('cases diff') || f.includes('rolling') || f.includes('slope') || f.includes('ratio') || f.includes('trend'))
+                          return { group: 'cases', plain: 'how cases have been changing over recent weeks' };
+                        if (f.includes('temp') || f.includes('humidity') || f.includes('precip') || f.includes('rain') || f.includes('weather'))
+                          return { group: 'weather', plain: 'current weather conditions (temperature, humidity, rainfall)' };
+                        if (f.includes('week') || f.includes('month') || f.includes('season') || f.includes('monsoon'))
+                          return { group: 'season', plain: 'the time of year and seasonal patterns' };
+                        if (f.includes('news'))
+                          return { group: 'news', plain: 'recent health news and outbreak reports' };
+                        if (f.includes('region') || f.includes('pop'))
+                          return { group: 'region', plain: 'this specific region and its population' };
+                        return { group: 'other', plain: 'other historical signals' };
                       };
-                      const label = friendlyNames[driver.feature.replace(/_/g, ' ')] || driver.feature.replace(/_/g, ' ');
+
+                      const seen = new Set<string>();
+                      const uniqueDescriptions: string[] = [];
+                      drivers.forEach((d) => {
+                        const { group, plain } = categorize(d.feature);
+                        if (!seen.has(group)) {
+                          seen.add(group);
+                          uniqueDescriptions.push(plain);
+                        }
+                      });
+
+                      const topGroup = drivers.length > 0 ? categorize(drivers[0].feature).group : null;
+                      const mostImportant: Record<string, string> = {
+                        cases: "The biggest clue was how cases have been moving over the last few weeks.",
+                        weather: "Weather was the strongest signal this week.",
+                        season: "The time of year played the biggest role in this prediction.",
+                        news: "Recent health news reports stood out the most.",
+                        region: "Patterns specific to this region mattered most.",
+                        other: "A mix of historical signals shaped this forecast.",
+                      };
+
                       return (
-                        <div key={idx} className="flex items-center justify-between">
-                          <span className="text-xs text-foreground/70 truncate mr-2">{label}</span>
-                          <div className="flex items-center gap-2 min-w-[80px]">
-                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                              <div className="h-1.5 rounded-full bg-primary transition-all duration-700" style={{ width: `${Math.min(driver.importance * 100, 100)}%` }} />
+                        <div className="space-y-2.5">
+                          {topGroup && (
+                            <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                              {mostImportant[topGroup]}
+                            </p>
+                          )}
+                          {uniqueDescriptions.length > 1 && (
+                            <div className="pt-2 border-t border-border/40">
+                              <p className="text-[11px] text-foreground/60 mb-1.5">It also took into account:</p>
+                              <ul className="space-y-1">
+                                {uniqueDescriptions.slice(1).map((desc, idx) => (
+                                  <li key={idx} className="flex items-start gap-1.5 text-xs text-foreground/70 leading-snug">
+                                    <span className="text-primary/60 mt-0.5">•</span>
+                                    <span>{desc}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                            <span className="text-[10px] font-bold text-primary w-10 text-right">{(driver.importance * 100).toFixed(0)}%</span>
-                          </div>
+                          )}
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
                   {/* What We Noticed */}
                   <div className="bg-white/60 border border-white/80 p-3 rounded-xl space-y-3">
@@ -594,49 +675,21 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <p className="text-xs text-muted-foreground italic">Nothing unusual detected — all factors are within normal ranges.</p>
                     )}
 
-                    {/* Model Reliability */}
-                    <div className="pt-2 border-t border-border/40 space-y-2">
-                      <div className="flex items-center gap-1.5">
-                        <Info className="h-3 w-3 text-foreground/40" />
-                        <p className="text-[10px] uppercase font-bold text-foreground/40">Model Reliability</p>
+                    {/* How sure are we? — plain-language confidence summary */}
+                    {results.explanation.confidence_level && (
+                      <div className="pt-2 border-t border-border/40">
+                        <div className="flex items-start gap-2">
+                          <Info className="h-3.5 w-3.5 text-foreground/40 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-foreground/70 leading-relaxed">
+                            {results.explanation.confidence_level === 'high'
+                              ? 'We\'re fairly confident in this forecast — the patterns in recent weeks are clear.'
+                              : results.explanation.confidence_level === 'moderate'
+                                ? 'This forecast is a reasonable estimate, but conditions could still surprise us.'
+                                : 'Take this forecast with caution — the data shows some uncertainty.'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-1.5">
-                        {results.explanation.confidence_level && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/60">Confidence</span>
-                            <Badge
-                              variant={results.explanation.confidence_level === 'high' ? 'default' : results.explanation.confidence_level === 'moderate' ? 'secondary' : 'destructive'}
-                              className="text-[10px] capitalize"
-                            >
-                              {results.explanation.confidence_level}
-                            </Badge>
-                          </div>
-                        )}
-                        {results.explanation.model_agreement !== undefined && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/60">Model Agreement</span>
-                            <span className="text-xs font-bold text-primary">{(results.explanation.model_agreement * 100).toFixed(0)}%</span>
-                          </div>
-                        )}
-                        {results.explanation.interval_relative_width !== undefined && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/60">Prediction Spread</span>
-                            <span className="text-xs font-bold text-foreground/70">{(results.explanation.interval_relative_width * 100).toFixed(0)}%</span>
-                          </div>
-                        )}
-                        {results.drift_status && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/60">Pattern Stability</span>
-                            <Badge
-                              variant={results.drift_status.drift_detected ? 'destructive' : 'outline'}
-                              className="text-[10px]"
-                            >
-                              {results.drift_status.drift_detected ? 'Shifting' : 'Stable'}
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
