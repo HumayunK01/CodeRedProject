@@ -64,6 +64,15 @@ export const healthStatusSchema = z.object({
   timestamp: z.string().optional(),
 });
 
+export const comparisonForecastSchema = z.object({
+  regions: z
+    .array(z.string().min(1))
+    .min(2, 'Select at least 2 regions to compare')
+    .max(5, 'Maximum 5 regions allowed'),
+  horizon_weeks: z.number().min(1, 'Minimum 1 week').max(14, 'Maximum 14 weeks'),
+});
+
 export type SymptomsFormData = z.infer<typeof symptomsSchema>;
 export type ForecastFormData = z.infer<typeof forecastSchema>;
+export type ComparisonForecastFormData = z.infer<typeof comparisonForecastSchema>;
 export type ImageUploadData = z.infer<typeof imageUploadSchema>;

@@ -167,3 +167,16 @@ export interface ApiError {
     message: string;
   };
 }
+
+export interface RankedForecastResult {
+  rank: number;
+  result: ForecastResult;
+  avgProjectedCases: number;
+  failed?: boolean;
+  errorMessage?: string;
+}
+
+export interface ComparisonPayload {
+  horizon_weeks: number;
+  ranked: RankedForecastResult[];
+}

@@ -4,8 +4,9 @@ import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ForecastForm } from "@/components/forecast/ForecastForm";
 import { ForecastResults } from "@/components/forecast/ForecastResults";
+import { ComparisonResults } from "@/components/forecast/ComparisonResults";
 import { ClinicalAdvisory } from "@/components/ui/clinical-advisory";
-import { ForecastResult } from "@/lib/types";
+import { ForecastResult, ComparisonPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -80,18 +81,39 @@ const ForecastResultsSkeleton = () => (
 
 const Forecast = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const [mode, setMode] = useState<'single' | 'comparison'>('single');
   const [results, setResults] = useState<ForecastResult | null>(null);
+  const [comparisonPayload, setComparisonPayload] = useState<ComparisonPayload | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleResult = (result: ForecastResult) => {
     setResults(result);
+    setComparisonPayload(null);
+    setMode('single');
     setIsLoading(false);
+  };
+
+  const handleComparisonResult = (payload: ComparisonPayload) => {
+    setComparisonPayload(payload);
+    setResults(null);
+    setMode('comparison');
+    setIsLoading(false);
+  };
+
+  const handleModeChange = (newMode: 'single' | 'comparison') => {
+    setMode(newMode);
+    if (newMode === 'single') {
+      setComparisonPayload(null);
+    } else {
+      setResults(null);
+    }
   };
 
   const handleLoading = (loading: boolean) => {
     setIsLoading(loading);
     if (loading) {
       setResults(null);
+      setComparisonPayload(null);
     }
   };
 
@@ -170,6 +192,8 @@ const Forecast = () => {
               <ForecastForm
                 onResult={handleResult}
                 onLoadingChange={handleLoading}
+                onComparisonResult={handleComparisonResult}
+                onModeChange={handleModeChange}
               />
             ) : <ForecastFormSkeleton />}
           </DashboardContainer>
@@ -182,19 +206,28 @@ const Forecast = () => {
               <SectionHeader
                 icon={TrendingUp}
                 title="Risk Projections"
-                subtitle="Analysis Results"
+                subtitle={mode === 'comparison' ? "Regional Comparison" : "Analysis Results"}
               />
               <p className="text-sm text-foreground/60 ml-1">
-                This section summarizes how outbreak risk is expected to change for the selected region and time period.
+                {mode === 'comparison'
+                  ? "Regions ranked by safety to travel, from safest to highest risk."
+                  : "This section summarizes how outbreak risk is expected to change for the selected region and time period."}
               </p>
             </div>
 
             <div className="flex-1">
               {isSignedIn ? (
-                <ForecastResults
-                  results={results}
-                  isLoading={isLoading}
-                />
+                mode === 'comparison' ? (
+                  <ComparisonResults
+                    payload={comparisonPayload}
+                    isLoading={isLoading}
+                  />
+                ) : (
+                  <ForecastResults
+                    results={results}
+                    isLoading={isLoading}
+                  />
+                )
               ) : <ForecastResultsSkeleton />}
             </div>
           </DashboardContainer>

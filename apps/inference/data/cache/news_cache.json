@@ -21,7 +21,7 @@
         "31 persons die of dengue in Maharashtra cities - Down To Earth"
       ]
     },
-    "timestamp": 1776837352.8811934
+    "timestamp": 1776851332.0633836
   },
   "news_Karnataka": {
     "data": {
@@ -106,5 +106,17 @@
       ]
     },
     "timestamp": 1772823559.3232558
+  },
+  "news_Rajasthan": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "Rajasthan CM Inspects Pachpadra Refinery After Major Fire Outbreak - Devdiscourse",
+        "5 Children Die In Suspected Illness Outbreak In Rajasthan's Salumbar, Health Minister Orders Probe - ETV Bharat",
+        "Encephalitis Outbreak in Rajasthan: 5 Children Dead, Health Alert Issued - Times Now"
+      ]
+    },
+    "timestamp": 1776852087.5295355
   }
 }
