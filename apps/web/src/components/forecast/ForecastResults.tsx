@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ForecastResult, ForecastPrediction } from "@/lib/types";
 import { ForecastChart } from "./ForecastChart";
 import { ForecastMap } from "./ForecastMap";
+import { DiseaseBadges } from "./DiseaseBadges";
 import {
   TrendingUp,
   Map,
@@ -205,20 +206,16 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                     </div>
                   </div>
 
-                  {results.disease && (
-                    <>
-                      <div className="h-8 w-px bg-border hidden sm:block" />
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-primary/10">
-                          <Activity className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none">Disease</p>
-                          <p className="text-base font-bold text-primary leading-tight">{results.disease}</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <div className="h-8 w-px bg-border hidden sm:block" />
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Activity className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-foreground/40 leading-none mb-1">Diseases</p>
+                      <DiseaseBadges variant="inline" />
+                    </div>
+                  </div>
                 </div>
 
               </CardContent>
@@ -401,6 +398,9 @@ export const ForecastResults = ({ results, isLoading }: ForecastResultsProps) =>
                       <CardDescription className="text-xs">
                         How many cases we expect each week. {combinedData.some(d => d.p10) && 'The shaded area shows the range of possibilities.'}
                       </CardDescription>
+                      <div className="mt-1.5">
+                        <DiseaseBadges variant="minimal" />
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1 bg-secondary/30 p-0.5 rounded-lg self-end sm:self-auto">

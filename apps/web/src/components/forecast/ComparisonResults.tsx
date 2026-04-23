@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ForecastChart } from "@/components/forecast/ForecastChart";
 import { ForecastMap } from "@/components/forecast/ForecastMap";
+import { DiseaseBadges } from "@/components/forecast/DiseaseBadges";
 import {
   ComparisonPayload,
   RankedForecastResult,
@@ -96,14 +97,17 @@ const ComparisonOverviewChart = ({ items }: { items: RankedForecastResult[] }) =
 
   return (
     <div className="rounded-2xl border border-gray-200/60 bg-white p-5 sm:p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+      <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-primary/5 border border-primary/10">
             <BarChart3 className="h-3.5 w-3.5 text-primary" />
           </div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">
-            Risk Score Comparison
-          </h3>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground tracking-tight">
+              Risk Score Comparison
+            </h3>
+            <DiseaseBadges variant="minimal" className="mt-0.5" />
+          </div>
         </div>
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
@@ -537,14 +541,26 @@ const RegionCard = ({
               </TabsContent>
 
               {/* Chart */}
-              <TabsContent value="chart" className="pt-4 mt-0">
+              <TabsContent value="chart" className="pt-4 mt-0 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+                    Weekly Projection — {result.region}
+                  </p>
+                  <DiseaseBadges variant="inline" />
+                </div>
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <ForecastChart data={chartData} />
                 </div>
               </TabsContent>
 
               {/* Map */}
-              <TabsContent value="map" className="pt-4 mt-0">
+              <TabsContent value="map" className="pt-4 mt-0 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+                    Hotspots — {result.region}
+                  </p>
+                  <DiseaseBadges variant="inline" />
+                </div>
                 <ForecastMap region={result.region} hotspots={result.hotspots} />
               </TabsContent>
             </Tabs>
@@ -625,7 +641,7 @@ export const ComparisonResults = ({
   return (
     <div className="space-y-5">
       {/* Top banner */}
-      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-4 sm:p-5">
+      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-white border border-primary/10 shadow-sm">
@@ -657,6 +673,9 @@ export const ComparisonResults = ({
               </div>
             </div>
           )}
+        </div>
+        <div className="pt-2 border-t border-primary/10">
+          <DiseaseBadges variant="header" />
         </div>
       </div>
 
