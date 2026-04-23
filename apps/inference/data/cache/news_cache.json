@@ -118,5 +118,17 @@
       ]
     },
     "timestamp": 1776870538.3892865
+  },
+  "news_Punjab": {
+    "data": {
+      "article_count": 100,
+      "news_risk_score": 1.6,
+      "headlines": [
+        "\u201cCybercrime in our nation operates akin to a silent virus\u201d: Punjab & Haryana High Court denies bail in digital arrest case - SCC Online",
+        "'Cybercrime Akin To Silent Virus': Punjab & Haryana High Court Declines Anticipatory Bail To Man Booked... - Live Law",
+        "Punjab and Haryana High Court says \u2018silent virus\u2019, denies relief to 23-year-old in Rs 6.80 crore \u2018digital arrest\u2019 case - The Indian Express"
+      ]
+    },
+    "timestamp": 1776871221.7325664
   }
 }

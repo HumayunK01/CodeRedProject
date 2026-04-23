@@ -10,12 +10,12 @@
   },
   "nowcast_Maharashtra": {
     "data": {
-      "temperature": 36.8,
-      "humidity": 23.0,
+      "temperature": 31.9,
+      "humidity": 33.0,
       "precipitation": 0.0,
-      "risk_multiplier": 1.0
+      "risk_multiplier": 1.2
     },
-    "timestamp": 1776837351.6897948
+    "timestamp": 1776871283.1320896
   },
   "nowcast_Karnataka": {
     "data": {
@@ -88,5 +88,14 @@
       "risk_multiplier": 1.0
     },
     "timestamp": 1776852086.1834443
+  },
+  "nowcast_Punjab": {
+    "data": {
+      "temperature": 31.7,
+      "humidity": 32.0,
+      "precipitation": 0.0,
+      "risk_multiplier": 1.2
+    },
+    "timestamp": 1776871220.266626
   }
 }
