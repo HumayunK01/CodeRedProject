@@ -37,7 +37,11 @@ export const ForecastForm = ({ onResult, onLoadingChange, onComparisonResult, on
   const { toast } = useToast();
   const { clerkId, isSignedIn } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [regions, setRegions] = useState<string[]>(["India", "Brazil", "United States", "Global"]);
+  const [regions, setRegions] = useState<string[]>([
+    "Assam", "Bihar", "Delhi", "Gujarat", "Haryana",
+    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Odisha",
+    "Punjab", "Rajasthan", "Tamil Nadu", "Uttar Pradesh", "West Bengal",
+  ]);
   const [scenarioEnabled, setScenarioEnabled] = useState(false);
   const [vectorControl, setVectorControl] = useState(0);
   const [netCoverage, setNetCoverage] = useState(0);
@@ -62,7 +66,7 @@ export const ForecastForm = ({ onResult, onLoadingChange, onComparisonResult, on
   const form = useForm<ForecastFormData>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-      region: "India",
+      region: "Maharashtra",
       horizon_weeks: 4,
     },
   });
