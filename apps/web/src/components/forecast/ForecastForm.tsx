@@ -9,7 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
-import { ForecastInput, ForecastResult, ComparisonPayload } from "@/lib/types";
+import { ForecastInput, ForecastResult, ForecastPrediction, ComparisonPayload } from "@/lib/types";
 import { forecastSchema, ForecastFormData, comparisonForecastSchema, ComparisonForecastFormData } from "@/lib/validations";
 import { StorageManager } from "@/lib/storage";
 import { ForecastService } from "@/lib/db";
@@ -73,7 +73,7 @@ export const ForecastForm = ({ onResult, onLoadingChange, onComparisonResult, on
 
   const watchedWeeks = form.watch("horizon_weeks");
 
-  const computeAvgCases = (predictions: any[]) => {
+  const computeAvgCases = (predictions: ForecastPrediction[]) => {
     if (!predictions || predictions.length === 0) return 0;
     const sum = predictions.reduce((acc, p) => acc + (p.point ?? p.cases ?? 0), 0);
     return sum / predictions.length;

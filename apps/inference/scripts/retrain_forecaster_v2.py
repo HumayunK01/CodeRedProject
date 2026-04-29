@@ -55,7 +55,6 @@ def main() -> int:
     print(f"Dataset: {data_path}  ({data_path.stat().st_size / 1024:.1f} KB)")
 
     # Snapshot existing model for comparison
-    existing_path = BASE_DIR / "models" / "adaptive_ensemble.pkl"
     existing_metadata_path = BASE_DIR / "models" / "ensemble_metadata.json"
     previous_metrics = None
     previous_features = None
