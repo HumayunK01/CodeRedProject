@@ -7,8 +7,8 @@
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.20-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
 
@@ -20,7 +20,7 @@
 
 > 🏥 **BE Final Year Major Project** | *"Diagnose Today. Predict Tomorrow."*
 
-[🚀 Quick Start](#-quick-start) • [📱 Screenshots](#-screenshots) • [🧠 ML Models](#-machine-learning-models) • [🏗️ Architecture](#-architecture) • [🔧 Tech Stack](#-tech-stack)
+[🚀 Quick Start](#-quick-start) • [📱 Screenshots](#-platform-screenshots) • [🧠 ML Models](#-machine-learning-models) • [🤖 AI Assistant](#-dr-foresee--ai-medical-assistant) • [🏗️ Architecture](#-system-architecture) • [🔧 Tech Stack](#-tech-stack)
 
 ---
 
@@ -32,11 +32,11 @@
 
 ### ✨ Key Capabilities
 
-| 🔬 Diagnosis | 📈 Forecasting | 🛡️ Safety | 📊 Analytics |
-|:---:|:---:|:---:|:---:|
-| 94.85% CNN Accuracy | Gradient Boosting Forecast | OOD Image Filtering | Real-time Dashboards |
-| 27,558 NIH Images | 1-12 Week Predictions | 7-Layer Security | Interactive Maps |
-| DHS Risk Screening | Hotspot Detection | RBAC Access Control | PDF Reports |
+| 🔬 Diagnosis | 📈 Forecasting | 🛡️ Safety | 📊 Analytics | 🤖 AI Assistant |
+|:---:|:---:|:---:|:---:|:---:|
+| 94.85% CNN Accuracy | Gradient Boosting Forecast | OOD Image Filtering | Real-time Dashboards | Dr. Foresee Chatbot |
+| 27,558 NIH Images | 1-12 Week Predictions | 7-Layer Security | Interactive Maps | Streaming Responses |
+| DHS Risk Screening | India-wide State Coverage | RBAC Access Control | PDF Reports | Smart Intake Form |
 
 ---
 
@@ -98,13 +98,36 @@ Out-of-distribution detection to reject invalid/non-medical images before CNN an
 ```
 outbreak_forecaster.pkl · scikit-learn (HistGradientBoostingRegressor)
 ```
-Sliding-window (8-week lookback) autoregressive forecaster predicting weekly case counts across regions. Uses `log1p` scaling to stabilise variance across countries with vastly different population sizes, and rolls the window forward for multi-week horizons (1–12 weeks).
+Sliding-window (8-week lookback) autoregressive forecaster predicting weekly case counts across **all 28 Indian states and 8 union territories**. Uses `log1p` scaling to stabilise variance across regions with vastly different population sizes, and rolls the window forward for multi-week horizons (1–12 weeks).
 
 ### 5. 🎯 Adaptive Ensemble Forecaster
 ```
 adaptive_ensemble.pkl · Gradient Boosting + Weather/News Signals
 ```
 Advanced ensemble model combining multiple base learners with live weather data and news sentiment analysis for improved outbreak prediction accuracy.
+
+---
+
+## 🤖 Dr. Foresee — AI Medical Assistant
+
+An always-available AI consultant integrated into the platform, specialised in malaria diagnosis support and platform navigation.
+
+### Features
+- **Streaming responses** — Server-Sent Events (SSE) parsing for token-by-token delivery, just like ChatGPT/Claude.
+- **Smart intake form** — When the AI asks for clinical details (age, sex, fever duration, location, bed-net use, severity, etc.), structured input fields appear above the chat box. Users fill what they can; answers are combined into a single contextual message and sent to the AI.
+- **Strict scope guardrails** — Refuses off-topic queries (politics, coding, etc.) and redirects to malaria/health topics.
+- **Mock fallback** — Hard-coded clinical responses when the API key is missing or rate-limited, so the UI never breaks.
+- **Markdown sanitisation** — Strips noisy markdown (headers, code fences, asterisks) for clean in-bubble rendering, while preserving tables.
+
+### Configuration
+```bash
+# In apps/web/.env.local
+VITE_OPENROUTER_API_KEY=sk-or-v1-...
+VITE_CHATBOT_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+# Or any OpenRouter model: anthropic/claude-3-5-sonnet, openai/gpt-4-turbo, etc.
+```
+
+Implementation lives in [apps/web/src/lib/chatbot.ts](apps/web/src/lib/chatbot.ts) (service) and [apps/web/src/components/ui/chatbot.tsx](apps/web/src/components/ui/chatbot.tsx) (UI).
 
 ---
 
@@ -325,9 +348,9 @@ flowchart TD
 | Technology | Purpose |
 |:---|:---|
 | Python 3.11 | Runtime |
-| Flask 3.0 | Web Framework |
-| TensorFlow 2.15 | Deep Learning |
-| scikit-learn | ML Models, Ensemble & Forecasting |
+| Flask 3.1 | Web Framework |
+| TensorFlow 2.20 | Deep Learning |
+| scikit-learn 1.7 | ML Models, Ensemble & Forecasting |
 | PostgreSQL | Database |
 
 ### Frontend
@@ -339,7 +362,15 @@ flowchart TD
 | Tailwind CSS | Styling |
 | shadcn/ui | Components |
 | Recharts | Visualizations |
+| Leaflet | Interactive Maps |
+| Framer Motion | Animations |
 | Clerk | Authentication |
+
+### AI Services
+| Technology | Purpose |
+|:---|:---|
+| OpenRouter | Chatbot LLM Gateway (streaming) |
+| Nemotron / Claude / GPT | Selectable chat models via env var |
 
 ### Database
 | Technology | Purpose |
@@ -467,9 +498,12 @@ FORESEE/
 │   ├── web/                    # React Frontend
 │   │   ├── src/
 │   │   │   ├── components/    # UI Components
-│   │   │   ├── pages/         # Route Pages
+│   │   │   │   └── ui/        # shadcn/ui + Chatbot widget
+│   │   │   ├── pages/         # Home, Diagnosis, Forecast,
+│   │   │   │                  # Dashboard, Reports, Admin,
+│   │   │   │                  # Privacy, Terms, Status, NotFound
 │   │   │   ├── hooks/         # Custom Hooks
-│   │   │   └── lib/           # Utilities
+│   │   │   └── lib/           # Utilities + chatbot service
 │   │   └── package.json
 │   │
 │   ├── inference/             # Flask ML Backend
