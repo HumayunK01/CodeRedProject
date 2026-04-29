@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
@@ -94,11 +94,61 @@ interface ChatbotProps {
   onToggle?: (open: boolean) => void;
 }
 
+// Generate contextual quick-reply suggestions based on the AI's last message
+const generateQuickReplies = (message: string): string[] => {
+  if (!message || !message.includes('?')) return [];
+  const lower = message.toLowerCase();
+
+  // Age questions
+  if (/\b(age|how old|years old)\b/.test(lower)) {
+    return ['Under 5 years', '5-17 years', '18-40 years', '41-65 years', 'Over 65'];
+  }
+
+  // Sex / pregnancy
+  if (/\b(sex|gender|male or female|pregnant|pregnancy)\b/.test(lower)) {
+    return ['Male', 'Female', 'Pregnant', 'Prefer not to say'];
+  }
+
+  // Duration / onset
+  if (/\b(how long|how many days|since when|when did|duration|onset)\b/.test(lower)) {
+    return ['Less than a day', '1-3 days', '3-7 days', 'More than a week'];
+  }
+
+  // Travel / location
+  if (/\b(travel|traveled|travelled|live|located|country|region|endemic)\b/.test(lower)) {
+    return ['I live in an endemic area', 'I traveled recently', 'Neither', 'Not sure'];
+  }
+
+  // Bed net / prevention
+  if (/\b(bed net|mosquito net|repellent|prophylaxis|antimalarial)\b/.test(lower)) {
+    return ['Yes, regularly', 'Sometimes', 'No', 'Not sure'];
+  }
+
+  // Symptom yes/no questions
+  if (/\b(do you have|are you|have you|experiencing)\b/.test(lower)) {
+    return ['Yes', 'No', 'Not sure'];
+  }
+
+  // Pre-existing conditions
+  if (/\b(condition|medication|medical history|prior|previous)\b/.test(lower)) {
+    return ['None', 'Yes, I have some', 'Tell me more'];
+  }
+
+  // Severity
+  if (/\b(severe|severity|intensity|how bad|mild|moderate)\b/.test(lower)) {
+    return ['Mild', 'Moderate', 'Severe'];
+  }
+
+  // Generic fallback for any question
+  return ['Yes', 'No', 'Tell me more'];
+};
+
 export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
   const location = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -131,51 +181,68 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
     }
   }, [inputValue]);
 
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+  const sendUserMessage = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue.trim(),
+      content: trimmed,
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const assistantId = (Date.now() + 1).toString();
+    const assistantMessage: ChatMessage = {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage, assistantMessage]);
     setInputValue('');
     setIsLoading(true);
+    setStreamingMessageId(assistantId);
 
     try {
-      const response = await chatbotService.sendMessage([...messages, userMessage], {
-        context: `User is currently viewing page: ${location.pathname}`
-      });
-
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      await chatbotService.sendMessageStream(
+        [...messages, userMessage],
+        (fullText) => {
+          setMessages(prev => prev.map(m =>
+            m.id === assistantId ? { ...m, content: fullText } : m
+          ));
+        },
+        {
+          context: `User is currently viewing page: ${location.pathname}`
+        }
+      );
     } catch (error) {
       console.error('Chatbot error:', error);
-
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'I apologize, but I\'m experiencing some technical difficulties right now. Please try again in a moment, or consult with healthcare professionals for medical advice.',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => prev.map(m =>
+        m.id === assistantId
+          ? { ...m, content: 'I apologize, but I\'m experiencing some technical difficulties right now. Please try again in a moment, or consult with healthcare professionals for medical advice.' }
+          : m
+      ));
     } finally {
       setIsLoading(false);
-      // Re-focus input after sending
+      setStreamingMessageId(null);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
+
+  const handleSendMessage = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    sendUserMessage(inputValue);
+  };
+
+  // Compute quick replies from the latest assistant message
+  const quickReplies = useMemo(() => {
+    if (isLoading || messages.length === 0) return [];
+    const last = messages[messages.length - 1];
+    if (last.role !== 'assistant' || !last.content) return [];
+    return generateQuickReplies(last.content);
+  }, [messages, isLoading]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -238,58 +305,80 @@ export const Chatbot = ({ className = '', isOpen, onToggle }: ChatbotProps) => {
                 </div>
               </ChatBubble>
             )}
-            {messages.map((message) => (
-              <ChatBubble
-                key={message.id}
-                variant={message.role === "user" ? "sent" : "received"}
-              >
-                <ChatBubbleAvatar
-                  fallback={message.role === "user" ? "US" : "AI"}
-                  src={message.role === "assistant" ? "/graphimage.png" : "/user.png"}
-                  className={message.role === "assistant" ? "bg-primary/10 text-primary" : "bg-muted"}
-                />
-                <div className={cn(
-                  "flex flex-col gap-1 w-full max-w-[85%]",
-                  message.role === "user" ? "items-end" : "items-start"
-                )}>
-                  <ChatBubbleMessage
-                    variant={message.role === "user" ? "sent" : "received"}
-                    className={
-                      message.role === "user"
-                        ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-md"
-                        : "bg-white dark:bg-muted shadow-sm border border-border/50"
-                    }
-                  >
-                    {/* Render message content with table support */}
-                    <MessageContent content={message.content} />
-                  </ChatBubbleMessage>
+            {messages.map((message) => {
+              const isStreamingThis = streamingMessageId === message.id;
+              const isEmptyStreaming = isStreamingThis && message.content.length === 0;
 
+              return (
+                <ChatBubble
+                  key={message.id}
+                  variant={message.role === "user" ? "sent" : "received"}
+                >
+                  <ChatBubbleAvatar
+                    fallback={message.role === "user" ? "US" : "AI"}
+                    src={message.role === "assistant" ? "/graphimage.png" : "/user.png"}
+                    className={message.role === "assistant" ? "bg-primary/10 text-primary" : "bg-muted"}
+                  />
                   <div className={cn(
-                    "flex px-1 mt-1 text-muted-foreground",
-                    message.role === "user" ? "justify-end" : "justify-start"
+                    "flex flex-col gap-1 w-full max-w-[85%]",
+                    message.role === "user" ? "items-end" : "items-start"
                   )}>
-                    <span className="text-[10px]">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                </div>
-              </ChatBubble>
-            ))}
+                    <ChatBubbleMessage
+                      variant={message.role === "user" ? "sent" : "received"}
+                      isLoading={isEmptyStreaming}
+                      className={
+                        message.role === "user"
+                          ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-md"
+                          : "bg-white dark:bg-muted shadow-sm border border-border/50"
+                      }
+                    >
+                      {!isEmptyStreaming && (
+                        <>
+                          <MessageContent content={message.content} />
+                          {isStreamingThis && (
+                            <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-primary/70 align-middle animate-pulse" />
+                          )}
+                        </>
+                      )}
+                    </ChatBubbleMessage>
 
-            {isLoading && (
-              <ChatBubble variant="received">
-                <ChatBubbleAvatar
-                  src="/graphimage.png"
-                  fallback="AI"
-                  className="bg-primary/10 text-primary"
-                />
-                <ChatBubbleMessage isLoading />
-              </ChatBubble>
-            )}
+                    {!isEmptyStreaming && (
+                      <div className={cn(
+                        "flex px-1 mt-1 text-muted-foreground",
+                        message.role === "user" ? "justify-end" : "justify-start"
+                      )}>
+                        <span className="text-[10px]">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </ChatBubble>
+              );
+            })}
           </ChatMessageList>
         </ExpandableChatBody>
 
         <ExpandableChatFooter className="bg-background/40 backdrop-blur-md p-3 border-t">
+          {quickReplies.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2.5 px-0.5">
+              {quickReplies.map((reply) => (
+                <motion.button
+                  key={reply}
+                  type="button"
+                  onClick={() => sendUserMessage(reply)}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-full border border-border/60 bg-background/80 text-foreground/80 hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-colors shadow-sm"
+                  disabled={isLoading}
+                >
+                  {reply}
+                </motion.button>
+              ))}
+            </div>
+          )}
           <form
             onSubmit={handleSendMessage}
             className="flex flex-col gap-2"
