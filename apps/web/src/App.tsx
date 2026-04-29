@@ -22,6 +22,8 @@ import Status from "./pages/Status";
 import Usecase from "./pages/Usecase";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 // Layout
 import { MainLayout } from "./components/layout/MainLayout";
@@ -49,6 +51,8 @@ const AnimatedRoutes = () => {
           <Route path="/status" element={<Status />} />
           <Route path="/usecase" element={<Usecase />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>
